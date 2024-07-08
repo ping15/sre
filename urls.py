@@ -14,6 +14,8 @@ specific language governing permissions and limitations under the License.
 from django.conf.urls import include, url
 from django.contrib import admin
 
+# from common.swagger import swagger_schema_view
+
 urlpatterns = [
     url(r"^admin/", admin.site.urls),
     url(r"^account/", include("blueapps.account.urls")),
@@ -24,4 +26,10 @@ urlpatterns = [
     # 这里的 mako_application 可以改成你想要的名字
     url(r"^mako/", include("mako_application.urls")),
     url(r"^i18n/", include("django.conf.urls.i18n")),
+
+    url(r"^api/files/", include("drf_file_upload.urls")),
+    url(r"^api/platform_management/", include("apps.platform_management.urls")),
+
+    # url(r"^swagger/", swagger_schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    # url(r"^redoc/", swagger_schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
