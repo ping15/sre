@@ -1,0 +1,46 @@
+apps/
+├── platform_management/ # 平台管理
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── tests.py
+│   ├── views/
+│   │   ├── __init__.py
+│   │   ├── client_approval.py # 客户资料审批
+│   │   ├── all_courses.py # 全部课程
+│   │   ├── all_schedules.py # 全部日程
+│   │   ├── course_templates.py # 课程模板
+│   │   ├── instructors.py # 讲师
+│   │   ├── survey_templates.py # 调查问卷模板
+│   │   ├── client_companies.py # 客户公司
+│   │   ├── client_students.py # 客户学员
+│   │   ├── management_companies.py # 管理公司
+│   │   └── administrators.py # 管理员
+│   └── urls.py
+├── teaching_space/ # 授课空间
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── tests.py
+│   ├── views/
+│   │   ├── __init__.py
+│   │   ├── company_info.py # 公司信息
+│   │   ├── client_students.py # 客户学员
+│   │   ├── training_classes.py # 培训班
+│   │   └── schedules.py # 日程
+│   └── urls.py
+└── my_lectures/ # 我的讲课
+    ├── __init__.py
+    ├── admin.py
+    ├── apps.py
+    ├── models.py
+    ├── tests.py
+    ├── views/
+    │   ├── __init__.py
+    │   ├── my_tasks.py # 我的事项
+    │   ├── my_courses.py # 我的课程
+    │   ├── my_schedules.py # 我的日程
+    │   └── basic_info.py # 基本信息
+    └── urls.py
