@@ -23,7 +23,7 @@ function internalError(xhr, textStatus) {
 			<img src="${remote_static_url}v3/components/exception_500/images/expre_500.png">
 			<h2>系统出现异常</h2>
 			<p>${message}</p>
-		</div> 
+		</div>
 	`;
 
   art.dialog({
@@ -49,7 +49,7 @@ function accessDeny(xhr) {
 			<img src="${remote_static_url}v3/components/exception_403/images/expre_403.png">
 			<h2>系统权限不足</h2>
 			<p>${message}</p>
-		</div> 
+		</div>
 	`;
 
   art.dialog({

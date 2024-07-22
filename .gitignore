@@ -17,3 +17,5 @@ local_settings.py
 model_design.py
 
 media
+
+common/data

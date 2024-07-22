@@ -18,11 +18,11 @@ img {
 }
 /*nav*/
 .container {
-    width:auto; 
+    width:auto;
     width: 1100px!important;
 }
 .navbar.navbar-mt0{
-	margin-bottom: 0!important; 
+	margin-bottom: 0!important;
 }
 .navbar .avatar .crown {
     position: absolute;
@@ -52,12 +52,12 @@ img {
     transform: translateY(-50%);
 }
 .page-arrow .frame-explain{
-    margin: auto;  
-    position: absolute;  
-    top: 20%; 
-    left: 0; 
-    bottom: 0; 
-    right: 0; 
+    margin: auto;
+    position: absolute;
+    top: 20%;
+    left: 0;
+    bottom: 0;
+    right: 0;
 }
 .page-arrow .title-word{
 	font-size: 24px;
@@ -73,7 +73,7 @@ img {
 .page-arrow .title-word-second p>small{
 	color:#ffffff;
 	font-size: 42px;
-	font-weight: bold;	
+	font-weight: bold;
 }
 .page-arrow .cutting-line{
 	width: 160px;
@@ -93,7 +93,7 @@ img {
 .foot {
     padding: 14px 0;
     color: #636363;
-    text-align: center;   
+    text-align: center;
 }
 .foot ul li a{
 	color: #1d91ec;
@@ -181,7 +181,7 @@ img {
     color:#fff;
     text-align: center;
     margin-bottom: 0;
-    
+
 }
 .page_index .king-step3 li h4{
     font-size: 16px;
@@ -213,7 +213,7 @@ img {
     position: relative;
     overflow: visible;
 }
-/*contactus.html*/  
+/*contactus.html*/
 .page-contactus{
     min-height: calc(100% - 231px)
 }

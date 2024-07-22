@@ -6,12 +6,14 @@ from apps.platform_management.models import CourseTemplate
 
 
 class CourseTemplateFilterClass(django_filters.FilterSet):
-    name = django_filters.CharFilter(field_name="name", lookup_expr='icontains')
-    course_overview = django_filters.CharFilter(field_name="course_overview", lookup_expr='icontains')
+    name = django_filters.CharFilter(field_name="name", lookup_expr="icontains")
+    course_overview = django_filters.CharFilter(
+        field_name="course_overview", lookup_expr="icontains"
+    )
 
     class Meta:
         model = CourseTemplate
-        fields = ['name', 'course_overview']
+        fields = ["name", "course_overview"]
 
 
 class CourseTemplateOrderingFilter(OrderingFilter):
@@ -23,13 +25,26 @@ class CourseTemplateOrderingFilter(OrderingFilter):
         my_ordering = []
         for field in ordering_fields:
             reverse = field.startswith("-")
-            if field.lstrip("-") == 'status':
-                status_ordering_rule = CourseTemplate.STATUS_ORDERING_RULE if not reverse else \
-                    [(field, score) for score, (field, _) in enumerate(CourseTemplate.STATUS_ORDERING_RULE)]
-                my_ordering.append(Case(
-                    *[When(status=status, then=value) for status, value in status_ordering_rule],
-                    output_field=IntegerField()
-                ))
+            if field.lstrip("-") == "status":
+                status_ordering_rule = (
+                    CourseTemplate.STATUS_ORDERING_RULE
+                    if not reverse
+                    else [
+                        (field, score)
+                        for score, (field, _) in enumerate(
+                            CourseTemplate.STATUS_ORDERING_RULE
+                        )
+                    ]
+                )
+                my_ordering.append(
+                    Case(
+                        *[
+                            When(status=status, then=value)
+                            for status, value in status_ordering_rule
+                        ],
+                        output_field=IntegerField()
+                    )
+                )
             else:
                 my_ordering.append(field)
 

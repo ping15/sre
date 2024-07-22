@@ -17,10 +17,13 @@ class FileUploadView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             attachment_instance = serializer.save()
-            return Response({
-                'id': attachment_instance.id,
-                'file_name': attachment_instance.file.name.split('/')[-1],
-            }, status=status.HTTP_201_CREATED)
+            return Response(
+                {
+                    "id": attachment_instance.id,
+                    "file_name": attachment_instance.file.name.split("/")[-1],
+                },
+                status=status.HTTP_201_CREATED,
+            )
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -31,6 +34,10 @@ class FileDownloadView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
         try:
             attachment = self.get_object()
-            return FileResponse(attachment.file, as_attachment=True, filename=attachment.file.name.split('/')[-1])
+            return FileResponse(
+                attachment.file,
+                as_attachment=True,
+                filename=attachment.file.name.split("/")[-1],
+            )
         except Attachment.DoesNotExist:
             raise Http404
