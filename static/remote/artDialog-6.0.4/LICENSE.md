@@ -25,4 +25,3 @@ artDialog v6 商业授权费用：￥999
 ###	联系
 
 <sugarpie.tang@gmail.com>
-

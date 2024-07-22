@@ -10,13 +10,13 @@ apps/
 │   │   ├── client_approval.py # 客户资料审批
 │   │   ├── all_courses.py # 全部课程
 │   │   ├── all_schedules.py # 全部日程
-│   │   ├── course_templates.py # 课程模板
-│   │   ├── instructors.py # 讲师
-│   │   ├── survey_templates.py # 调查问卷模板
-│   │   ├── client_companies.py # 客户公司
-│   │   ├── client_students.py # 客户学员
-│   │   ├── management_companies.py # 管理公司
-│   │   └── administrators.py # 管理员
+│   │   ├── course_template.py # 课程模板
+│   │   ├── instructor.py # 讲师
+│   │   ├── survey_template.py # 调查问卷模板
+│   │   ├── client_company.py # 客户公司
+│   │   ├── client_student.py # 客户学员
+│   │   ├── management_company.py # 管理公司
+│   │   └── administrator.py # 管理员
 │   └── urls.py
 ├── teaching_space/ # 授课空间
 │   ├── __init__.py
@@ -39,8 +39,8 @@ apps/
     ├── tests.py
     ├── views/
     │   ├── __init__.py
-    │   ├── my_tasks.py # 我的事项
-    │   ├── my_courses.py # 我的课程
-    │   ├── my_schedules.py # 我的日程
+    │   ├── my_task.py # 我的事项
+    │   ├── my_course.py # 我的课程
+    │   ├── my_schedule.py # 我的日程
     │   └── basic_info.py # 基本信息
     └── urls.py

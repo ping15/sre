@@ -42,14 +42,14 @@ result = client.cc.get_app_host_list(kwargs)
 ```
 from blueking.component.client import ComponentClient
 # APP信息
-bk_app_code = 'xxx' 
-bk_app_secret = 'xxx' 
+bk_app_code = 'xxx'
+bk_app_secret = 'xxx'
 # 用户信息
 common_args = {'bk_token': 'xxx'}
 # APP信息bk_app_code, bk_app_secret如未提供，从环境配置获取
 client = ComponentClient(
-    bk_app_code=bk_app_code, 
-    bk_app_secret=bk_app_secret, 
+    bk_app_code=bk_app_code,
+    bk_app_secret=bk_app_secret,
     common_args=common_args
 )
 kwargs = {'bk_biz_id': 1}
