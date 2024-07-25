@@ -17,7 +17,7 @@ class TrainingClass(models.Model):
     #     verbose_name=_("课程"),
     #     on_delete=models.CASCADE,
     # )
-    course_name = models.CharField(_("课程"), max_length=64, unique=True)
+    course_name = models.CharField(_("课程"), max_length=64)
     session_number = models.CharField(_("课程期数"), max_length=32)
     status = models.CharField(
         _("状态"),
@@ -57,6 +57,7 @@ class TrainingClass(models.Model):
         related_name="training_classes",
         verbose_name=_("讲师"),
         on_delete=models.CASCADE,
+        null=True,
     )
     hours_per_lesson = models.IntegerField(_("课程课时"), default=6)
 

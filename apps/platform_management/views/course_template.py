@@ -9,15 +9,15 @@ from apps.platform_management.serialiers.course_template import (
     CourseTemplateCreateSerializer,
     CourseTemplateListSerializer,
 )
-from common.utils.modelviewset import ModelViewSet
-from common.utils.permissions import SuperAdministratorPermission
+from common.utils.drf.modelviewset import ModelViewSet
+from common.utils.drf.permissions import SuperAdministratorPermission
 
 
 class CourseTemplateModelViewSet(ModelViewSet):
     queryset = CourseTemplate.objects.all()
     default_serializer_class = CourseTemplateCreateSerializer
     filter_backends = [DjangoFilterBackend, CourseTemplateOrderingFilter]
-    filter_class = CourseTemplateFilterClass
+    fuzzy_filter_fields = ["name", "course_overview"]
     permission_classes = [SuperAdministratorPermission]
     ACTION_MAP = {
         "list": CourseTemplateListSerializer,

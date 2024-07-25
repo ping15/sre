@@ -5,8 +5,8 @@ from apps.platform_management.models import ManageCompany
 from apps.platform_management.serialiers.management_company import (
     ManagementCompanySerializer,
 )
-from common.utils.modelviewset import ModelViewSet
-from common.utils.permissions import SuperAdministratorPermission
+from common.utils.drf.modelviewset import ModelViewSet
+from common.utils.drf.permissions import SuperAdministratorPermission
 
 
 class ManagementCompanyModelViewSet(ModelViewSet):
@@ -14,11 +14,8 @@ class ManagementCompanyModelViewSet(ModelViewSet):
 
     permission_classes = [SuperAdministratorPermission]
     queryset = ManageCompany.objects.all()
-    serializer_class = ManagementCompanySerializer
-
-    @action(methods=["GET"], detail=False)
-    def names(self, request, *args, **kwargs):
-        return Response(list(self.queryset.values_list("name", flat=True)))
+    default_serializer_class = ManagementCompanySerializer
+    fuzzy_filter_fields = ["name", "email"]
 
     # def list(self, request, *args, **kwargs):
     #     mock_data = [
