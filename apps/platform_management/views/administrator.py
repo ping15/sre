@@ -10,11 +10,10 @@ from common.utils.permissions import SuperAdministratorPermission
 
 class AdministratorModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission]
-    serializer_class = AdministratorListSerializer
+    default_serializer_class = AdministratorCreateSerializer
     queryset = Administrator.objects.all()
     enable_batch_import = True
     batch_import_mapping = ADMINISTRATOR_EXCEL_MAPPING
-    batch_import_serializer = AdministratorCreateSerializer
     ACTION_MAP = {
         "list": AdministratorListSerializer,
         "create": AdministratorCreateSerializer,

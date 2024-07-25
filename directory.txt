@@ -8,7 +8,7 @@ apps/
 │   ├── views/
 │   │   ├── __init__.py
 │   │   ├── client_approval.py # 客户资料审批
-│   │   ├── all_courses.py # 全部课程
+│   │   ├── all_classes.py # 全部培训班
 │   │   ├── all_schedules.py # 全部日程
 │   │   ├── course_template.py # 课程模板
 │   │   ├── instructor.py # 讲师

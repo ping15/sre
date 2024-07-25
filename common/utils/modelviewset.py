@@ -12,10 +12,15 @@ class FileSerializer(serializers.Serializer):
     file = serializers.FileField()
 
 
+class SimpleQuerySerializer(serializers.Serializer):
+    query = serializers.CharField()
+
+
 class ModelViewSet(DRFModelViewSet):
     enable_batch_import = False
     batch_import_serializer = None
     batch_import_mapping = {}
+    default_serializer_class = None
     ACTION_MAP = {}
 
     def __init_subclass__(cls, **kwargs):
@@ -24,9 +29,13 @@ class ModelViewSet(DRFModelViewSet):
             cls.batch_import = None
         else:
             cls.ACTION_MAP["batch_import"] = FileSerializer
+            if not cls.batch_import_serializer:
+                cls.batch_import_serializer = cls.ACTION_MAP.get("create")
+
+        cls.ACTION_MAP["simple_query"] = SimpleQuerySerializer
 
     def get_serializer_class(self):
-        return self.ACTION_MAP.get(self.action, self.serializer_class)  # noqa
+        return self.ACTION_MAP.get(self.action, self.default_serializer_class)  # noqa
 
     @property
     def validated_data(self):
@@ -47,6 +56,9 @@ class ModelViewSet(DRFModelViewSet):
         )
         create_serializer = self.batch_import_serializer(data=datas, many=True)
         if create_serializer.is_valid():
+            if kwargs.get("preview"):
+                return create_serializer.data
+
             create_serializer.save()
 
         err_msg = create_serializer.errors
@@ -56,3 +68,8 @@ class ModelViewSet(DRFModelViewSet):
                 "err_msg": str(err_msg),
             }
         )
+
+    @action(methods=["GET"], detail=False)
+    def simple_query(self, request, *args, **kwargs):
+        validated_data = self.validated_data
+        return Response(list(self.queryset.values(*validated_data["query"].split(","))))

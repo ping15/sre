@@ -11,8 +11,8 @@ from common.utils.permissions import ManageCompanyAdministratorPermission
 class TrainingClassModelViewSet(ModelViewSet):
     permission_classes = [ManageCompanyAdministratorPermission]
     queryset = TrainingClass.objects.all()
-    serializer_class = TrainingClassListSerializer
-    action_map = {
+    default_serializer_class = TrainingClassCreateSerializer
+    ACTION_MAP = {
         "list": TrainingClassListSerializer,
         "create": TrainingClassCreateSerializer,
         "retrieve": TrainingClassRetrieveSerializer,

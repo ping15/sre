@@ -1,11 +1,11 @@
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
 
 from apps.platform_management.models import ManageCompany
 from apps.platform_management.serialiers.management_company import (
     ManagementCompanySerializer,
 )
+from common.utils.modelviewset import ModelViewSet
 from common.utils.permissions import SuperAdministratorPermission
 
 

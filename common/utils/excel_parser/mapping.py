@@ -19,3 +19,16 @@ ADMINISTRATOR_EXCEL_MAPPING = {
     "所属公司": "manage_company",
     "权限角色": "role",
 }
+
+CLIENT_STUDENT_EXCEL_MAPPING = {
+    "学员名称": "name",
+    "性别": "gender",
+    "身份证号": "id_number",
+    "学历": "education",
+    "电话": "phone",
+    "邮箱": "email",
+    "所属客户公司": "affiliated_client_company",
+    "部门": "department",
+    "职位": "position",
+    "登录密码": "password",
+}
