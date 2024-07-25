@@ -15,7 +15,7 @@ from common.utils.permissions import SuperAdministratorPermission
 
 class CourseTemplateModelViewSet(ModelViewSet):
     queryset = CourseTemplate.objects.all()
-    serializer_class = CourseTemplateListSerializer
+    default_serializer_class = CourseTemplateCreateSerializer
     filter_backends = [DjangoFilterBackend, CourseTemplateOrderingFilter]
     filter_class = CourseTemplateFilterClass
     permission_classes = [SuperAdministratorPermission]

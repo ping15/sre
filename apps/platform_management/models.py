@@ -1,11 +1,12 @@
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import AbstractUser, PermissionsMixin, Group, Permission
 from django.db import models
+from django.db.models import QuerySet
 from django.utils.translation import ugettext_lazy as _
 
 
 class Attachment(models.Model):
-    file = models.FileField(upload_to="attachment/")
+    file = models.FileField(_("附件"), upload_to="attachment/")
 
 
 class CourseTemplate(models.Model):
@@ -218,8 +219,8 @@ class Instructor(models.Model):
 class ManageCompany(models.Model):
     """管理公司"""
 
-    name = models.CharField(_("名称"), max_length=32, db_index=True)
-    email = models.EmailField(_("邮箱"), max_length=32, db_index=True)
+    name = models.CharField(_("名称"), max_length=32, unique=True)
+    email = models.EmailField(_("邮箱"), max_length=32)
     type = models.CharField(
         _("类型"),
         # choices=[
@@ -228,6 +229,105 @@ class ManageCompany(models.Model):
         # ],
         max_length=32,
     )
+
+    @property
+    def client_companies(self) -> QuerySet["ClientCompany"]:
+        return ClientCompany.objects.filter(affiliated_manage_company=self.name)
+
+    def delete(self, using=None, keep_parents=False):
+        self.client_companies.delete()
+        super().delete(using, keep_parents)
+
+    def __str__(self):
+        return self.name
+
+
+class ClientCompany(models.Model):
+    """客户公司"""
+
+    # 基本信息
+    name = models.CharField(_("客户公司名称"), max_length=32, unique=True)
+    contact_person = models.CharField(_("联系人"), max_length=32)
+    contact_phone = models.CharField(_("电话"), max_length=16)
+    contact_email = models.EmailField(_("邮箱"), max_length=64)
+    payment_method = models.CharField(
+        _("参会费支付方式"),
+        # choices=[
+        #     ('public_card', _('刷公务卡')),
+        #     ('telegraphic_transfer', _('电汇')),
+        #     ('wechat', _('对公微信')),
+        #     ('alipay', _('对公支付宝')),
+        # ],
+        max_length=32,
+    )
+    affiliated_manage_company = models.CharField(_("管理公司"), max_length=64)
+
+    # 通讯信息
+    certificate_address = models.CharField(_("证书收件地址"), max_length=128)
+    recipient_name = models.CharField(_("收件人"), max_length=32)
+    recipient_phone = models.CharField(_("收件人电话"), max_length=16)
+
+    # 开票信息
+    invoice_company_name = models.CharField(_("公司名称"), max_length=64)
+    tax_identification_number = models.CharField(_("纳税人识别号"), max_length=32)
+    invoice_company_address = models.CharField(_("单位地址"), max_length=128)
+    invoice_company_phone = models.CharField(_("单位电话"), max_length=16)
+    bank_name = models.CharField(_("开户行"), max_length=64)
+    bank_account = models.CharField(_("账号"), max_length=32)
+
+    @property
+    def students(self) -> QuerySet["ClientStudent"]:
+        return ClientStudent.objects.filter(affiliated_client_company=self.name)
+
+    @property
+    def manage_company(self) -> ManageCompany:
+        return ManageCompany.objects.get(name=self.affiliated_manage_company)
+
+    @property
+    def student_count(self) -> int:
+        return ClientStudent.objects.filter(affiliated_client_company=self.name).count()
+
+    def delete(self, using=None, keep_parents=False):
+        self.students.delete()
+        super().delete(using, keep_parents)
+
+    def __str__(self):
+        return self.name
+
+
+class ClientStudent(models.Model):
+    """客户学员"""
+
+    name = models.CharField(_("名称"), max_length=32)
+    gender = models.CharField(_("性别"), max_length=32)
+    id_number = models.CharField(_("身份证号"), max_length=32)
+    education = models.CharField(
+        _("学历"),
+        # choices=[
+        #     ('associate', _("专科")),
+        #     ('bachelor', _("本科")),
+        #     ('master', _("硕士研究生")),
+        #     ('doctorate', _("博士生")),
+        # ],
+        max_length=32,
+    )
+    phone = models.CharField(_("电话"), max_length=16)
+    email = models.EmailField(_("邮箱"), max_length=64)
+    # affiliated_client_company = models.ForeignKey(
+    #     ClientCompany,
+    #     verbose_name=_("客户公司"),
+    #     on_delete=models.CASCADE,
+    #     related_name='students',
+    # )
+    affiliated_client_company = models.CharField(_("客户公司"), max_length=64)
+    department = models.CharField(_("部门"), max_length=32)
+    position = models.CharField(_("职位"), max_length=32)
+    password = models.CharField(_("登录密码"), max_length=256)
+    id_photo = models.JSONField(_("证件照"), default=dict)
+
+    @property
+    def client_company(self) -> ClientCompany:
+        return ClientCompany.objects.get(name=self.affiliated_client_company)
 
     def __str__(self):
         return self.name

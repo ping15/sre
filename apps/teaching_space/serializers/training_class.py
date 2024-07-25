@@ -30,4 +30,4 @@ class TrainingClassRetrieveSerializer(serializers.ModelSerializer):
 class TrainingClassCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = TrainingClass
-        fields = "__all__"
+        exclude = ["instructor"]

@@ -1,17 +1,23 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from apps.platform_management.models import CourseTemplate, Instructor
+from apps.platform_management.models import (
+    CourseTemplate,
+    Instructor,
+    ManageCompany,
+    ClientCompany,
+)
 
 
 class TrainingClass(models.Model):
     """培训班"""
 
-    course = models.ForeignKey(
-        CourseTemplate,
-        verbose_name=_("课程"),
-        on_delete=models.CASCADE,
-    )
+    # course = models.ForeignKey(
+    #     CourseTemplate,
+    #     verbose_name=_("课程"),
+    #     on_delete=models.CASCADE,
+    # )
+    course_name = models.CharField(_("课程"), max_length=64, unique=True)
     session_number = models.CharField(_("课程期数"), max_length=32)
     status = models.CharField(
         _("状态"),
@@ -45,7 +51,7 @@ class TrainingClass(models.Model):
     )
     certification = models.CharField(_("认证证书"), max_length=32)
     location = models.CharField(_("开课地点"), max_length=32)
-    target_client_company = models.CharField(_("客户公司"), max_length=64)
+    target_client_company_name = models.CharField(_("客户公司"), max_length=64)
     instructor = models.ForeignKey(
         Instructor,
         related_name="training_classes",
@@ -55,16 +61,32 @@ class TrainingClass(models.Model):
     hours_per_lesson = models.IntegerField(_("课程课时"), default=6)
 
     @property
-    def name(self):
+    def course(self) -> CourseTemplate:
+        return CourseTemplate.objects.get(name=self.course_name)
+
+    @property
+    def name(self) -> str:
         return f"{self.course.name}-{self.session_number}"
 
     @property
-    def num_lessons(self):
+    def target_client_company(self) -> ClientCompany:
+        return ClientCompany.objects.get(name=self.target_client_company_name)
+
+    @property
+    def num_lessons(self) -> int:
         return self.course.num_lessons
 
     @property
-    def instructor_name(self):
+    def instructor_name(self) -> str:
         return self.instructor.name
+
+    @property
+    def affiliated_manage_company(self) -> ManageCompany:
+        return self.target_client_company.manage_company
+
+    @property
+    def affiliated_manage_company_name(self) -> str:
+        return self.affiliated_manage_company.name
 
     def __str__(self):
         return f"{self.course} - {self.session_number}"
