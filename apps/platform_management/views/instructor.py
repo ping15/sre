@@ -15,8 +15,8 @@ from apps.platform_management.serialiers.instructor import (
 )
 from common.utils.calander import generate_calendar
 from common.utils.excel_parser.mapping import INSTRUCTOR_EXCEL_MAPPING
-from common.utils.modelviewset import ModelViewSet
-from common.utils.permissions import InstructorPermission
+from common.utils.drf.modelviewset import ModelViewSet
+from common.utils.drf.permissions import InstructorPermission
 
 
 class InstructorModelViewSet(ModelViewSet):
@@ -25,6 +25,7 @@ class InstructorModelViewSet(ModelViewSet):
     queryset = Instructor.objects.all()
     enable_batch_import = True
     batch_import_mapping = INSTRUCTOR_EXCEL_MAPPING
+    fuzzy_filter_fields = ["name"]
     ACTION_MAP = {
         "list": InstructorListSerializer,
         "create": InstructorCreateSerializer,

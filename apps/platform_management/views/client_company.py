@@ -4,8 +4,8 @@ from apps.platform_management.serialiers.client_company import (
     ClientCompanyCreateSerializer,
     ClientCompanyRetrieveSerializer,
 )
-from common.utils.modelviewset import ModelViewSet
-from common.utils.permissions import SuperAdministratorPermission
+from common.utils.drf.modelviewset import ModelViewSet
+from common.utils.drf.permissions import SuperAdministratorPermission
 
 
 class ClientCompanyModelViewSet(ModelViewSet):

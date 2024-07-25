@@ -4,8 +4,8 @@ from apps.platform_management.serialiers.administrator import (
     AdministratorCreateSerializer,
 )
 from common.utils.excel_parser.mapping import ADMINISTRATOR_EXCEL_MAPPING
-from common.utils.modelviewset import ModelViewSet
-from common.utils.permissions import SuperAdministratorPermission
+from common.utils.drf.modelviewset import ModelViewSet
+from common.utils.drf.permissions import SuperAdministratorPermission
 
 
 class AdministratorModelViewSet(ModelViewSet):

@@ -4,8 +4,8 @@ from rest_framework.response import Response
 
 from apps.platform_management.models import ClientStudent
 from common.utils.excel_parser.mapping import CLIENT_STUDENT_EXCEL_MAPPING
-from common.utils.modelviewset import ModelViewSet
-from common.utils.permissions import SuperAdministratorPermission
+from common.utils.drf.modelviewset import ModelViewSet
+from common.utils.drf.permissions import SuperAdministratorPermission
 from apps.platform_management.serialiers.client_student import (
     ClientStudentListSerializer,
     ClientStudentCreateSerializer,

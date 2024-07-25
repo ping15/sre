@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.platform_management.models import Instructor
-from common.utils.serializer_validator import BasicSerializerValidator
+from common.utils.drf.serializer_validator import BasicSerializerValidator
 
 
 class InstructorListSerializer(serializers.ModelSerializer):

@@ -141,7 +141,7 @@ LANGUAGES = (
 # AUTH_USER_MODEL = "platform_management.Manager"
 
 REST_FRAMEWORK = {
-    "DEFAULT_PAGINATION_CLASS": "common.utils.pagination.PageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": "common.utils.drf.pagination.PageNumberPagination",
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",
         "rest_framework.filters.SearchFilter",
