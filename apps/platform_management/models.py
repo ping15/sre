@@ -260,7 +260,7 @@ class ClientCompany(models.Model):
         # ],
         max_length=32,
     )
-    affiliated_manage_company = models.CharField(_("管理公司"), max_length=64)
+    affiliated_manage_company_name = models.CharField(_("管理公司"), max_length=64)
 
     # 通讯信息
     certificate_address = models.CharField(_("证书收件地址"), max_length=128)
@@ -277,15 +277,15 @@ class ClientCompany(models.Model):
 
     @property
     def students(self) -> QuerySet["ClientStudent"]:
-        return ClientStudent.objects.filter(affiliated_client_company=self.name)
+        return ClientStudent.objects.filter(affiliated_client_company_name=self.name)
 
     @property
-    def manage_company(self) -> ManageCompany:
-        return ManageCompany.objects.get(name=self.affiliated_manage_company)
+    def affiliated_manage_company(self) -> ManageCompany:
+        return ManageCompany.objects.get(name=self.affiliated_manage_company_name)
 
     @property
     def student_count(self) -> int:
-        return ClientStudent.objects.filter(affiliated_client_company=self.name).count()
+        return self.students.count()
 
     def delete(self, using=None, keep_parents=False):
         self.students.delete()
