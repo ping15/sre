@@ -2,6 +2,7 @@ import datetime
 from datetime import timedelta
 from typing import List, Dict
 
+from django.db.models import QuerySet
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -13,6 +14,7 @@ from apps.platform_management.serialiers.instructor import (
     InstructorRetrieveSerializer,
     InstructorReviewSerializer,
 )
+from apps.teaching_space.models import TrainingClass
 from common.utils.calander import generate_calendar
 from common.utils.excel_parser.mapping import INSTRUCTOR_EXCEL_MAPPING
 from common.utils.drf.modelviewset import ModelViewSet
@@ -42,7 +44,9 @@ class InstructorModelViewSet(ModelViewSet):
     def taught_courses(self, request, *args, **kwargs):
         """已授课程"""
         taught_courses: List[Dict[str:str]] = []
-        training_classes = self.get_object().training_classes.filter(
+        training_classes: QuerySet[
+            TrainingClass
+        ] = self.get_object().training_classes.filter(
             start_date__lte=datetime.datetime.now()
         )
 
@@ -52,7 +56,7 @@ class InstructorModelViewSet(ModelViewSet):
                     "name": instance.name,
                     "hours": instance.hours_per_lesson,
                     "start_date": instance.start_date,
-                    "target_client_company": instance.target_client_company,
+                    "target_client_company_name": instance.target_client_company_name,
                 }
             )
 

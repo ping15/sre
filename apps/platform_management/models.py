@@ -19,7 +19,7 @@ class CourseTemplate(models.Model):
         ("授课", 0),
     ]
 
-    name = models.CharField(_("课程名称"), max_length=32, db_index=True)
+    name = models.CharField(_("课程名称"), max_length=32, unique=True)
     level = models.CharField(
         _("级别"),
         # choices=[

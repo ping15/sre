@@ -27,7 +27,7 @@ CLIENT_STUDENT_EXCEL_MAPPING = {
     "学历": "education",
     "电话": "phone",
     "邮箱": "email",
-    "所属客户公司": "affiliated_client_company",
+    "所属客户公司": "affiliated_client_company_name",
     "部门": "department",
     "职位": "position",
     "登录密码": "password",
