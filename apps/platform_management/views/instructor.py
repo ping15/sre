@@ -25,7 +25,11 @@ class InstructorModelViewSet(ModelViewSet):
     queryset = Instructor.objects.all()
     enable_batch_import = True
     batch_import_mapping = INSTRUCTOR_EXCEL_MAPPING
-    fuzzy_filter_fields = ["name"]
+    fuzzy_filter_fields = ["name", "introduction"]
+    filter_condition_mapping = {
+        "讲师名称": "name",
+        "简介": "introduction",
+    }
     ACTION_MAP = {
         "list": InstructorListSerializer,
         "create": InstructorCreateSerializer,

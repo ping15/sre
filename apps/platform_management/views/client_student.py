@@ -19,21 +19,20 @@ class ClientStudentModelViewSet(ModelViewSet):
     queryset = ClientStudent.objects.all()
     enable_batch_import = True
     batch_import_mapping = CLIENT_STUDENT_EXCEL_MAPPING
+    fuzzy_filter_fields = [
+        "name",
+        "affiliated_client_company_name",
+        "affiliated_manage_company_name",
+        "email",
+        "phone",
+    ]
     ACTION_MAP = {
         "list": ClientStudentListSerializer,
         "create": ClientStudentCreateSerializer,
         "retrieve": ClientStudentRetrieveSerializer,
     }
 
-    @action(methods=["POST"], detail=False)
-    def batch_import(self, request, *args, **kwargs):
-        data = super().batch_import(request, *args, preview=True, **kwargs)
-        return Response(data)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(
-            data=request.data, many=True if isinstance(request.data, list) else False
-        )
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    # @action(methods=["POST"], detail=False)
+    # def batch_import(self, request, *args, **kwargs):
+    #     data = super().batch_import(request, *args, preview=True, **kwargs)
+    #     return Response(data)

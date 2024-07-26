@@ -1,11 +1,11 @@
 from typing import List, Dict
 
-from rest_framework import serializers
+from rest_framework import serializers, status
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet as DRFModelViewSet
 
 from common.utils.drf.filters import MyModelFilterSet
+from common.utils.drf.response import Response
 from common.utils.excel_parser.parser import excel_to_list
 
 
@@ -25,7 +25,10 @@ class ModelViewSet(DRFModelViewSet):
     ACTION_MAP = {}
     fuzzy_filter_fields = []
     time_filter_fields = []
-    filter_class = MyModelFilterSet  # Set filter class
+    # todo
+    filter_class = MyModelFilterSet
+    filter_condition_mapping = {}
+    filter_condition_enum_list = []
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -64,6 +67,33 @@ class ModelViewSet(DRFModelViewSet):
         serializer.is_valid(raise_exception=True)
         return serializer.validated_data
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(
+            data=request.data, many=True if isinstance(request.data, list) else False
+        )
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(methods=["GET"], detail=False)
+    def filter_condition(self, request, *args, **kwargs):
+        response_data = []
+
+        # 获取模型的 queryset
+        queryset = self.get_queryset()
+
+        for display_name, field_name in self.filter_condition_mapping.items():
+            item = {"id": field_name, "name": display_name, "enum": []}
+
+            if field_name in self.filter_condition_enum_list:
+                # 获取字段的所有唯一值作为枚举结果
+                unique_values = queryset.values_list(field_name, flat=True).distinct()
+                item["enum"] = list(unique_values)
+
+            response_data.append(item)
+
+        return Response(response_data)
+
     @action(methods=["POST"], detail=False)
     def batch_import(self, request, *args, **kwargs):
         """批量导入"""
@@ -72,18 +102,15 @@ class ModelViewSet(DRFModelViewSet):
             validated_data["file"], self.batch_import_mapping
         )
         create_serializer = self.batch_import_serializer(data=datas, many=True)
-        if create_serializer.is_valid():
-            if kwargs.get("preview"):
-                return create_serializer.data
 
-            create_serializer.save()
+        err_msg: str = ""
+        if not create_serializer.is_valid():
+            err_msg = str(create_serializer.errors)
 
-        err_msg = create_serializer.errors
         return Response(
-            {
-                "results": True if not err_msg else False,
-                "err_msg": str(err_msg),
-            }
+            create_serializer.validated_data,
+            result=True if not err_msg else False,
+            err_msg=err_msg,
         )
 
     @action(methods=["GET"], detail=False)
