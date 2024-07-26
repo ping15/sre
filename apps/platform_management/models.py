@@ -319,15 +319,23 @@ class ClientStudent(models.Model):
     #     on_delete=models.CASCADE,
     #     related_name='students',
     # )
-    affiliated_client_company = models.CharField(_("客户公司"), max_length=64)
+    affiliated_client_company_name = models.CharField(_("客户公司"), max_length=64)
     department = models.CharField(_("部门"), max_length=32)
     position = models.CharField(_("职位"), max_length=32)
     password = models.CharField(_("登录密码"), max_length=256)
     id_photo = models.JSONField(_("证件照"), default=dict)
 
     @property
-    def client_company(self) -> ClientCompany:
-        return ClientCompany.objects.get(name=self.affiliated_client_company)
+    def affiliated_client_company(self) -> ClientCompany:
+        return ClientCompany.objects.get(name=self.affiliated_client_company_name)
+
+    @property
+    def affiliated_manage_company(self) -> ManageCompany:
+        return ManageCompany.objects.get(name=self.affiliated_manage_company.name)
+
+    @property
+    def affiliated_manage_company_name(self) -> str:
+        return self.affiliated_manage_company.name
 
     def __str__(self):
         return self.name
