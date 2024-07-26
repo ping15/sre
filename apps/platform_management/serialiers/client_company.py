@@ -10,7 +10,7 @@ class ClientCompanyListSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "contact_email",
-            "affiliated_manage_company",
+            "affiliated_manage_company_name",
             "student_count",
         ]
 
