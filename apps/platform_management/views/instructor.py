@@ -4,7 +4,6 @@ from typing import List, Dict
 
 from django.db.models import QuerySet
 from rest_framework.decorators import action
-from rest_framework.response import Response
 
 from apps.platform_management.models import Instructor
 from apps.platform_management.serialiers.instructor import (
@@ -16,6 +15,7 @@ from apps.platform_management.serialiers.instructor import (
 )
 from apps.teaching_space.models import TrainingClass
 from common.utils.calander import generate_calendar
+from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import INSTRUCTOR_EXCEL_MAPPING
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import InstructorPermission
@@ -71,7 +71,7 @@ class InstructorModelViewSet(ModelViewSet):
         training_classes_info: List[dict] = [
             {
                 "start_date": instance.start_date,
-                "target_client_company": instance.target_client_company,
+                "target_client_company_name": instance.target_client_company_name,
                 "name": instance.name,
             }
             for instance in self.get_object().training_classes.all()
