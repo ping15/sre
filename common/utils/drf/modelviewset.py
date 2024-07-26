@@ -103,14 +103,13 @@ class ModelViewSet(DRFModelViewSet):
         )
         create_serializer = self.batch_import_serializer(data=datas, many=True)
 
-        err_msg: str = ""
         if not create_serializer.is_valid():
-            err_msg = str(create_serializer.errors)
+            return Response(
+                data=[], result=False, err_msg=str(create_serializer.errors)
+            )
 
-        return Response(
-            create_serializer.validated_data,
-            result=True if not err_msg else False,
-            err_msg=err_msg,
+        return self.get_paginated_response(
+            self.paginate_queryset(create_serializer.validated_data)
         )
 
     @action(methods=["GET"], detail=False)
