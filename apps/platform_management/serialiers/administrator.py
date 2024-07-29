@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.platform_management.models import Administrator
+from common.utils.drf.serializer_validator import BasicSerializerValidator
 
 
 class AdministratorListSerializer(serializers.ModelSerializer):
@@ -12,12 +13,14 @@ class AdministratorListSerializer(serializers.ModelSerializer):
             "email",
             "phone",
             "password",
-            "manage_company",
+            "affiliated_manage_company_name",
             "role",
         ]
 
 
-class AdministratorCreateSerializer(serializers.ModelSerializer):
+class AdministratorCreateSerializer(
+    serializers.ModelSerializer, BasicSerializerValidator
+):
     class Meta:
         model = Administrator
         fields = "__all__"

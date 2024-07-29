@@ -60,6 +60,7 @@ class TrainingClass(models.Model):
         null=True,
     )
     hours_per_lesson = models.IntegerField(_("课程课时"), default=6)
+    review = models.TextField(_("课后复盘"), default="")
 
     @property
     def course(self) -> CourseTemplate:
@@ -79,11 +80,11 @@ class TrainingClass(models.Model):
 
     @property
     def instructor_name(self) -> str:
-        return self.instructor.name
+        return self.instructor.name if self.instructor else ""
 
     @property
     def affiliated_manage_company(self) -> ManageCompany:
-        return self.target_client_company.manage_company
+        return self.target_client_company.affiliated_manage_company
 
     @property
     def affiliated_manage_company_name(self) -> str:

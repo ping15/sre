@@ -25,6 +25,7 @@ class ModelViewSet(DRFModelViewSet):
     ACTION_MAP = {}
     fuzzy_filter_fields = []
     time_filter_fields = []
+    property_fuzzy_filter_fields = []
     # todo
     filter_class = MyModelFilterSet
     filter_condition_mapping = {}
@@ -44,13 +45,13 @@ class ModelViewSet(DRFModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
 
-        if hasattr(self, "fuzzy_filter_fields") or hasattr(self, "time_filter_fields"):
-            filter_class = self.filter_class
-            filter_class.setup_custom_filters(
-                model=self.queryset.model,
-                fuzzy_filter_fields=self.fuzzy_filter_fields,
-                time_filter_fields=self.time_filter_fields,
-            )
+        filter_class = self.filter_class
+        filter_class.setup_custom_filters(
+            model=self.queryset.model,
+            fuzzy_filter_fields=self.fuzzy_filter_fields,
+            time_filter_fields=self.time_filter_fields,
+            property_fuzzy_filter_fields=self.property_fuzzy_filter_fields,
+        )
 
         return queryset
 

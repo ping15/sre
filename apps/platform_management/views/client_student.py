@@ -1,8 +1,7 @@
-from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.response import Response
 
-from apps.platform_management.models import ClientStudent
+from apps.platform_management.models import ClientStudent, ManageCompany
+from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import CLIENT_STUDENT_EXCEL_MAPPING
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
@@ -10,6 +9,7 @@ from apps.platform_management.serialiers.client_student import (
     ClientStudentListSerializer,
     ClientStudentCreateSerializer,
     ClientStudentRetrieveSerializer,
+    ClientStudentQuickSearchSerializer,
 )
 
 
@@ -26,13 +26,22 @@ class ClientStudentModelViewSet(ModelViewSet):
         "email",
         "phone",
     ]
+    filter_condition_mapping = {
+        "学员名称": "name",
+        "所属客户公司": "affiliated_client_company_name",
+        "负责的管理公司": "affiliated_manage_company_name",
+        "邮箱": "email",
+        "手机": "phone",
+    }
     ACTION_MAP = {
         "list": ClientStudentListSerializer,
         "create": ClientStudentCreateSerializer,
         "retrieve": ClientStudentRetrieveSerializer,
+        "quick_search": ClientStudentQuickSearchSerializer,
     }
 
-    # @action(methods=["POST"], detail=False)
-    # def batch_import(self, request, *args, **kwargs):
-    #     data = super().batch_import(request, *args, preview=True, **kwargs)
-    #     return Response(data)
+    @action(methods=["GET"], detail=False)
+    def quick_search(self, request, *args, **kwargs):
+        return Response(
+            self.get_serializer(ManageCompany.objects.all(), many=True).data
+        )
