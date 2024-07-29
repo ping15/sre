@@ -114,12 +114,38 @@ class CourseTemplate(models.Model):
         return len(self.course_content)
 
 
+class ManageCompany(models.Model):
+    """管理公司"""
+
+    name = models.CharField(_("名称"), max_length=32, unique=True)
+    email = models.EmailField(_("邮箱"), max_length=32)
+    type = models.CharField(
+        _("类型"),
+        # choices=[
+        #     ('default', _('默认公司')),
+        #     ('partner', _('合作伙伴')),
+        # ],
+        max_length=32,
+    )
+
+    @property
+    def client_companies(self) -> QuerySet["ClientCompany"]:
+        return ClientCompany.objects.filter(affiliated_manage_company_name=self.name)
+
+    def delete(self, using=None, keep_parents=False):
+        self.client_companies.delete()
+        super().delete(using, keep_parents)
+
+    def __str__(self):
+        return self.name
+
+
 class Administrator(AbstractUser):
     username = models.CharField(_("名称"), max_length=32, db_index=True)
     # email = models.EmailField(_("邮箱"), max_length=64, blank=True)
     phone = models.CharField(_("手机号码"), max_length=16, db_index=True)
     # password = models.CharField(_("登录密码"), max_length=32)
-    manage_company = models.CharField(_("管理公司"), max_length=32)
+    affiliated_manage_company_name = models.CharField(_("管理公司"), max_length=32)
     # manage_company = models.ForeignKey(
     #     ManageCompany,
     #     verbose_name=_("管理公司"),
@@ -148,6 +174,10 @@ class Administrator(AbstractUser):
 
     def __str__(self):
         return self.username
+
+    @property
+    def affiliated_manage_company(self) -> ManageCompany:
+        return ManageCompany.objects.get(name=self.affiliated_manage_company_name)
 
     def clean(self):
         super().clean()
@@ -211,32 +241,6 @@ class Instructor(models.Model):
     #     verbose_name=_("课堂"),
     #     on_delete=models.CASCADE
     # )
-
-    def __str__(self):
-        return self.name
-
-
-class ManageCompany(models.Model):
-    """管理公司"""
-
-    name = models.CharField(_("名称"), max_length=32, unique=True)
-    email = models.EmailField(_("邮箱"), max_length=32)
-    type = models.CharField(
-        _("类型"),
-        # choices=[
-        #     ('default', _('默认公司')),
-        #     ('partner', _('合作伙伴')),
-        # ],
-        max_length=32,
-    )
-
-    @property
-    def client_companies(self) -> QuerySet["ClientCompany"]:
-        return ClientCompany.objects.filter(affiliated_manage_company=self.name)
-
-    def delete(self, using=None, keep_parents=False):
-        self.client_companies.delete()
-        super().delete(using, keep_parents)
 
     def __str__(self):
         return self.name
@@ -331,7 +335,9 @@ class ClientStudent(models.Model):
 
     @property
     def affiliated_manage_company(self) -> ManageCompany:
-        return ManageCompany.objects.get(name=self.affiliated_manage_company.name)
+        return ManageCompany.objects.get(
+            name=self.affiliated_client_company.affiliated_manage_company_name
+        )
 
     @property
     def affiliated_manage_company_name(self) -> str:

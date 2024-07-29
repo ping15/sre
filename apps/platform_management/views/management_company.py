@@ -16,6 +16,10 @@ class ManagementCompanyModelViewSet(ModelViewSet):
     queryset = ManageCompany.objects.all()
     default_serializer_class = ManagementCompanySerializer
     fuzzy_filter_fields = ["name", "email"]
+    filter_condition_mapping = {
+        "公司名称": "name",
+        "联系邮箱": "email",
+    }
 
     # def list(self, request, *args, **kwargs):
     #     mock_data = [

@@ -19,6 +19,10 @@ class CourseTemplateModelViewSet(ModelViewSet):
     filter_backends = [DjangoFilterBackend, CourseTemplateOrderingFilter]
     fuzzy_filter_fields = ["name", "course_overview"]
     permission_classes = [SuperAdministratorPermission]
+    filter_condition_mapping = {
+        "课程名称": "name",
+        "课程描述": "course_overview",
+    }
     ACTION_MAP = {
         "list": CourseTemplateListSerializer,
         "create": CourseTemplateCreateSerializer,

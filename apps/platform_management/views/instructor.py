@@ -70,6 +70,7 @@ class InstructorModelViewSet(ModelViewSet):
         # 培训班信息
         training_classes_info: List[dict] = [
             {
+                "id": instance.id,
                 "start_date": instance.start_date,
                 "target_client_company_name": instance.target_client_company_name,
                 "name": instance.name,
@@ -101,18 +102,21 @@ class InstructorModelViewSet(ModelViewSet):
     @action(methods=["GET"], detail=True)
     def review(self, request, *args, **kwargs):
         """课后复盘"""
-        mock_data = [
-            {
-                "course_name": "SRE 专家培训课(中级)",
-                "target_client_company": "客户公司名称A",
-                "finish_date": "2024-10-24",
-                "review": "复盘内容......",
-            },
-            {
-                "course_name": "SRE 专家培训课(高级)",
-                "target_client_company": "客户公司名称B",
-                "finish_date": "2024-10-25",
-                "review": "复盘内容......",
-            },
-        ]
-        return Response(mock_data)
+        taught_courses: List[Dict[str:str]] = []
+        training_classes: QuerySet[
+            TrainingClass
+        ] = self.get_object().training_classes.filter(
+            start_date__gte=datetime.datetime.now() + datetime.timedelta(days=1)
+        )
+
+        for instance in training_classes:
+            taught_courses.append(
+                {
+                    "course_name": instance.name,
+                    "target_client_company_name": instance.target_client_company_name,
+                    "finish_date": instance.start_date + timedelta(days=1),
+                    "review": instance.review,
+                }
+            )
+
+        return self.get_paginated_response(self.paginate_queryset(taught_courses))
