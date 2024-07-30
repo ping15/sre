@@ -235,6 +235,7 @@ class Instructor(models.Model):
     satisfaction_score = models.FloatField(_("满意度评分"), default=0.0)
     hours_taught = models.IntegerField(_("已授课时"), default=0)
     is_partnered = models.BooleanField(_("是否合作"), default=True)
+    id_photo = models.JSONField(_("证件照"), default=dict)
     # training_class = models.OneToOneField(
     #     TrainingClass,
     #     related_name='instructor',
@@ -342,6 +343,41 @@ class ClientStudent(models.Model):
     @property
     def affiliated_manage_company_name(self) -> str:
         return self.affiliated_manage_company.name
+
+    def __str__(self):
+        return self.name
+
+
+class ClientApprovalSlip(models.Model):
+    """客户审批单据"""
+
+    class Status(models.TextChoices):
+        PENDING = "待处理", "待处理"
+        APPROVED = "同意", "同意"
+        REJECTED = "驳回", "驳回"
+
+    name = models.CharField(_("标题"), max_length=64)
+    affiliated_manage_company_name = models.CharField(_("管理公司"), max_length=32)
+    affiliated_client_company_name = models.CharField(_("客户公司"), max_length=32)
+    submitter = models.CharField(_("提单人"), max_length=32)
+    submission_datetime = models.DateTimeField(_("提单时间"))
+    status = models.CharField(
+        _("状态"),
+        # choices=[
+        #     ('pending', _("待处理")),
+        #     ('approved', _("同意")),
+        #     ('rejected', _("驳回")),
+        # ],
+        max_length=32,
+        default="待处理",
+    )
+    submission_info = models.JSONField(_("提交信息"), default=dict)
+
+    def affiliated_manage_company(self) -> ManageCompany:
+        return ManageCompany.objects.get(name=self.affiliated_manage_company_name)
+
+    def affiliated_client_company(self) -> ClientCompany:
+        return ClientCompany.objects.get(name=self.affiliated_client_company_name)
 
     def __str__(self):
         return self.name

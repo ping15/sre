@@ -20,6 +20,7 @@ class AllClassesModelViewSet(ModelViewSet):
         "培训班名称": "name",
         "讲师": "instructor_name",
         "上课地点": "location",
+        "时间": "start_date",
     }
     ACTION_MAP = {
         "list": AllClassesListSerializer,

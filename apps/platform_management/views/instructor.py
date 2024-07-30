@@ -44,10 +44,13 @@ class InstructorModelViewSet(ModelViewSet):
     def taught_courses(self, request, *args, **kwargs):
         """已授课程"""
         taught_courses: List[Dict[str:str]] = []
-        training_classes: QuerySet[
-            TrainingClass
-        ] = self.get_object().training_classes.filter(
-            start_date__lte=datetime.datetime.now()
+        self.property_fuzzy_filter_fields = ["name"]
+        self.fuzzy_filter_fields = []
+        self.queryset = TrainingClass.objects.all()
+        training_classes: QuerySet[TrainingClass] = self.filter_queryset(
+            self.get_object().training_classes.filter(
+                start_date__lte=datetime.datetime.now()
+            )
         )
 
         for instance in training_classes:

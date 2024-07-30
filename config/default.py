@@ -59,11 +59,11 @@ MIDDLEWARE = (
     # 蓝鲸静态资源服务
     "whitenoise.middleware.WhiteNoiseMiddleware",
     # Auth middleware
-    "blueapps.account.middlewares.RioLoginRequiredMiddleware",
-    "blueapps.account.middlewares.WeixinLoginRequiredMiddleware",
+    # "blueapps.account.middlewares.RioLoginRequiredMiddleware",
+    # "blueapps.account.middlewares.WeixinLoginRequiredMiddleware",
     # 'blueapps.account.middlewares.LoginRequiredMiddleware',
     # exception middleware
-    "blueapps.core.exceptions.middleware.AppExceptionMiddleware",
+    # "blueapps.core.exceptions.middleware.AppExceptionMiddleware",
     # django国际化中间件
     "django.middleware.locale.LocaleMiddleware",
 )
@@ -148,6 +148,7 @@ REST_FRAMEWORK = {
         "rest_framework.filters.OrderingFilter",
     ],
     "PAGE_SIZE": 10,
+    "EXCEPTION_HANDLER": "common.utils.drf.exceptions.exception_handler",
 }
 
 """
