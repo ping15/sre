@@ -4,7 +4,7 @@ from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet as DRFModelViewSet
 
-from common.utils.drf.filters import MyModelFilterSet
+from common.utils.drf.filters import BaseFilterSet
 from common.utils.drf.response import Response
 from common.utils.excel_parser.parser import excel_to_list
 
@@ -18,16 +18,28 @@ class SimpleQuerySerializer(serializers.Serializer):
 
 
 class ModelViewSet(DRFModelViewSet):
+    # 是否支持批量导入
     enable_batch_import = False
     batch_import_serializer = None
     batch_import_mapping = {}
+
+    # 默认序列化器
     default_serializer_class = None
+
+    # 视图 -> 序列化器
     ACTION_MAP = {}
+
+    # 筛选, fuzzy: 模糊匹配, time/datetime: 时间匹配, property: 属性匹配,
     fuzzy_filter_fields = []
+    integer_filter_fields = []
     time_filter_fields = []
+    datetime_filter_fields = []
     property_fuzzy_filter_fields = []
-    # todo
-    filter_class = MyModelFilterSet
+
+    # 筛选类
+    filter_class = BaseFilterSet
+
+    # 页面关键词 -> 字段
     filter_condition_mapping = {}
     filter_condition_enum_list = []
 
@@ -46,12 +58,15 @@ class ModelViewSet(DRFModelViewSet):
         queryset = super().get_queryset()
 
         filter_class = self.filter_class
-        filter_class.setup_custom_filters(
-            model=self.queryset.model,
-            fuzzy_filter_fields=self.fuzzy_filter_fields,
-            time_filter_fields=self.time_filter_fields,
-            property_fuzzy_filter_fields=self.property_fuzzy_filter_fields,
-        )
+        if issubclass(filter_class, BaseFilterSet):
+            filter_class.setup_filters(
+                model=self.queryset.model,
+                fuzzy_filter_fields=self.fuzzy_filter_fields,
+                time_filter_fields=self.time_filter_fields,
+                property_fuzzy_filter_fields=self.property_fuzzy_filter_fields,
+                datetime_filter_fields=self.datetime_filter_fields,
+                integer_filter_fields=self.integer_filter_fields,
+            )
 
         return queryset
 

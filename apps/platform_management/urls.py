@@ -3,6 +3,8 @@ from rest_framework import routers
 
 from .views.administrator import AdministratorModelViewSet
 from .views.all_classes import AllClassesModelViewSet
+from .views.client_approval_slip import ClientApprovalSlipModelViewSet
+
 from .views.client_company import ClientCompanyModelViewSet
 from .views.client_student import ClientStudentModelViewSet
 from .views.course_template import CourseTemplateModelViewSet
@@ -13,6 +15,11 @@ from .views.management_company import ManagementCompanyModelViewSet
 router = routers.DefaultRouter(trailing_slash=True)
 
 # 客户资料审批
+router.register(
+    "client_approval_slip",
+    ClientApprovalSlipModelViewSet,
+    basename="client_approval_slip",
+)
 
 # 全部培训班
 router.register("all_classes", AllClassesModelViewSet, basename="all_classes")

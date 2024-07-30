@@ -1,11 +1,11 @@
 # views.py
 from rest_framework import generics, status
-from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.http import FileResponse, Http404
 
 from apps.platform_management.models import Attachment
 from apps.platform_management.serialiers.attachment import AttachmentSerializer
+from common.utils.drf.response import Response
 
 
 class FileUploadView(generics.CreateAPIView):
