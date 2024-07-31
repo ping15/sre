@@ -2,6 +2,7 @@ from typing import List, Dict
 
 from rest_framework import serializers, status
 from rest_framework.decorators import action
+from rest_framework.settings import api_settings
 from rest_framework.viewsets import ModelViewSet as DRFModelViewSet
 
 from common.utils.drf.filters import BaseFilterSet
@@ -26,18 +27,20 @@ class ModelViewSet(DRFModelViewSet):
     # 默认序列化器
     default_serializer_class = None
 
+    # 备份filter_backend
+    origin_filter_backend = api_settings.DEFAULT_FILTER_BACKENDS
+
     # 视图 -> 序列化器
     ACTION_MAP = {}
 
     # 筛选, fuzzy: 模糊匹配, time/datetime: 时间匹配, property: 属性匹配,
+    filter_class = BaseFilterSet
+    copy_filter_class = filter_class
     fuzzy_filter_fields = []
     integer_filter_fields = []
     time_filter_fields = []
     datetime_filter_fields = []
     property_fuzzy_filter_fields = []
-
-    # 筛选类
-    filter_class = BaseFilterSet
 
     # 页面关键词 -> 字段
     filter_condition_mapping = {}
@@ -53,6 +56,13 @@ class ModelViewSet(DRFModelViewSet):
                 cls.batch_import_serializer = cls.ACTION_MAP.get("create")
 
         cls.ACTION_MAP["simple_query"] = SimpleQuerySerializer
+
+    def disable_filter_backend(self):
+        self.origin_filter_backend = self.filter_backends
+        self.filter_backends = []
+
+    def enable_filter_backend(self):
+        self.filter_backends = self.origin_filter_backend
 
     def get_queryset(self):
         queryset = super().get_queryset()

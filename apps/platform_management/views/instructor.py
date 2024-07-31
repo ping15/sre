@@ -44,14 +44,24 @@ class InstructorModelViewSet(ModelViewSet):
     def taught_courses(self, request, *args, **kwargs):
         """已授课程"""
         taught_courses: List[Dict[str:str]] = []
-        self.property_fuzzy_filter_fields = ["name"]
-        self.fuzzy_filter_fields = []
-        self.queryset = TrainingClass.objects.all()
-        training_classes: QuerySet[TrainingClass] = self.filter_queryset(
-            self.get_object().training_classes.filter(
-                start_date__lte=datetime.datetime.now()
-            )
+
+        # 禁用讲师的筛选
+        self.disable_filter_backend()
+        training_classes: QuerySet[
+            "TrainingClass"
+        ] = self.get_object().training_classes.filter(
+            start_date__lte=datetime.datetime.now()
         )
+
+        # 重构筛选为培训班并启用筛选
+        self.filter_class.setup_filters(
+            TrainingClass,
+            property_fuzzy_filter_fields=["name"],
+            fuzzy_filter_fields=["target_client_company_name"],
+            time_filter_fields=["start_date"],
+        )
+        self.enable_filter_backend()
+        training_classes = self.filter_queryset(training_classes)
 
         for instance in training_classes:
             taught_courses.append(
