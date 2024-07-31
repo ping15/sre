@@ -75,6 +75,15 @@ class InstructorModelViewSet(ModelViewSet):
 
         return self.get_paginated_response(self.paginate_queryset(taught_courses))
 
+    @action(methods=["GET"], detail=True, url_path="taught_courses/filter_condition")
+    def taught_courses_filter_condition(self, request, *args, **kwargs):
+        self.filter_condition_mapping = {
+            "培训班名称": "name",
+            "客户公司": "target_client_company_name",
+            "时间": "start_date",
+        }
+        return self.filter_condition(request, *args, **kwargs)
+
     @action(methods=["GET"], detail=True)
     def calendar(self, request, *args, **kwargs):
         """日程"""
