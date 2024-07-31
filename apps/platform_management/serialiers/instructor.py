@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.platform_management.models import Instructor
+from apps.platform_management.models import Instructor, CourseTemplate
 from common.utils.drf.serializer_validator import BasicSerializerValidator
 
 
@@ -21,6 +21,15 @@ class InstructorListSerializer(serializers.ModelSerializer):
 
 
 class InstructorCreateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
+    teachable_courses = serializers.ListField(
+        child=serializers.ChoiceField(
+            choices=[(name, name) for name in CourseTemplate.names],
+            error_messages={
+                "invalid_choice": f"存在部分课程不存在, 可选课程: {CourseTemplate.names}"
+            },
+        )
+    )
+
     class Meta:
         model = Instructor
         fields = "__all__"

@@ -10,7 +10,10 @@ def exception_handler(exc, context):
 
     # 如果异常是 ValidationError，重写响应格式
     if isinstance(exc, ValidationError):
-        return Response(status=exc.status_code, err_msg=exc.detail, result=False)
+        exc_detail = exc.detail
+        if isinstance(exc_detail, list):
+            exc_detail = ([detail for detail in exc.detail if detail],)
+        return Response(status=exc.status_code, err_msg=exc_detail, result=False)
 
     # 处理其他类型的异常，如果有的话，可以在这里添加自定义处理
     if response is not None:
