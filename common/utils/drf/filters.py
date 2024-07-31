@@ -1,6 +1,6 @@
+from collections import OrderedDict
+
 import django_filters
-from django.db.models import F
-from django_filters import rest_framework as filters
 
 
 class PropertyFilter(django_filters.CharFilter):
@@ -39,6 +39,8 @@ class BaseFilterSet(django_filters.FilterSet):
         datetime_filter_fields=None,
         integer_filter_fields=None,
     ):
+        cls.base_filters = OrderedDict()
+
         filter_mappings = [
             (
                 fuzzy_filter_fields or [],
@@ -72,33 +74,3 @@ class BaseFilterSet(django_filters.FilterSet):
                 cls.add_filters(
                     cls, filter_fields, filter_type, lookup_exprs, add_prefix
                 )
-
-        # # 模糊匹配字段列表
-        # if fuzzy_filter_fields:
-        #     for field in fuzzy_filter_fields:
-        #         cls.base_filters[field] = django_filters.CharFilter(
-        #             field_name=field, lookup_expr="icontains"
-        #         )
-        #
-        # # time匹配字段列表
-        # if time_filter_fields:
-        #     for field in time_filter_fields:
-        #         for lookup_expr in ["gte", "gt", "lte", "lt"]:
-        #             cls.base_filters[field + f"_{lookup_expr}"] = django_filters.DateFilter(
-        #                 field_name=field, lookup_expr=lookup_expr
-        #             )
-        #
-        # # datetime匹配字段列表
-        # if datetime_filter_fields:
-        #     for field in datetime_filter_fields:
-        #         for lookup_expr in ["gte", "gt", "lte", "lt"]:
-        #             cls.base_filters[field + f"_{lookup_expr}"] = django_filters.DateTimeFilter(
-        #                 field_name=field, lookup_expr="icontains"
-        #             )
-        #
-        # # property模糊匹配字段列表
-        # if property_fuzzy_filter_fields:
-        #     for field in property_fuzzy_filter_fields:
-        #         cls.base_filters[field] = PropertyFilter(
-        #             field_name=field, lookup_expr="icontains"
-        #         )
