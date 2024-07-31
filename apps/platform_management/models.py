@@ -1,7 +1,10 @@
+from typing import List
+
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import AbstractUser, PermissionsMixin, Group, Permission
 from django.db import models
 from django.db.models import QuerySet
+from django.utils.functional import classproperty
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -113,6 +116,10 @@ class CourseTemplate(models.Model):
         """课程模块数量"""
         return len(self.course_content)
 
+    @classproperty
+    def names(self):
+        return list(self.objects.values_list("name", flat=True))
+
 
 class ManageCompany(models.Model):
     """管理公司"""
@@ -131,6 +138,10 @@ class ManageCompany(models.Model):
     @property
     def client_companies(self) -> QuerySet["ClientCompany"]:
         return ClientCompany.objects.filter(affiliated_manage_company_name=self.name)
+
+    @classproperty
+    def names(self) -> List[str]:
+        return list(self.objects.values_list("name", flat=True))
 
     def delete(self, using=None, keep_parents=False):
         self.client_companies.delete()
@@ -185,38 +196,6 @@ class Administrator(AbstractUser):
 
     class Meta:
         app_label = "platform_management"
-
-
-# class Classroom(models.Model):
-#     """课堂"""
-#     class_name = models.CharField(_("课堂名称"), max_length=32)
-#     course_name = models.CharField(_("课程名称"), max_length=32)
-#     is_course_completed = models.BooleanField(_("课程是否结束"), default=False)
-#     target_client_company = models.CharField(_("目标客户公司"), max_length=32)
-#     start_datetime = models.DateTimeField(_("上课开始时间"))
-#     end_datetime = models.DateTimeField(_("上课结束时间"))
-#     location = models.CharField(_("上课地点"), max_length=64)
-#     training_class = models.ForeignKey(
-#         TrainingClass,
-#         on_delete=models.CASCADE,
-#         verbose_name=_("培训班"),
-#     )
-#     instructors_list = models.JSONField(_("讲师列表"), default=list)
-#     status = models.CharField(
-#         _("状态"),
-#         max_length=32,
-#         # choices=[
-#         #     ('not_started', _("未开始")),
-#         #     ('ended', _("已招募")),
-#         #     ('recruiting', _("广告招募中")),
-#         #     ('appointing_instructor', _("指定讲师中")),
-#         #     ('instructor_declined', _("讲师拒绝")),
-#         # ],
-#         # default='not_started'
-#     )
-#
-#     def __str__(self):
-#         return ""
 
 
 class Instructor(models.Model):
@@ -291,6 +270,10 @@ class ClientCompany(models.Model):
     @property
     def student_count(self) -> int:
         return self.students.count()
+
+    @classproperty
+    def names(self) -> List[str]:
+        return list(self.objects.values_list("name", flat=True))
 
     def delete(self, using=None, keep_parents=False):
         self.students.delete()
