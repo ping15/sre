@@ -1,15 +1,18 @@
 from rest_framework import serializers
 
 from apps.platform_management.models import Instructor, CourseTemplate
+from common.utils.drf.serializer_fields import PasswordField
 from common.utils.drf.serializer_validator import BasicSerializerValidator
 
 
 class InstructorListSerializer(serializers.ModelSerializer):
+    password = PasswordField()
+
     class Meta:
         model = Instructor
         fields = [
             "id",
-            "name",
+            "username",
             "email",
             "phone",
             "password",
@@ -21,6 +24,7 @@ class InstructorListSerializer(serializers.ModelSerializer):
 
 
 class InstructorCreateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
+    password = PasswordField()
     teachable_courses = serializers.ListField(
         child=serializers.ChoiceField(
             choices=[(name, name) for name in CourseTemplate.names],

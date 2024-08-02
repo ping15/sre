@@ -26,7 +26,7 @@ class ClientCompanyRetrieveSerializer(serializers.ModelSerializer):
 class ClientCompanyCreateSerializer(serializers.ModelSerializer):
     affiliated_manage_company_name = serializers.ChoiceField(
         choices=[(name, name) for name in ManageCompany.names],
-        error_messages={"invalid_choice": f"该管理公司不存在, 可选管理公司: {ClientCompany.names}"},
+        error_messages={"invalid_choice": f"该管理公司不存在, 可选管理公司: {ManageCompany.names}"},
     )
 
     class Meta:

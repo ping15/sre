@@ -35,6 +35,7 @@ INSTALLED_APPS = (
     "drf_yasg",
     "apps.platform_management",
     "apps.teaching_space",
+    "apps.authentication",
 )
 
 # 请在这里加入你的自定义 APP
@@ -61,7 +62,7 @@ MIDDLEWARE = (
     # Auth middleware
     # "blueapps.account.middlewares.RioLoginRequiredMiddleware",
     # "blueapps.account.middlewares.WeixinLoginRequiredMiddleware",
-    # 'blueapps.account.middlewares.LoginRequiredMiddleware',
+    # 'common.utils.login.middleware.LoginRequiredMiddleware',
     # exception middleware
     # "blueapps.core.exceptions.middleware.AppExceptionMiddleware",
     # django国际化中间件

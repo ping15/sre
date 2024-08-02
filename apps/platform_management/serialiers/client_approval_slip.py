@@ -3,7 +3,11 @@ import datetime
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from apps.platform_management.models import ClientApprovalSlip
+from apps.platform_management.models import (
+    ClientApprovalSlip,
+    ManageCompany,
+    ClientCompany,
+)
 from apps.platform_management.serialiers.client_company import (
     ClientCompanyCreateSerializer,
 )
