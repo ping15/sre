@@ -69,7 +69,7 @@ class CourseTemplate(models.Model):
     target_students = models.TextField(_("目标学员"))
     learning_objectives = models.TextField(_("学习目标"))
     learning_benefits = models.TextField(_("学习收益"))
-    course_content = models.JSONField(_("课程内容"), default=list)
+    course_content = models.TextField(_("课程内容"))
     remarks = models.TextField(_("备注"))
     exam_type = models.JSONField(
         _("考试题型"),
@@ -129,8 +129,8 @@ class ManageCompany(models.Model):
     type = models.CharField(
         _("类型"),
         # choices=[
-        #     ('default', _('默认公司')),
-        #     ('partner', _('合作伙伴')),
+        #     ('默认公司', '默认公司'),
+        #     ('默认公司', '合作伙伴'),
         # ],
         max_length=32,
     )
@@ -152,7 +152,7 @@ class ManageCompany(models.Model):
 
 
 class Administrator(AbstractUser):
-    username = models.CharField(_("名称"), max_length=32, db_index=True)
+    username = models.CharField(_("名称"), max_length=64, db_index=True)
     # email = models.EmailField(_("邮箱"), max_length=64, blank=True)
     phone = models.CharField(_("手机号码"), max_length=16, db_index=True)
     # password = models.CharField(_("登录密码"), max_length=32)
@@ -201,7 +201,7 @@ class Administrator(AbstractUser):
 class Instructor(models.Model):
     """讲师"""
 
-    name = models.CharField(_("姓名"), max_length=32, db_index=True)
+    username = models.CharField(_("姓名"), max_length=64, db_index=True)
     phone = models.CharField(_("电话"), max_length=16)
     email = models.EmailField(_("邮箱"), max_length=64)
     password = models.CharField(_("登录密码"), max_length=256)
@@ -223,7 +223,7 @@ class Instructor(models.Model):
     # )
 
     def __str__(self):
-        return self.name
+        return self.username
 
 
 class ClientCompany(models.Model):
@@ -286,7 +286,7 @@ class ClientCompany(models.Model):
 class ClientStudent(models.Model):
     """客户学员"""
 
-    name = models.CharField(_("名称"), max_length=32)
+    username = models.CharField(_("名称"), max_length=64)
     gender = models.CharField(_("性别"), max_length=32)
     id_number = models.CharField(_("身份证号"), max_length=32)
     education = models.CharField(
@@ -328,7 +328,7 @@ class ClientStudent(models.Model):
         return self.affiliated_manage_company.name
 
     def __str__(self):
-        return self.name
+        return self.username
 
 
 class ClientApprovalSlip(models.Model):
@@ -343,24 +343,28 @@ class ClientApprovalSlip(models.Model):
     affiliated_manage_company_name = models.CharField(_("管理公司"), max_length=32)
     affiliated_client_company_name = models.CharField(_("客户公司"), max_length=32)
     submitter = models.CharField(_("提单人"), max_length=32)
-    submission_datetime = models.DateTimeField(_("提单时间"))
     status = models.CharField(
         _("状态"),
-        # choices=[
-        #     ('pending', _("待处理")),
-        #     ('approved', _("同意")),
-        #     ('rejected', _("驳回")),
-        # ],
+        choices=Status.choices,
         max_length=32,
-        default="待处理",
+        default=Status.PENDING.value,
     )
+    submission_datetime = models.DateTimeField(_("提单时间"))
     submission_info = models.JSONField(_("提交信息"), default=dict)
 
+    @property
     def affiliated_manage_company(self) -> ManageCompany:
         return ManageCompany.objects.get(name=self.affiliated_manage_company_name)
 
+    @property
     def affiliated_client_company(self) -> ClientCompany:
         return ClientCompany.objects.get(name=self.affiliated_client_company_name)
+
+    @classproperty
+    def affiliated_client_company_names(self) -> List:
+        return list(
+            self.objects.values_list("affiliated_client_company_name", flat=True)
+        )
 
     def __str__(self):
         return self.name
