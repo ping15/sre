@@ -33,13 +33,6 @@ class AuthenticationViewSet(GenericViewSet):
                 backend="apps.authentication.backends.MultiUserModelBackend",
             )
 
-            if isinstance(user, Administrator):
-                request.user.identity = "administrator"
-            elif isinstance(user, Instructor):
-                request.user.identity = "instructor"
-            elif isinstance(user, ClientStudent):
-                request.user.identity = "client_student"
-
             return Response()
 
         return Response(result=False, err_msg="登录失败")

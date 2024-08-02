@@ -80,7 +80,7 @@ class TrainingClass(models.Model):
 
     @property
     def instructor_name(self) -> str:
-        return self.instructor.name if self.instructor else ""
+        return self.instructor.username if self.instructor else ""
 
     @property
     def affiliated_manage_company(self) -> ManageCompany:

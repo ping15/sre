@@ -40,6 +40,10 @@ class InstructorModelViewSet(ModelViewSet):
         "review": InstructorReviewSerializer,
     }
 
+    def list(self, request, *args, **kwargs):
+        print(f"user={request.user}")
+        return super().list(request, *args, **kwargs)
+
     @action(methods=["GET"], detail=True)
     def taught_courses(self, request, *args, **kwargs):
         """已授课程"""

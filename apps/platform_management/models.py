@@ -187,6 +187,14 @@ class Administrator(AbstractUser):
         return self.username
 
     @property
+    def identity(self) -> str:
+        return (
+            "super_administrator"
+            if self.role == "平台管理员"
+            else "manage_company_administrator"
+        )
+
+    @property
     def affiliated_manage_company(self) -> ManageCompany:
         return ManageCompany.objects.get(name=self.affiliated_manage_company_name)
 
@@ -215,12 +223,26 @@ class Instructor(models.Model):
     hours_taught = models.IntegerField(_("已授课时"), default=0)
     is_partnered = models.BooleanField(_("是否合作"), default=True)
     id_photo = models.JSONField(_("证件照"), default=dict)
+
+    last_login = models.DateTimeField(_("最后登录时间"), blank=True, null=True)
     # training_class = models.OneToOneField(
     #     TrainingClass,
     #     related_name='instructor',
     #     verbose_name=_("课堂"),
     #     on_delete=models.CASCADE
     # )
+
+    @property
+    def is_anonymous(self) -> bool:
+        return False
+
+    @property
+    def is_authenticated(self) -> bool:
+        return True
+
+    @property
+    def identity(self) -> str:
+        return "instructor"
 
     def __str__(self):
         return self.username
@@ -313,6 +335,8 @@ class ClientStudent(models.Model):
     password = models.CharField(_("登录密码"), max_length=256)
     id_photo = models.JSONField(_("证件照"), default=dict)
 
+    last_login = models.DateTimeField(_("最后登录时间"), blank=True, null=True)
+
     @property
     def affiliated_client_company(self) -> ClientCompany:
         return ClientCompany.objects.get(name=self.affiliated_client_company_name)
@@ -326,6 +350,18 @@ class ClientStudent(models.Model):
     @property
     def affiliated_manage_company_name(self) -> str:
         return self.affiliated_manage_company.name
+
+    @property
+    def is_anonymous(self) -> bool:
+        return False
+
+    @property
+    def is_authenticated(self) -> bool:
+        return True
+
+    @property
+    def identity(self):
+        return "client_student"
 
     def __str__(self):
         return self.username
