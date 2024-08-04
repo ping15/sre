@@ -3,6 +3,7 @@ from typing import List
 from rest_framework import serializers
 
 from apps.platform_management.models import ClientCompany, ManageCompany
+from common.utils.drf.serializer_validator import BasicSerializerValidator
 
 
 class ClientCompanyListSerializer(serializers.ModelSerializer):
@@ -23,12 +24,7 @@ class ClientCompanyRetrieveSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ClientCompanyCreateSerializer(serializers.ModelSerializer):
-    affiliated_manage_company_name = serializers.ChoiceField(
-        choices=[(name, name) for name in ManageCompany.names],
-        error_messages={"invalid_choice": f"该管理公司不存在, 可选管理公司: {ManageCompany.names}"},
-    )
-
+class ClientCompanyCreateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
     class Meta:
         model = ClientCompany
         fields = "__all__"
