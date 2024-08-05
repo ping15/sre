@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.platform_management.models import Administrator, ManageCompany
+from common.utils.drf.serializer_fields import ChoiceField
 from common.utils.drf.serializer_validator import BasicSerializerValidator
 
 
@@ -20,6 +21,8 @@ class AdministratorListSerializer(serializers.ModelSerializer):
 class AdministratorCreateSerializer(
     serializers.ModelSerializer, BasicSerializerValidator
 ):
+    role = ChoiceField(choices=Administrator.Role.choices)
+
     class Meta:
         model = Administrator
         exclude = ["password"]
