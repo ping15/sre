@@ -152,6 +152,8 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "common.utils.drf.exceptions.exception_handler",
 }
 
+DEBUG = True
+
 """
 以下为框架代码 请勿修改
 """
