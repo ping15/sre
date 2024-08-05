@@ -24,7 +24,9 @@ class ClientCompanyRetrieveSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ClientCompanyCreateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
+class ClientCompanyCreateSerializer(
+    serializers.ModelSerializer, BasicSerializerValidator
+):
     class Meta:
         model = ClientCompany
         fields = "__all__"

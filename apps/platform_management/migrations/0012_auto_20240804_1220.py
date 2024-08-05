@@ -6,43 +6,85 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('platform_management', '0011_auto_20240802_0934'),
+        ("platform_management", "0011_auto_20240802_0934"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='administrator',
-            name='role',
-            field=models.CharField(choices=[('super_manager', '平台管理员'), ('company_manager', '鸿雪公司管理员'), ('partner_manager', '合作伙伴管理员')], db_index=True, max_length=16, verbose_name='权限角色'),
+            model_name="administrator",
+            name="role",
+            field=models.CharField(
+                choices=[
+                    ("super_manager", "平台管理员"),
+                    ("company_manager", "鸿雪公司管理员"),
+                    ("partner_manager", "合作伙伴管理员"),
+                ],
+                db_index=True,
+                max_length=16,
+                verbose_name="权限角色",
+            ),
         ),
         migrations.AlterField(
-            model_name='coursetemplate',
-            name='assessment_method',
-            field=models.CharField(choices=[('closed_book_exam', '闭卷考试'), ('computer_exam', '闭卷机考'), ('practical', '实操'), ('defense', '答辩')], max_length=16, verbose_name='考核方式'),
+            model_name="coursetemplate",
+            name="assessment_method",
+            field=models.CharField(
+                choices=[
+                    ("closed_book_exam", "闭卷考试"),
+                    ("computer_exam", "闭卷机考"),
+                    ("practical", "实操"),
+                    ("defense", "答辩"),
+                ],
+                max_length=16,
+                verbose_name="考核方式",
+            ),
         ),
         migrations.AlterField(
-            model_name='coursetemplate',
-            name='exam_duration',
-            field=models.IntegerField(choices=[(45, '45分钟'), (60, '60分钟'), (120, '120分钟')], verbose_name='考试时长'),
+            model_name="coursetemplate",
+            name="exam_duration",
+            field=models.IntegerField(
+                choices=[(45, "45分钟"), (60, "60分钟"), (120, "120分钟")],
+                verbose_name="考试时长",
+            ),
         ),
         migrations.AlterField(
-            model_name='coursetemplate',
-            name='exam_language',
-            field=models.CharField(choices=[('chinese', '中文'), ('english', '英文')], max_length=8, verbose_name='考试语言'),
+            model_name="coursetemplate",
+            name="exam_language",
+            field=models.CharField(
+                choices=[("chinese", "中文"), ("english", "英文")],
+                max_length=8,
+                verbose_name="考试语言",
+            ),
         ),
         migrations.AlterField(
-            model_name='coursetemplate',
-            name='exam_type',
-            field=models.JSONField(choices=[('multiple_choice', '多选题'), ('single_choice', '单选题')], default=list, verbose_name='考试题型'),
+            model_name="coursetemplate",
+            name="exam_type",
+            field=models.JSONField(
+                choices=[("multiple_choice", "多选题"), ("single_choice", "单选题")],
+                default=list,
+                verbose_name="考试题型",
+            ),
         ),
         migrations.AlterField(
-            model_name='coursetemplate',
-            name='status',
-            field=models.CharField(choices=[('preparation', '准备期'), ('in_progress', '授课'), ('suspended', '暂停'), ('terminated', '停课')], max_length=32, verbose_name='状态'),
+            model_name="coursetemplate",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("preparation", "准备期"),
+                    ("in_progress", "授课"),
+                    ("suspended", "暂停"),
+                    ("terminated", "停课"),
+                ],
+                max_length=32,
+                verbose_name="状态",
+            ),
         ),
         migrations.AlterField(
-            model_name='managecompany',
-            name='type',
-            field=models.CharField(choices=[('default', '默认公司'), ('partner', '合作伙伴')], max_length=32, verbose_name='类型'),
+            model_name="managecompany",
+            name="type",
+            field=models.CharField(
+                choices=[("default", "默认公司"), ("partner", "合作伙伴")],
+                max_length=32,
+                verbose_name="类型",
+            ),
         ),
     ]
