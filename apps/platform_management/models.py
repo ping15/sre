@@ -25,11 +25,11 @@ class CourseTemplate(models.Model):
     name = models.CharField(_("课程名称"), max_length=32, unique=True)
     level = models.CharField(
         _("级别"),
-        # choices=[
-        #     ('primary', _("初级")),
-        #     ('intermediate', _("中级")),
-        #     ('senior', _("高级")),
-        # ],
+        choices=[
+            ("primary", _("初级")),
+            ("intermediate", _("中级")),
+            ("senior", _("高级")),
+        ],
         max_length=32,
     )
     abbreviation = models.CharField(_("英文缩写"), max_length=32)
@@ -39,20 +39,20 @@ class CourseTemplate(models.Model):
     status = models.CharField(
         _("状态"),
         choices=[
-            ('preparation', _("准备期")),
-            ('in_progress', _("授课")),
-            ('suspended', _("暂停")),
-            ('terminated', _("停课")),
+            ("preparation", _("准备期")),
+            ("in_progress", _("授课")),
+            ("suspended", _("暂停")),
+            ("terminated", _("停课")),
         ],
         max_length=32,
     )
     assessment_method = models.CharField(
         _("考核方式"),
         choices=[
-            ('closed_book_exam', _("闭卷考试")),
-            ('computer_exam', _("闭卷机考")),
-            ('practical', _("实操")),
-            ('defense', _("答辩")),
+            ("closed_book_exam", _("闭卷考试")),
+            ("computer_exam", _("闭卷机考")),
+            ("practical", _("实操")),
+            ("defense", _("答辩")),
         ],
         max_length=16,
     )
@@ -74,8 +74,8 @@ class CourseTemplate(models.Model):
     exam_type = models.JSONField(
         _("考试题型"),
         choices=[
-            ('multiple_choice', _("多选题")),
-            ('single_choice', _("单选题")),
+            ("multiple_choice", _("多选题")),
+            ("single_choice", _("单选题")),
         ],
         default=list,
     )
@@ -91,8 +91,8 @@ class CourseTemplate(models.Model):
     exam_language = models.CharField(
         _("考试语言"),
         choices=[
-            ('chinese', _("中文")),
-            ('english', _("英文")),
+            ("chinese", _("中文")),
+            ("english", _("英文")),
         ],
         max_length=8,
     )
@@ -100,11 +100,11 @@ class CourseTemplate(models.Model):
     require_authorized_training = models.BooleanField(_("是否要求授权培训"))
     certification_body = models.JSONField(
         _("认证机构"),
-        # choices=[
-        #     ('none', _("无证")),
-        #     ('any_one', _("任何一个证")),
-        #     ('two_certificates', _("两证")),
-        # ],
+        choices=[
+            # Ministry of Industry and Information Technology
+            ("miit_talent_center", _("工信部人才中心")),
+            ("exam_center", _("教考中心")),
+        ],
         default=list,
     )
 
@@ -129,8 +129,8 @@ class ManageCompany(models.Model):
     type = models.CharField(
         _("类型"),
         choices=[
-            ('default', '默认公司'),
-            ('partner', '合作伙伴'),
+            ("default", "默认公司"),
+            ("partner", "合作伙伴"),
         ],
         max_length=32,
     )
@@ -166,9 +166,9 @@ class Administrator(AbstractUser):
     role = models.CharField(
         _("权限角色"),
         choices=[
-            ('super_manager', _('平台管理员')),
-            ('company_manager', _('鸿雪公司管理员')),
-            ('partner_manager', _('合作伙伴管理员')),
+            ("super_manager", _("平台管理员")),
+            ("company_manager", _("鸿雪公司管理员")),
+            ("partner_manager", _("合作伙伴管理员")),
         ],
         max_length=16,
         db_index=True,
@@ -257,12 +257,12 @@ class ClientCompany(models.Model):
     contact_email = models.EmailField(_("邮箱"), max_length=64)
     payment_method = models.CharField(
         _("参会费支付方式"),
-        # choices=[
-        #     ('public_card', _('刷公务卡')),
-        #     ('telegraphic_transfer', _('电汇')),
-        #     ('wechat', _('对公微信')),
-        #     ('alipay', _('对公支付宝')),
-        # ],
+        choices=[
+            ("public_card", _("刷公务卡")),
+            ("telegraphic_transfer", _("电汇")),
+            ("wechat", _("对公微信")),
+            ("alipay", _("对公支付宝")),
+        ],
         max_length=32,
     )
     affiliated_manage_company_name = models.CharField(_("管理公司"), max_length=64)
@@ -312,12 +312,12 @@ class ClientStudent(models.Model):
     id_number = models.CharField(_("身份证号"), max_length=32)
     education = models.CharField(
         _("学历"),
-        # choices=[
-        #     ('associate', _("专科")),
-        #     ('bachelor', _("本科")),
-        #     ('master', _("硕士研究生")),
-        #     ('doctorate', _("博士生")),
-        # ],
+        choices=[
+            ("associate", _("专科")),
+            ("bachelor", _("本科")),
+            ("master", _("硕士研究生")),
+            ("doctorate", _("博士生")),
+        ],
         max_length=32,
     )
     phone = models.CharField(_("电话"), max_length=16)
