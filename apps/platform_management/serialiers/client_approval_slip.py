@@ -5,12 +5,11 @@ from rest_framework.exceptions import ValidationError
 
 from apps.platform_management.models import (
     ClientApprovalSlip,
-    ManageCompany,
-    ClientCompany,
 )
 from apps.platform_management.serialiers.client_company import (
     ClientCompanyCreateSerializer,
 )
+from common.utils.drf.serializer_fields import ChoiceField
 
 
 class ClientApprovalSlipListSerializer(serializers.ModelSerializer):
@@ -56,17 +55,21 @@ class ClientApprovalSlipCreateSerializer(serializers.ModelSerializer):
         ]
 
 
-class ClientApprovalSlipUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ClientApprovalSlip
-        fields = ["status"]
+# class ClientApprovalSlipUpdateSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = ClientApprovalSlip
+#         fields = ["status"]
 
 
 class ClientApprovalSlipPartialUpdateSerializer(serializers.ModelSerializer):
-    # class ClientApprovalStatusSerializer(serializers.Serializer):
-    #     status = serializers.CharField()
-    #
-    # submission_info = ClientApprovalStatusSerializer()
+    # status = serializers.ChoiceField(
+    #     choices=ClientApprovalSlip.Status.choices,
+    #     error_messages={
+    #         'invalid_choice': "777"
+    #     }
+    # )
+    status = ChoiceField(choices=ClientApprovalSlip.Status.choices)
+
     class Meta:
         model = ClientApprovalSlip
         fields = ["status"]
