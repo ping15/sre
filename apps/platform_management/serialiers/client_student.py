@@ -10,7 +10,9 @@ class ClientStudentListSerializer(serializers.ModelSerializer):
         exclude = ["department", "position"]
 
 
-class ClientStudentCreateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
+class ClientStudentCreateSerializer(
+    serializers.ModelSerializer, BasicSerializerValidator
+):
     class Meta:
         model = ClientStudent
         fields = "__all__"

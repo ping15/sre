@@ -369,9 +369,9 @@ class ClientApprovalSlip(models.Model):
     """客户审批单据"""
 
     class Status(models.TextChoices):
-        PENDING = "待处理", "待处理"
-        APPROVED = "同意", "同意"
-        REJECTED = "驳回", "驳回"
+        PENDING = "pending", "待处理"
+        APPROVED = "approval", "同意"
+        REJECTED = "rejected", "驳回"
 
     name = models.CharField(_("标题"), max_length=64)
     affiliated_manage_company_name = models.CharField(_("管理公司"), max_length=32)
