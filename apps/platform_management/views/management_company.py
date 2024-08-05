@@ -12,7 +12,7 @@ class ManagementCompanyModelViewSet(ModelViewSet):
 
     permission_classes = [SuperAdministratorPermission]
     queryset = ManageCompany.objects.all()
-    default_serializer_class = ManagementCompanyListSerializer
+    default_serializer_class = ManagementCompanyCreateSerializer
     fuzzy_filter_fields = ["name", "email"]
     filter_condition_mapping = {
         "公司名称": "name",
