@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models import QuerySet
 from django.utils.functional import classproperty
 from django.utils.translation import ugettext_lazy as _
+from rest_framework.exceptions import ValidationError
 
 
 class Attachment(models.Model):
@@ -14,6 +15,41 @@ class Attachment(models.Model):
 
 class CourseTemplate(models.Model):
     """课程模板"""
+
+    class Level(models.TextChoices):
+        PRIMARY = "primary", "初级"
+        INTERMEDIATE = "intermediate", "中级"
+        SENIOR = "senior", "高级"
+
+    class Status(models.TextChoices):
+        PREPARATION = "preparation", "准备期"
+        IN_PROGRESS = "in_progress", "授课"
+        SUSPENDED = "suspended", "暂停"
+        TERMINATED = "terminated", "停课"
+
+    class AssessmentMethod(models.TextChoices):
+        CLOSED_BOOK_EXAM = "closed_book_exam", "闭卷考试"
+        COMPUTER_EXAM = "computer_exam", "闭卷机考"
+        PRACTICAL = "practical", "实操"
+        DEFENSE = "defense", "答辩"
+
+    class ExamType(models.TextChoices):
+        MULTIPLE_CHOICE = "multiple_choice", "多选题"
+        SINGLE_CHOICE = "single_choice", "单选题"
+
+    class ExamDuration(models.TextChoices):
+        FORTY_FIVE = 45, "45分钟"
+        SIXTY = 60, "60分钟"
+        ONE_HUNDRED_TWENTY = 120, "120分钟"
+
+    class ExamLanguage(models.TextChoices):
+        CHINESE = "chinese", "中文"
+        ENGLISH = "english", "英文"
+
+    class CertificationBody(models.TextChoices):
+        # # Ministry of Industry and Information Technology
+        MIIT_TALENT_CENTER = "miit_talent_center", "工信部人才中心"
+        EXAM_CENTER = "exam_center", "教考中心"
 
     STATUS_ORDERING_RULE = [
         ("停课", 3),
@@ -25,11 +61,7 @@ class CourseTemplate(models.Model):
     name = models.CharField(_("课程名称"), max_length=32, unique=True)
     level = models.CharField(
         _("级别"),
-        choices=[
-            ("primary", _("初级")),
-            ("intermediate", _("中级")),
-            ("senior", _("高级")),
-        ],
+        choices=Level.choices,
         max_length=32,
     )
     abbreviation = models.CharField(_("英文缩写"), max_length=32)
@@ -38,22 +70,12 @@ class CourseTemplate(models.Model):
     release_date = models.DateField(_("上线日期"))
     status = models.CharField(
         _("状态"),
-        choices=[
-            ("preparation", _("准备期")),
-            ("in_progress", _("授课")),
-            ("suspended", _("暂停")),
-            ("terminated", _("停课")),
-        ],
+        choices=Status.choices,
         max_length=32,
     )
     assessment_method = models.CharField(
         _("考核方式"),
-        choices=[
-            ("closed_book_exam", _("闭卷考试")),
-            ("computer_exam", _("闭卷机考")),
-            ("practical", _("实操")),
-            ("defense", _("答辩")),
-        ],
+        choices=AssessmentMethod.choices,
         max_length=16,
     )
     attachments = models.JSONField(_("附件区域"), default=list)
@@ -73,38 +95,24 @@ class CourseTemplate(models.Model):
     remarks = models.TextField(_("备注"))
     exam_type = models.JSONField(
         _("考试题型"),
-        choices=[
-            ("multiple_choice", _("多选题")),
-            ("single_choice", _("单选题")),
-        ],
+        choices=ExamType.choices,
         default=list,
     )
     num_questions = models.IntegerField(_("考题数量"))
     exam_duration = models.IntegerField(
         _("考试时长"),
-        choices=[
-            (45, _("45分钟")),
-            (60, _("60分钟")),
-            (120, _("120分钟")),
-        ],
+        choices=ExamDuration.choices,
     )
     exam_language = models.CharField(
         _("考试语言"),
-        choices=[
-            ("chinese", _("中文")),
-            ("english", _("英文")),
-        ],
+        choices=ExamLanguage.choices,
         max_length=8,
     )
     passing_score = models.IntegerField(_("过线分数"))
     require_authorized_training = models.BooleanField(_("是否要求授权培训"))
     certification_body = models.JSONField(
         _("认证机构"),
-        choices=[
-            # Ministry of Industry and Information Technology
-            ("miit_talent_center", _("工信部人才中心")),
-            ("exam_center", _("教考中心")),
-        ],
+        choices=CertificationBody.choices,
         default=list,
     )
 
@@ -124,14 +132,15 @@ class CourseTemplate(models.Model):
 class ManageCompany(models.Model):
     """管理公司"""
 
+    class Type(models.TextChoices):
+        DEFAULT = "default", "默认公司"
+        PARTNER = "partner", "合作伙伴"
+
     name = models.CharField(_("名称"), max_length=32, unique=True)
     email = models.EmailField(_("邮箱"), max_length=32)
     type = models.CharField(
         _("类型"),
-        choices=[
-            ("default", "默认公司"),
-            ("partner", "合作伙伴"),
-        ],
+        choices=Type.choices,
         max_length=32,
     )
 
@@ -152,24 +161,19 @@ class ManageCompany(models.Model):
 
 
 class Administrator(AbstractUser):
+    """管理员"""
+
+    class Role(models.TextChoices):
+        SUPER_MANAGER = "super_manager", "平台管理员"
+        COMPANY_MANAGER = "company_manager", "鸿雪公司管理员"
+        PARTNER_MANAGER = "partner_manager", "合作伙伴管理员"
+
     username = models.CharField(_("名称"), max_length=64, db_index=True)
-    # email = models.EmailField(_("邮箱"), max_length=64, blank=True)
     phone = models.CharField(_("手机号码"), max_length=16, db_index=True)
-    # password = models.CharField(_("登录密码"), max_length=32)
     affiliated_manage_company_name = models.CharField(_("管理公司"), max_length=32)
-    # manage_company = models.ForeignKey(
-    #     ManageCompany,
-    #     verbose_name=_("管理公司"),
-    #     on_delete=models.CASCADE,
-    #     related_name='managers',
-    # )
     role = models.CharField(
         _("权限角色"),
-        choices=[
-            ("super_manager", _("平台管理员")),
-            ("company_manager", _("鸿雪公司管理员")),
-            ("partner_manager", _("合作伙伴管理员")),
-        ],
+        choices=Role.choices,
         max_length=16,
         db_index=True,
     )
@@ -250,6 +254,12 @@ class Instructor(models.Model):
 class ClientCompany(models.Model):
     """客户公司"""
 
+    class PaymentMethod(models.TextChoices):
+        PUBLIC_CARD = "public_card", "刷公务卡"
+        TELEGRAPHIC_TRANSFER = "telegraphic_transfer", "电汇"
+        WECHAT = "wechat", "对公微信"
+        ALIPAY = "alipay", "对公支付宝"
+
     # 基本信息
     name = models.CharField(_("客户公司名称"), max_length=32, unique=True)
     contact_person = models.CharField(_("联系人"), max_length=32)
@@ -257,12 +267,7 @@ class ClientCompany(models.Model):
     contact_email = models.EmailField(_("邮箱"), max_length=64)
     payment_method = models.CharField(
         _("参会费支付方式"),
-        choices=[
-            ("public_card", _("刷公务卡")),
-            ("telegraphic_transfer", _("电汇")),
-            ("wechat", _("对公微信")),
-            ("alipay", _("对公支付宝")),
-        ],
+        choices=PaymentMethod.choices,
         max_length=32,
     )
     affiliated_manage_company_name = models.CharField(_("管理公司"), max_length=64)
@@ -307,27 +312,22 @@ class ClientCompany(models.Model):
 class ClientStudent(models.Model):
     """客户学员"""
 
+    class Education(models.TextChoices):
+        ASSOCIATE = "associate", "专科"
+        BACHELOR = "bachelor", "本科"
+        MASTER = "master", "硕士研究生"
+        DOCTORATE = "doctorate", "博士生"
+
     username = models.CharField(_("名称"), max_length=64)
     gender = models.CharField(_("性别"), max_length=32)
     id_number = models.CharField(_("身份证号"), max_length=32)
     education = models.CharField(
         _("学历"),
-        choices=[
-            ("associate", _("专科")),
-            ("bachelor", _("本科")),
-            ("master", _("硕士研究生")),
-            ("doctorate", _("博士生")),
-        ],
+        choices=Education.choices,
         max_length=32,
     )
     phone = models.CharField(_("电话"), max_length=16)
     email = models.EmailField(_("邮箱"), max_length=64)
-    # affiliated_client_company = models.ForeignKey(
-    #     ClientCompany,
-    #     verbose_name=_("客户公司"),
-    #     on_delete=models.CASCADE,
-    #     related_name='students',
-    # )
     affiliated_client_company_name = models.CharField(_("客户公司"), max_length=64)
     department = models.CharField(_("部门"), max_length=32)
     position = models.CharField(_("职位"), max_length=32)
