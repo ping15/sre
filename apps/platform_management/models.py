@@ -38,22 +38,22 @@ class CourseTemplate(models.Model):
     release_date = models.DateField(_("上线日期"))
     status = models.CharField(
         _("状态"),
-        # choices=[
-        #     ('preparation', _("准备期")),
-        #     ('in_progress', _("授课")),
-        #     ('suspended', _("暂停")),
-        #     ('terminated', _("停课")),
-        # ],
+        choices=[
+            ('preparation', _("准备期")),
+            ('in_progress', _("授课")),
+            ('suspended', _("暂停")),
+            ('terminated', _("停课")),
+        ],
         max_length=32,
     )
     assessment_method = models.CharField(
         _("考核方式"),
-        # choices=[
-        #     ('closed_book_exam', _("闭卷考试")),
-        #     ('computer_exam', _("闭卷机考")),
-        #     ('practical', _("实操")),
-        #     ('defense', _("答辩")),
-        # ],
+        choices=[
+            ('closed_book_exam', _("闭卷考试")),
+            ('computer_exam', _("闭卷机考")),
+            ('practical', _("实操")),
+            ('defense', _("答辩")),
+        ],
         max_length=16,
     )
     attachments = models.JSONField(_("附件区域"), default=list)
@@ -73,27 +73,27 @@ class CourseTemplate(models.Model):
     remarks = models.TextField(_("备注"))
     exam_type = models.JSONField(
         _("考试题型"),
-        # choices=[
-        #     ('multiple_choice', _("多选题")),
-        #     ('single_choice', _("单选题")),
-        # ],
+        choices=[
+            ('multiple_choice', _("多选题")),
+            ('single_choice', _("单选题")),
+        ],
         default=list,
     )
     num_questions = models.IntegerField(_("考题数量"))
     exam_duration = models.IntegerField(
         _("考试时长"),
-        # choices=[
-        #     (45, _("45分钟")),
-        #     (60, _("60分钟")),
-        #     (120, _("120分钟")),
-        # ],
+        choices=[
+            (45, _("45分钟")),
+            (60, _("60分钟")),
+            (120, _("120分钟")),
+        ],
     )
     exam_language = models.CharField(
         _("考试语言"),
-        # choices=[
-        #     ('chinese', _("中文")),
-        #     ('english', _("英文")),
-        # ],
+        choices=[
+            ('chinese', _("中文")),
+            ('english', _("英文")),
+        ],
         max_length=8,
     )
     passing_score = models.IntegerField(_("过线分数"))
@@ -128,10 +128,10 @@ class ManageCompany(models.Model):
     email = models.EmailField(_("邮箱"), max_length=32)
     type = models.CharField(
         _("类型"),
-        # choices=[
-        #     ('默认公司', '默认公司'),
-        #     ('默认公司', '合作伙伴'),
-        # ],
+        choices=[
+            ('default', '默认公司'),
+            ('partner', '合作伙伴'),
+        ],
         max_length=32,
     )
 
@@ -165,11 +165,11 @@ class Administrator(AbstractUser):
     # )
     role = models.CharField(
         _("权限角色"),
-        # choices=[
-        #     ('super_manager', _('平台管理员')),
-        #     ('company_manager', _('鸿雪公司管理员')),
-        #     ('partner_manager', _('合作伙伴管理员')),
-        # ],
+        choices=[
+            ('super_manager', _('平台管理员')),
+            ('company_manager', _('鸿雪公司管理员')),
+            ('partner_manager', _('合作伙伴管理员')),
+        ],
         max_length=16,
         db_index=True,
     )
@@ -212,7 +212,6 @@ class Instructor(models.Model):
     username = models.CharField(_("姓名"), max_length=64, db_index=True)
     phone = models.CharField(_("电话"), max_length=16)
     email = models.EmailField(_("邮箱"), max_length=64)
-    password = models.CharField(_("登录密码"), max_length=256)
     city = models.CharField(_("所在城市"), max_length=32)
     company = models.CharField(_("所在公司"), max_length=64)
     department = models.CharField(_("部门"), max_length=32)
@@ -332,7 +331,6 @@ class ClientStudent(models.Model):
     affiliated_client_company_name = models.CharField(_("客户公司"), max_length=64)
     department = models.CharField(_("部门"), max_length=32)
     position = models.CharField(_("职位"), max_length=32)
-    password = models.CharField(_("登录密码"), max_length=256)
     id_photo = models.JSONField(_("证件照"), default=dict)
 
     last_login = models.DateTimeField(_("最后登录时间"), blank=True, null=True)
