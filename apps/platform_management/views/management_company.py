@@ -1,9 +1,7 @@
-from rest_framework.decorators import action
-from rest_framework.response import Response
-
 from apps.platform_management.models import ManageCompany
 from apps.platform_management.serialiers.management_company import (
-    ManagementCompanySerializer,
+    ManagementCompanyListSerializer,
+    ManagementCompanyCreateSerializer,
 )
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
@@ -14,11 +12,15 @@ class ManagementCompanyModelViewSet(ModelViewSet):
 
     permission_classes = [SuperAdministratorPermission]
     queryset = ManageCompany.objects.all()
-    default_serializer_class = ManagementCompanySerializer
+    default_serializer_class = ManagementCompanyListSerializer
     fuzzy_filter_fields = ["name", "email"]
     filter_condition_mapping = {
         "公司名称": "name",
         "联系邮箱": "email",
+    }
+    ACTION_MAP = {
+        "list": ManagementCompanyListSerializer,
+        "create": ManagementCompanyCreateSerializer,
     }
 
     # def list(self, request, *args, **kwargs):

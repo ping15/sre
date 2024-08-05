@@ -1,12 +1,10 @@
 from typing import List
 
-from django.contrib.auth.base_user import AbstractBaseUser
-from django.contrib.auth.models import AbstractUser, PermissionsMixin, Group, Permission
+from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 from django.db.models import QuerySet
 from django.utils.functional import classproperty
 from django.utils.translation import ugettext_lazy as _
-from rest_framework.exceptions import ValidationError
 
 
 class Attachment(models.Model):
@@ -36,6 +34,7 @@ class CourseTemplate(models.Model):
     class ExamType(models.TextChoices):
         MULTIPLE_CHOICE = "multiple_choice", "多选题"
         SINGLE_CHOICE = "single_choice", "单选题"
+        SUBJECTIVE = "subjective", "主观题"
 
     class ExamDuration(models.TextChoices):
         FORTY_FIVE = 45, "45分钟"
