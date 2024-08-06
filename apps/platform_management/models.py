@@ -169,7 +169,12 @@ class Administrator(AbstractUser):
 
     username = models.CharField(_("名称"), max_length=64, db_index=True)
     phone = models.CharField(_("手机号码"), max_length=16, db_index=True, unique=True)
-    affiliated_manage_company_name = models.CharField(_("管理公司"), max_length=32)
+    # affiliated_manage_company_name = models.CharField(_("管理公司"), max_length=32)
+    affiliated_manage_company = models.ForeignKey(
+        ManageCompany,
+        on_delete=models.CASCADE,
+        verbose_name=_("管理公司")
+    )
     role = models.CharField(
         _("权限角色"),
         choices=Role.choices,
@@ -190,8 +195,8 @@ class Administrator(AbstractUser):
         return self.username
 
     @property
-    def affiliated_manage_company(self) -> ManageCompany:
-        return ManageCompany.objects.get(name=self.affiliated_manage_company_name)
+    def affiliated_manage_company_name(self) -> str:
+        return self.affiliated_manage_company.name
 
     def clean(self):
         super().clean()

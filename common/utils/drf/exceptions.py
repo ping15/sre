@@ -21,7 +21,7 @@ def exception_handler(exc, context):
         exc_detail = exc.detail
         if isinstance(exc_detail, list):
             exc_detail = ([detail for detail in exc.detail if detail],)
-        return Response(status=exc.status_code, err_msg=exc_detail, result=False)
+        return Response(status=exc.status_code, err_msg=str(exc_detail), result=False)
 
     # 处理其他类型的异常，如果有的话，可以在这里添加自定义处理
     if response is not None:
