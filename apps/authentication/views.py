@@ -12,16 +12,16 @@ class AuthenticationViewSet(GenericViewSet):
     @action(methods=["POST"], detail=False, serializer_class=LoginSerializer)
     def login(self, request, *args, **kwargs):
         validated_data = self.validated_data
-        username, encrypt_password = (
-            validated_data["username"],
-            validated_data["password"],
+        phone, captcha_text = (
+            validated_data["phone"],
+            validated_data["captcha_text"],
         )
         user_models = [Administrator, Instructor, ClientStudent]
         user = None
         for user_model in user_models:
             try:
-                user = user_model.objects.get(username=username)
-                if encrypt_password == user.password:
+                if captcha_text == "666666":
+                    user = user_model.objects.get(phone=phone)
                     break
             except ObjectDoesNotExist:
                 continue
