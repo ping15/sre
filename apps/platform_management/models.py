@@ -168,7 +168,7 @@ class Administrator(AbstractUser):
         PARTNER_MANAGER = "partner_manager", "合作伙伴管理员"
 
     username = models.CharField(_("名称"), max_length=64, db_index=True)
-    phone = models.CharField(_("手机号码"), max_length=16, db_index=True)
+    phone = models.CharField(_("手机号码"), max_length=16, db_index=True, primary_key=True)
     affiliated_manage_company_name = models.CharField(_("管理公司"), max_length=32)
     role = models.CharField(
         _("权限角色"),
@@ -213,7 +213,7 @@ class Instructor(models.Model):
     """讲师"""
 
     username = models.CharField(_("姓名"), max_length=64, db_index=True)
-    phone = models.CharField(_("电话"), max_length=16)
+    phone = models.CharField(_("电话"), max_length=16, primary_key=True)
     email = models.EmailField(_("邮箱"), max_length=64)
     city = models.CharField(_("所在城市"), max_length=32)
     company = models.CharField(_("所在公司"), max_length=64)
@@ -325,7 +325,7 @@ class ClientStudent(models.Model):
         choices=Education.choices,
         max_length=32,
     )
-    phone = models.CharField(_("电话"), max_length=16)
+    phone = models.CharField(_("电话"), max_length=16, primary_key=True)
     email = models.EmailField(_("邮箱"), max_length=64)
     affiliated_client_company_name = models.CharField(_("客户公司"), max_length=64)
     department = models.CharField(_("部门"), max_length=32)
