@@ -1,3 +1,5 @@
+from typing import List
+
 from rest_framework.decorators import action
 
 from apps.platform_management.models import ClientStudent, ManageCompany
@@ -43,5 +45,18 @@ class ClientStudentModelViewSet(ModelViewSet):
     @action(methods=["GET"], detail=False)
     def quick_search(self, request, *args, **kwargs):
         return Response(
-            self.get_serializer(ManageCompany.objects.all(), many=True).data
+            [
+                {
+                    "id": "affiliated_manage_company_name",
+                    "name": manage_company.name,
+                    "children": [
+                        {
+                            "id": "affiliated_client_company_name",
+                            "name": client_company.name,
+                        }
+                        for client_company in manage_company.client_companies
+                    ],
+                }
+                for manage_company in ManageCompany.objects.all()
+            ]
         )
