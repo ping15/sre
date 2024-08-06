@@ -2,7 +2,14 @@ import re
 
 from rest_framework import serializers
 
-from apps.platform_management.models import ManageCompany, ClientCompany, CourseTemplate
+from apps.platform_management.models import (
+    ManageCompany,
+    ClientCompany,
+    CourseTemplate,
+    Instructor,
+    Administrator,
+    ClientStudent,
+)
 
 
 class BasicSerializerValidator:
@@ -16,6 +23,7 @@ class BasicSerializerValidator:
         pattern = re.compile(r"^1[35678]\d{9}$")
         if not pattern.match(value):
             raise serializers.ValidationError("手机号必须为11位，第一位为1，第二位可选数字[3,5,6,7,8]")
+
         return value
 
     @classmethod
@@ -42,4 +50,26 @@ class BasicSerializerValidator:
         invalid_courses = [course for course in value if course not in valid_courses]
         if invalid_courses:
             raise serializers.ValidationError(f"存在部分课程不存在, 可选课程: {valid_courses}")
+        return value
+
+
+class PhoneCreateSerializerValidator:
+    @classmethod
+    def validate_phone(cls, value):
+        """
+        Validate phone number.
+        Simple validation for phone number (example: 11 digits only).
+        You can customize this as per your requirements.
+        """
+        pattern = re.compile(r"^1[35678]\d{9}$")
+        if not pattern.match(value):
+            raise serializers.ValidationError("手机号必须为11位，第一位为1，第二位可选数字[3,5,6,7,8]")
+
+        if Instructor.objects.filter(phone=value).exists():
+            raise serializers.ValidationError("具有 手机号码 的 instructor 已存在。")
+        if Administrator.objects.filter(phone=value).exists():
+            raise serializers.ValidationError("具有 电话 的 instructor 已存在。")
+        if ClientStudent.objects.filter(phone=value).exists():
+            raise serializers.ValidationError("具有 电话 的 client student 已存在。")
+
         return value

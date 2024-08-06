@@ -168,7 +168,7 @@ class Administrator(AbstractUser):
         PARTNER_MANAGER = "partner_manager", "合作伙伴管理员"
 
     username = models.CharField(_("名称"), max_length=64, db_index=True)
-    phone = models.CharField(_("手机号码"), max_length=16, db_index=True, primary_key=True)
+    phone = models.CharField(_("手机号码"), max_length=16, db_index=True, unique=True)
     affiliated_manage_company_name = models.CharField(_("管理公司"), max_length=32)
     role = models.CharField(
         _("权限角色"),
@@ -190,14 +190,6 @@ class Administrator(AbstractUser):
         return self.username
 
     @property
-    def identity(self) -> str:
-        return (
-            "super_administrator"
-            if self.role == "平台管理员"
-            else "manage_company_administrator"
-        )
-
-    @property
     def affiliated_manage_company(self) -> ManageCompany:
         return ManageCompany.objects.get(name=self.affiliated_manage_company_name)
 
@@ -213,7 +205,7 @@ class Instructor(models.Model):
     """讲师"""
 
     username = models.CharField(_("姓名"), max_length=64, db_index=True)
-    phone = models.CharField(_("电话"), max_length=16, primary_key=True)
+    phone = models.CharField(_("电话"), max_length=16, unique=True)
     email = models.EmailField(_("邮箱"), max_length=64)
     city = models.CharField(_("所在城市"), max_length=32)
     company = models.CharField(_("所在公司"), max_length=64)
@@ -243,8 +235,12 @@ class Instructor(models.Model):
         return True
 
     @property
-    def identity(self) -> str:
-        return "instructor"
+    def role(self) -> str:
+        return Instructor.__name__
+
+    @property
+    def is_active(self) -> bool:
+        return True
 
     def __str__(self):
         return self.username
@@ -325,7 +321,7 @@ class ClientStudent(models.Model):
         choices=Education.choices,
         max_length=32,
     )
-    phone = models.CharField(_("电话"), max_length=16, primary_key=True)
+    phone = models.CharField(_("电话"), max_length=16, unique=True)
     email = models.EmailField(_("邮箱"), max_length=64)
     affiliated_client_company_name = models.CharField(_("客户公司"), max_length=64)
     department = models.CharField(_("部门"), max_length=32)
@@ -357,8 +353,12 @@ class ClientStudent(models.Model):
         return True
 
     @property
-    def identity(self):
-        return "client_student"
+    def role(self) -> str:
+        return ClientStudent.__name__
+
+    @property
+    def is_active(self) -> bool:
+        return True
 
     def __str__(self):
         return self.username
