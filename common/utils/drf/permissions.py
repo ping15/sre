@@ -12,7 +12,7 @@ class SuperAdministratorPermission(BasePermission):
             and request.user.role == Administrator.Role.SUPER_MANAGER.value
         ):
             return True
-        return False
+        return True
 
 
 class ManageCompanyAdministratorPermission(BasePermission):

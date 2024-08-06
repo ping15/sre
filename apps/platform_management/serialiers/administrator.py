@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.platform_management.models import Administrator
+from apps.platform_management.serialiers.management_company import ManagementCompanyListSerializer
 from common.utils.drf.serializer_fields import ChoiceField
 from common.utils.drf.serializer_validator import (
     BasicSerializerValidator,
@@ -9,6 +10,8 @@ from common.utils.drf.serializer_validator import (
 
 
 class AdministratorListSerializer(serializers.ModelSerializer):
+    affiliated_manage_company = ManagementCompanyListSerializer()
+
     class Meta:
         model = Administrator
         fields = [
@@ -16,7 +19,7 @@ class AdministratorListSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "phone",
-            "affiliated_manage_company_name",
+            "affiliated_manage_company",
             "role",
         ]
 
@@ -24,7 +27,7 @@ class AdministratorListSerializer(serializers.ModelSerializer):
 class AdministratorCreateSerializer(
     serializers.ModelSerializer,
     PhoneCreateSerializerValidator,
-    BasicSerializerValidator,
+    # BasicSerializerValidator,
 ):
     role = ChoiceField(choices=Administrator.Role.choices)
 
