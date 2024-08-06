@@ -101,6 +101,9 @@ class ModelViewSet(DRFModelViewSet):
         self.perform_create(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def update(self, request, *args, **kwargs):
+        return Response(super().update(request, *args, **kwargs).data)
+
     @action(methods=["GET"], detail=False)
     def filter_condition(self, request, *args, **kwargs):
         response_data = []
