@@ -18,11 +18,11 @@ from common.utils.calander import generate_calendar
 from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import INSTRUCTOR_EXCEL_MAPPING
 from common.utils.drf.modelviewset import ModelViewSet
-from common.utils.drf.permissions import InstructorPermission
+from common.utils.drf.permissions import SuperAdministratorPermission
 
 
 class InstructorModelViewSet(ModelViewSet):
-    permission_classes = [InstructorPermission]
+    permission_classes = [SuperAdministratorPermission]
     default_serializer_class = InstructorCreateSerializer
     queryset = Instructor.objects.all()
     enable_batch_import = True

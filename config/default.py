@@ -114,6 +114,7 @@ LOGGING = get_logging_config_dict(locals())
 # 注意：请在首次提测和上线前修改，之后的修改将不会生效
 INIT_SUPERUSER = []
 
+AUTHENTICATION_BACKENDS = ["common.utils.auth.backends.ModelBackend"]
 
 # 使用mako模板时，默认打开的过滤器：h(过滤html)
 MAKO_DEFAULT_FILTERS = ["h"]

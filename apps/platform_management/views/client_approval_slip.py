@@ -10,16 +10,12 @@ from apps.platform_management.serialiers.client_company import (
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import (
     SuperAdministratorPermission,
-    ManageCompanyAdministratorPermission,
 )
 from common.utils.drf.response import Response
 
 
 class ClientApprovalSlipModelViewSet(ModelViewSet):
-    permission_classes = [
-        SuperAdministratorPermission,
-        ManageCompanyAdministratorPermission,
-    ]
+    permission_classes = [SuperAdministratorPermission]
     queryset = ClientApprovalSlip.objects.all()
     default_serializer_class = ClientApprovalSlipCreateSerializer
     integer_filter_fields = ["id"]
@@ -43,6 +39,9 @@ class ClientApprovalSlipModelViewSet(ModelViewSet):
         "create": ClientApprovalSlipCreateSerializer,
         "partial_update": ClientApprovalSlipPartialUpdateSerializer,
     }
+
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     def partial_update(self, request, *args, **kwargs):
         super().partial_update(request, *args, **kwargs)

@@ -1,7 +1,10 @@
 from rest_framework import serializers
 
 from apps.platform_management.models import Instructor
-from common.utils.drf.serializer_validator import BasicSerializerValidator
+from common.utils.drf.serializer_validator import (
+    BasicSerializerValidator,
+    PhoneCreateSerializerValidator,
+)
 
 
 class InstructorListSerializer(serializers.ModelSerializer):
@@ -19,7 +22,11 @@ class InstructorListSerializer(serializers.ModelSerializer):
         ]
 
 
-class InstructorCreateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
+class InstructorCreateSerializer(
+    serializers.ModelSerializer,
+    PhoneCreateSerializerValidator,
+    BasicSerializerValidator,
+):
     class Meta:
         model = Instructor
         fields = "__all__"
