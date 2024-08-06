@@ -1,5 +1,6 @@
 from typing import List, Dict
 
+from django.http import Http404
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
@@ -103,6 +104,14 @@ class ModelViewSet(DRFModelViewSet):
 
     def update(self, request, *args, **kwargs):
         return Response(super().update(request, *args, **kwargs).data)
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+        except Http404 as e:
+            return Response(result=False, err_msg=e.args[0])
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=["GET"], detail=False)
     def filter_condition(self, request, *args, **kwargs):
