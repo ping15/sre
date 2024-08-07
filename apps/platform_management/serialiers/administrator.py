@@ -51,3 +51,7 @@ class AdministratorUpdateSerializer(
     class Meta:
         model = Administrator
         exclude = ["password"]
+
+
+class AdministratorBatchImportSerializer:
+    pass

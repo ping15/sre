@@ -5,6 +5,7 @@ from apps.platform_management.serialiers.administrator import (
     AdministratorListSerializer,
     AdministratorCreateSerializer,
     AdministratorUpdateSerializer,
+    AdministratorBatchImportSerializer,
 )
 from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import ADMINISTRATOR_EXCEL_MAPPING
@@ -17,6 +18,7 @@ class AdministratorModelViewSet(ModelViewSet):
     default_serializer_class = AdministratorUpdateSerializer
     queryset = Administrator.objects.all()
     enable_batch_import = True
+    batch_import_serializer = AdministratorBatchImportSerializer
     batch_import_mapping = ADMINISTRATOR_EXCEL_MAPPING
     fuzzy_filter_fields = [
         "username",
