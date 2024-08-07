@@ -15,7 +15,7 @@ from apps.platform_management.serialiers.instructor import (
     InstructorUpdateSerializer,
 )
 from apps.teaching_space.models import TrainingClass
-from common.utils.calander import generate_calendar
+from common.utils.calander import generate_blank_calendar, inject_training_class_to_calendar
 from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import INSTRUCTOR_EXCEL_MAPPING
 from common.utils.drf.modelviewset import ModelViewSet
@@ -96,35 +96,41 @@ class InstructorModelViewSet(ModelViewSet):
         """日程"""
         validated_data = self.validated_data
 
-        # 培训班信息
-        training_classes_info: List[dict] = [
-            {
-                "id": instance.id,
-                "start_date": instance.start_date,
-                "target_client_company_name": instance.target_client_company_name,
-                "name": instance.name,
-            }
-            for instance in self.get_object().training_classes.all()
-        ]
-        date__daily_calendar_map: Dict[str, dict] = generate_calendar(
+        date__daily_calendar_map: Dict[str, dict] = generate_blank_calendar(
             validated_data["year"], validated_data["month"]
         )
-        for programme in training_classes_info:
-            start_date: datetime.date = programme.pop("start_date")
-            formatted_start_date: str = start_date.strftime("%Y-%m-%d")
-            formatted_next_date: str = (start_date + timedelta(days=1)).strftime(
-                "%Y-%m-%d"
-            )
 
-            # 更新当前日期的日历映射
-            if formatted_start_date in date__daily_calendar_map:
-                date__daily_calendar_map[formatted_start_date]["data"].append(programme)
-                date__daily_calendar_map[formatted_start_date]["count"] += 1
+        inject_training_class_to_calendar(date__daily_calendar_map, self.get_object().training_classes.all())
 
-            # 更新下一天的日历映射
-            if formatted_next_date in date__daily_calendar_map:
-                date__daily_calendar_map[formatted_next_date]["data"].append(programme)
-                date__daily_calendar_map[formatted_next_date]["count"] += 1
+        # # 培训班信息
+        # training_classes_info: List[dict] = [
+        #     {
+        #         "id": instance.id,
+        #         "start_date": instance.start_date,
+        #         "target_client_company_name": instance.target_client_company_name,
+        #         "name": instance.name,
+        #     }
+        #     for instance in self.get_object().training_classes.all()
+        # ]
+        # date__daily_calendar_map: Dict[str, dict] = generate_calendar(
+        #     validated_data["year"], validated_data["month"]
+        # )
+        # for programme in training_classes_info:
+        #     start_date: datetime.date = programme.pop("start_date")
+        #     formatted_start_date: str = start_date.strftime("%Y-%m-%d")
+        #     formatted_next_date: str = (start_date + timedelta(days=1)).strftime(
+        #         "%Y-%m-%d"
+        #     )
+        #
+        #     # 更新当前日期的日历映射
+        #     if formatted_start_date in date__daily_calendar_map:
+        #         date__daily_calendar_map[formatted_start_date]["data"].append(programme)
+        #         date__daily_calendar_map[formatted_start_date]["count"] += 1
+        #
+        #     # 更新下一天的日历映射
+        #     if formatted_next_date in date__daily_calendar_map:
+        #         date__daily_calendar_map[formatted_next_date]["data"].append(programme)
+        #         date__daily_calendar_map[formatted_next_date]["count"] += 1
 
         return Response(date__daily_calendar_map.values())
 

@@ -1,6 +1,10 @@
 import datetime
 import json
-from typing import Dict
+from typing import Dict, List
+
+from django.db.models import QuerySet
+
+from apps.teaching_space.models import TrainingClass
 
 
 def parse_holiday_file(holiday_filepath: str) -> dict:
@@ -27,7 +31,7 @@ def get_date_info(date: datetime.date, date__holiday_map: dict):
     }
 
 
-def generate_calendar(year: int, month: int) -> Dict[str, dict]:
+def generate_blank_calendar(year: int, month: int) -> Dict[str, dict]:
     date__holiday_map: dict = parse_holiday_file(f"common/data/{year}.json")
     # 初始化日期为该月的第一天
     start_date = datetime.date(year, month, 1)
@@ -62,3 +66,33 @@ def generate_calendar(year: int, month: int) -> Dict[str, dict]:
         current_date += datetime.timedelta(days=1)
 
     return {day["date"]: day for day in monthly_calendar}
+
+
+def inject_training_class_to_calendar(blank_calendar, training_classes: QuerySet["TrainingClass"]):
+    # 培训班信息
+    training_classes_info: List[dict] = [
+        {
+            "id": instance.id,
+            "start_date": instance.start_date,
+            "target_client_company_name": instance.target_client_company_name,
+            "name": instance.name,
+        }
+        for instance in training_classes
+    ]
+
+    for programme in training_classes_info:
+        start_date: datetime.date = programme.pop("start_date")
+        formatted_start_date: str = start_date.strftime("%Y-%m-%d")
+        formatted_next_date: str = (start_date + datetime.timedelta(days=1)).strftime(
+            "%Y-%m-%d"
+        )
+
+        # 更新当前日期的日历映射
+        if formatted_start_date in blank_calendar:
+            blank_calendar[formatted_start_date]["data"].append(programme)
+            blank_calendar[formatted_start_date]["count"] += 1
+
+        # 更新下一天的日历映射
+        if formatted_next_date in blank_calendar:
+            blank_calendar[formatted_next_date]["data"].append(programme)
+            blank_calendar[formatted_next_date]["count"] += 1
