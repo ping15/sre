@@ -19,10 +19,10 @@ class ManageCompanyAdministratorPermission(BasePermission):
     """管理公司管理员权限"""
 
     def has_permission(self, request, view):
-        if (
-            request.user.is_authenticated
-            and request.user.role == Administrator.Role.PARTNER_MANAGER.value
-        ):
+        if request.user.is_authenticated and request.user.role in [
+            Administrator.Role.PARTNER_MANAGER.value,
+            Administrator.Role.COMPANY_MANAGER.value,
+        ]:
             return True
         return False
 

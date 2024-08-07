@@ -171,9 +171,7 @@ class Administrator(AbstractUser):
     phone = models.CharField(_("手机号码"), max_length=16, db_index=True, unique=True)
     # affiliated_manage_company_name = models.CharField(_("管理公司"), max_length=32)
     affiliated_manage_company = models.ForeignKey(
-        ManageCompany,
-        on_delete=models.CASCADE,
-        verbose_name=_("管理公司")
+        ManageCompany, on_delete=models.CASCADE, verbose_name=_("管理公司")
     )
     role = models.CharField(
         _("权限角色"),

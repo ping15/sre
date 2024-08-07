@@ -20,6 +20,10 @@ class ClientApprovalSlipListSerializer(serializers.ModelSerializer):
 
 class ClientApprovalSlipCreateSerializer(serializers.ModelSerializer):
     submission_info = ClientCompanyCreateSerializer()
+    status = ChoiceField(
+        choices=ClientApprovalSlip.Status.choices,
+        default=ClientApprovalSlip.Status.PENDING.value,
+    )
 
     def create(self, validated_data):
         request = self.context.get("request")
@@ -55,19 +59,7 @@ class ClientApprovalSlipCreateSerializer(serializers.ModelSerializer):
         ]
 
 
-# class ClientApprovalSlipUpdateSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = ClientApprovalSlip
-#         fields = ["status"]
-
-
 class ClientApprovalSlipPartialUpdateSerializer(serializers.ModelSerializer):
-    # status = serializers.ChoiceField(
-    #     choices=ClientApprovalSlip.Status.choices,
-    #     error_messages={
-    #         'invalid_choice': "777"
-    #     }
-    # )
     status = ChoiceField(choices=ClientApprovalSlip.Status.choices)
 
     class Meta:
