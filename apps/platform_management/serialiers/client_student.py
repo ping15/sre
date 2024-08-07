@@ -6,6 +6,7 @@ from common.utils.drf.serializer_validator import (
     BasicSerializerValidator,
     PhoneCreateSerializerValidator,
 )
+from common.utils.tools import reverse_dict
 
 
 class ClientStudentListSerializer(serializers.ModelSerializer):
@@ -54,3 +55,15 @@ class ClientStudentQuickSearchSerializer(serializers.Serializer):
 
     manage_company_name = serializers.CharField(source="name")
     children = ClientCompanySerializer(source="client_companies", many=True)
+
+
+class ClientStudentBatchImportSerializer(serializers.ModelSerializer):
+    def to_internal_value(self, data):
+        data["education"] = reverse_dict(dict(ClientStudent.Education.choices)).get(
+            data["education"]
+        )
+        return data
+
+    class Meta:
+        model = ClientStudent
+        fields = "__all__"

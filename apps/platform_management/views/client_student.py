@@ -11,6 +11,7 @@ from apps.platform_management.serialiers.client_student import (
     ClientStudentRetrieveSerializer,
     ClientStudentQuickSearchSerializer,
     ClientStudentUpdateSerializer,
+    ClientStudentBatchImportSerializer,
 )
 
 
@@ -20,6 +21,7 @@ class ClientStudentModelViewSet(ModelViewSet):
     queryset = ClientStudent.objects.all()
     enable_batch_import = True
     batch_import_mapping = CLIENT_STUDENT_EXCEL_MAPPING
+    batch_import_serializer = ClientStudentBatchImportSerializer
     fuzzy_filter_fields = [
         "name",
         "affiliated_client_company_name",
