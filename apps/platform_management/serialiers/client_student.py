@@ -26,6 +26,22 @@ class ClientStudentCreateSerializer(
         fields = "__all__"
 
 
+class ClientStudentUpdateSerializer(
+    serializers.ModelSerializer,
+    BasicSerializerValidator,
+):
+    education = ChoiceField(choices=ClientStudent.Education.choices)
+
+    def save(self, **kwargs):
+        if not self.initial_data["phone"] == self.instance.phone:
+            PhoneCreateSerializerValidator.validate_phone(self.initial_data["phone"])
+        super().save(**kwargs)
+
+    class Meta:
+        model = ClientStudent
+        fields = "__all__"
+
+
 class ClientStudentRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientStudent

@@ -32,6 +32,20 @@ class InstructorCreateSerializer(
         fields = "__all__"
 
 
+class InstructorUpdateSerializer(
+    serializers.ModelSerializer,
+    BasicSerializerValidator,
+):
+    def save(self, **kwargs):
+        if not self.initial_data["phone"] == self.instance.phone:
+            PhoneCreateSerializerValidator.validate_phone(self.initial_data["phone"])
+        super().save(**kwargs)
+
+    class Meta:
+        model = Instructor
+        fields = "__all__"
+
+
 class InstructorCalendarSerializer(serializers.Serializer):
     year = serializers.IntegerField()
     month = serializers.IntegerField()

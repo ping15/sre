@@ -1,5 +1,3 @@
-from typing import List
-
 from rest_framework.decorators import action
 
 from apps.platform_management.models import ClientStudent, ManageCompany
@@ -12,6 +10,7 @@ from apps.platform_management.serialiers.client_student import (
     ClientStudentCreateSerializer,
     ClientStudentRetrieveSerializer,
     ClientStudentQuickSearchSerializer,
+    ClientStudentUpdateSerializer,
 )
 
 
@@ -38,6 +37,8 @@ class ClientStudentModelViewSet(ModelViewSet):
     ACTION_MAP = {
         "list": ClientStudentListSerializer,
         "create": ClientStudentCreateSerializer,
+        "update": ClientStudentUpdateSerializer,
+        "partial_update": ClientStudentUpdateSerializer,
         "retrieve": ClientStudentRetrieveSerializer,
         "quick_search": ClientStudentQuickSearchSerializer,
     }
