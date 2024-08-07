@@ -12,6 +12,7 @@ from apps.platform_management.serialiers.instructor import (
     InstructorCalendarSerializer,
     InstructorRetrieveSerializer,
     InstructorReviewSerializer,
+    InstructorUpdateSerializer,
 )
 from apps.teaching_space.models import TrainingClass
 from common.utils.calander import generate_calendar
@@ -38,6 +39,8 @@ class InstructorModelViewSet(ModelViewSet):
         "retrieve": InstructorRetrieveSerializer,
         "calendar": InstructorCalendarSerializer,
         "review": InstructorReviewSerializer,
+        "update": InstructorUpdateSerializer,
+        "partial_update": InstructorUpdateSerializer,
     }
 
     def list(self, request, *args, **kwargs):
