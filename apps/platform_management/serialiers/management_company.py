@@ -6,12 +6,13 @@ from common.utils.drf.serializer_fields import ChoiceField
 
 class ManagementCompanyListSerializer(serializers.ModelSerializer):
     type = serializers.SerializerMethodField()
+    type_id = serializers.SerializerMethodField()
 
     def get_type(self, obj):
-        return {
-            "id": obj.Type[obj.type.upper()].value,
-            "name": obj.Type[obj.type.upper()].label,
-        }
+        return obj.Type[obj.type.upper()].label
+
+    def get_type_id(self, obj):
+        return obj.Type[obj.type.upper()].value
 
     class Meta:
         model = ManageCompany
