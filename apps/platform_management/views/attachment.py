@@ -21,6 +21,7 @@ class FileUploadView(generics.CreateAPIView):
                 {
                     "id": attachment_instance.id,
                     "file_name": attachment_instance.file.name.split("/")[-1],
+                    "url": attachment_instance.file.url,
                 },
                 status=status.HTTP_201_CREATED,
             )
