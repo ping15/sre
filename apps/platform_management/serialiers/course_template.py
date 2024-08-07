@@ -13,10 +13,14 @@ class CourseTemplateCreateSerializer(serializers.ModelSerializer):
     level = ChoiceField(choices=CourseTemplate.Level.choices)
     status = ChoiceField(choices=CourseTemplate.Status.choices)
     assessment_method = ChoiceField(choices=CourseTemplate.AssessmentMethod.choices)
-    exam_type = ChoiceField(choices=CourseTemplate.ExamType.choices)
+    exam_type = serializers.ListSerializer(
+        child=ChoiceField(choices=CourseTemplate.ExamType.choices)
+    )
     exam_duration = ChoiceField(choices=CourseTemplate.ExamDuration.choices)
     exam_language = ChoiceField(choices=CourseTemplate.ExamLanguage.choices)
-    certification_body = ChoiceField(choices=CourseTemplate.CertificationBody.choices)
+    certification_body = serializers.ListSerializer(
+        child=ChoiceField(choices=CourseTemplate.CertificationBody.choices)
+    )
 
     class Meta:
         model = CourseTemplate
