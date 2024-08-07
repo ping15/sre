@@ -12,10 +12,11 @@ class ClientCompanyModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission]
     default_serializer_class = ClientCompanyListSerializer
     queryset = ClientCompany.objects.all()
-    fuzzy_filter_fields = ["name", "contact_email"]
+    fuzzy_filter_fields = ["name", "contact_email", "affiliated_manage_company_name"]
     filter_condition_mapping = {
         "客户公司名称": "name",
         "联系邮箱": "contact_email",
+        "管理公司名称": "affiliated_manage_company_name",
     }
     ACTION_MAP = {
         "list": ClientCompanyListSerializer,
