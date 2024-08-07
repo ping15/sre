@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.platform_management.models import ClientStudent, ClientCompany
+from common.utils.drf.serializer_fields import ChoiceField
 from common.utils.drf.serializer_validator import (
     BasicSerializerValidator,
     PhoneCreateSerializerValidator,
@@ -18,6 +19,8 @@ class ClientStudentCreateSerializer(
     PhoneCreateSerializerValidator,
     BasicSerializerValidator,
 ):
+    education = ChoiceField(choices=ClientStudent.Education.choices)
+
     class Meta:
         model = ClientStudent
         fields = "__all__"
