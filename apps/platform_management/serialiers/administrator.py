@@ -1,11 +1,12 @@
 from rest_framework import serializers
 
-from apps.platform_management.models import Administrator
+from apps.platform_management.models import Administrator, ManageCompany
 from common.utils.drf.serializer_fields import ChoiceField
 from common.utils.drf.serializer_validator import (
     PhoneCreateSerializerValidator,
     BasicSerializerValidator,
 )
+from common.utils.tools import reverse_dict
 
 
 class AdministratorListSerializer(serializers.ModelSerializer):
@@ -53,5 +54,19 @@ class AdministratorUpdateSerializer(
         exclude = ["password"]
 
 
-class AdministratorBatchImportSerializer:
-    pass
+class AdministratorBatchImportSerializer(serializers.ModelSerializer):
+    def to_internal_value(self, data):
+        data["role"] = reverse_dict(dict(Administrator.Role.choices)).get(data["role"])
+        try:
+            data["affiliated_manage_company"] = ManageCompany.objects.get(
+                name=data["affiliated_manage_company_name"]
+            ).id
+        except ManageCompany.DoesNotExist:
+            raise serializers.ValidationError(
+                f"该管理公司不存在: {data['affiliated_manage_company_name']}"
+            )
+        return data
+
+    class Meta:
+        model = Administrator
+        exclude = ["password"]

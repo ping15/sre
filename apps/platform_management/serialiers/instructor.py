@@ -57,9 +57,5 @@ class InstructorRetrieveSerializer(serializers.ModelSerializer):
         exclude = ["id", "hours_taught", "is_partnered"]
 
 
-class InstructorBatchImportSerializer(serializers.Serializer):
-    file = serializers.FileField()
-
-
 class InstructorReviewSerializer(serializers.ModelSerializer):
     pass
