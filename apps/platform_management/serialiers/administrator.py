@@ -1,16 +1,16 @@
 from rest_framework import serializers
 
 from apps.platform_management.models import Administrator
-from apps.platform_management.serialiers.management_company import ManagementCompanyListSerializer
 from common.utils.drf.serializer_fields import ChoiceField
 from common.utils.drf.serializer_validator import (
-    BasicSerializerValidator,
     PhoneCreateSerializerValidator,
 )
 
 
 class AdministratorListSerializer(serializers.ModelSerializer):
-    affiliated_manage_company = ManagementCompanyListSerializer()
+    affiliated_manage_company_name = serializers.CharField(
+        source="affiliated_manage_company.name", read_only=True
+    )
 
     class Meta:
         model = Administrator
@@ -19,6 +19,7 @@ class AdministratorListSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "phone",
+            "affiliated_manage_company_name",
             "affiliated_manage_company",
             "role",
         ]
