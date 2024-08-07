@@ -22,4 +22,6 @@ class ClientCompanyModelViewSet(ModelViewSet):
         "list": ClientCompanyListSerializer,
         "create": ClientCompanyCreateSerializer,
         "retrieve": ClientCompanyRetrieveSerializer,
+        "update": ClientCompanyCreateSerializer,
+        "partial_update": ClientCompanyCreateSerializer,
     }

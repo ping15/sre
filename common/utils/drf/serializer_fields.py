@@ -27,3 +27,6 @@ class ChoiceField(serializers.ChoiceField):
             return self.choice_strings_to_values[str(data)]
         except KeyError:
             self.fail("invalid_choice", input=data, choices=list(self.choices.keys()))
+
+    def to_representation(self, value):
+        return super().to_representation(value)
