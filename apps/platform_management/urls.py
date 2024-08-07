@@ -3,6 +3,7 @@ from rest_framework import routers
 
 from .views.administrator import AdministratorModelViewSet
 from .views.all_classes import AllClassesModelViewSet
+from .views.all_schedules import AllScheduleModelViewSet
 from .views.client_approval_slip import ClientApprovalSlipModelViewSet
 
 from .views.client_company import ClientCompanyModelViewSet
@@ -25,6 +26,7 @@ router.register(
 router.register("all_classes", AllClassesModelViewSet, basename="all_classes")
 
 # 全部日程
+router.register("all_schedule", AllScheduleModelViewSet, basename="all_schedule")
 
 # 课程模板
 router.register(
