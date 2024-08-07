@@ -4,6 +4,7 @@ from apps.platform_management.models import Administrator
 from apps.platform_management.serialiers.administrator import (
     AdministratorListSerializer,
     AdministratorCreateSerializer,
+    AdministratorUpdateSerializer,
 )
 from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import ADMINISTRATOR_EXCEL_MAPPING
@@ -13,7 +14,7 @@ from common.utils.drf.permissions import SuperAdministratorPermission
 
 class AdministratorModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission]
-    default_serializer_class = AdministratorCreateSerializer
+    default_serializer_class = AdministratorUpdateSerializer
     queryset = Administrator.objects.all()
     enable_batch_import = True
     batch_import_mapping = ADMINISTRATOR_EXCEL_MAPPING
@@ -42,9 +43,9 @@ class AdministratorModelViewSet(ModelViewSet):
         return Response(
             {
                 "choices": [
-                    {"id": choice.value, "name": choice.label}
+                    {"id": choice.value, "name": choice.label}  # noqa
                     for choice in Administrator.Role
-                ],  # noqa
+                ],
                 "role_tooltips": """平台管理员：有系统全局的权限
     鸿雪公司管理员：有鸿雪公司对应授课空间的权限（可管理对应的客户授课）
     合作伙伴管理员：有合作伙伴公司对应授课空间的权限（可管理对应的客户授课）""",

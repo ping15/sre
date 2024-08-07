@@ -4,6 +4,7 @@ from apps.platform_management.models import Administrator
 from common.utils.drf.serializer_fields import ChoiceField
 from common.utils.drf.serializer_validator import (
     PhoneCreateSerializerValidator,
+    BasicSerializerValidator,
 )
 
 
@@ -28,9 +29,24 @@ class AdministratorListSerializer(serializers.ModelSerializer):
 class AdministratorCreateSerializer(
     serializers.ModelSerializer,
     PhoneCreateSerializerValidator,
-    # BasicSerializerValidator,
 ):
     role = ChoiceField(choices=Administrator.Role.choices)
+
+    class Meta:
+        model = Administrator
+        exclude = ["password"]
+
+
+class AdministratorUpdateSerializer(
+    serializers.ModelSerializer,
+    BasicSerializerValidator,
+):
+    role = ChoiceField(choices=Administrator.Role.choices)
+
+    def save(self, **kwargs):
+        if not self.initial_data["phone"] == self.instance.phone:
+            PhoneCreateSerializerValidator.validate_phone(self.initial_data["phone"])
+        super().save(**kwargs)
 
     class Meta:
         model = Administrator
