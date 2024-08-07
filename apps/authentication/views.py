@@ -4,6 +4,7 @@ import random
 from django.contrib.auth import logout
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
+from django.shortcuts import render
 from rest_framework.decorators import action
 from rest_framework.viewsets import GenericViewSet
 
