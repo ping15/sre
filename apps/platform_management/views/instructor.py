@@ -87,12 +87,25 @@ class InstructorModelViewSet(ModelViewSet):
 
     @action(methods=["GET"], detail=True, url_path="taught_courses/filter_condition")
     def taught_courses_filter_condition(self, request, *args, **kwargs):
-        self.filter_condition_mapping = {
-            "培训班名称": "name",
-            "客户公司": "target_client_company_name",
-            "时间": "start_date",
-        }
-        return self.filter_condition(request, *args, **kwargs)
+        return Response(
+            [
+                {
+                    "id": "name",
+                    "name": "培训班名称",
+                    "children": [],
+                },
+                {
+                    "id": "target_client_company_name",
+                    "name": "客户公司",
+                    "children": [],
+                },
+                {
+                    "id": "start_date",
+                    "name": "时间",
+                    "children": [],
+                },
+            ]
+        )
 
     @action(methods=["GET"], detail=True)
     def calendar(self, request, *args, **kwargs):
