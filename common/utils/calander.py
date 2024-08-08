@@ -77,6 +77,7 @@ def inject_training_class_to_calendar(
             "id": instance.id,
             "start_date": instance.start_date,
             "target_client_company_name": instance.target_client_company_name,
+            "instructor_name": instance.instructor.username,
             "name": instance.name,
         }
         for instance in training_classes

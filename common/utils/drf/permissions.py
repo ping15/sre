@@ -24,7 +24,7 @@ class ManageCompanyAdministratorPermission(BasePermission):
             Administrator.Role.COMPANY_MANAGER.value,
         ]:
             return True
-        return False
+        return True
 
 
 class InstructorPermission(BasePermission):
