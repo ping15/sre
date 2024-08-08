@@ -15,7 +15,10 @@ from apps.platform_management.serialiers.instructor import (
     InstructorUpdateSerializer,
 )
 from apps.teaching_space.models import TrainingClass
-from common.utils.calander import generate_blank_calendar, inject_training_class_to_calendar
+from common.utils.calander import (
+    generate_blank_calendar,
+    inject_training_class_to_calendar,
+)
 from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import INSTRUCTOR_EXCEL_MAPPING
 from common.utils.drf.modelviewset import ModelViewSet
@@ -28,9 +31,9 @@ class InstructorModelViewSet(ModelViewSet):
     queryset = Instructor.objects.all()
     enable_batch_import = True
     batch_import_mapping = INSTRUCTOR_EXCEL_MAPPING
-    fuzzy_filter_fields = ["name", "introduction"]
+    fuzzy_filter_fields = ["username", "introduction"]
     filter_condition_mapping = {
-        "讲师名称": "name",
+        "讲师名称": "username",
         "简介": "introduction",
     }
     ACTION_MAP = {
@@ -100,7 +103,9 @@ class InstructorModelViewSet(ModelViewSet):
             validated_data["year"], validated_data["month"]
         )
 
-        inject_training_class_to_calendar(date__daily_calendar_map, self.get_object().training_classes.all())
+        inject_training_class_to_calendar(
+            date__daily_calendar_map, self.get_object().training_classes.all()
+        )
 
         # # 培训班信息
         # training_classes_info: List[dict] = [

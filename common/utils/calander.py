@@ -68,7 +68,9 @@ def generate_blank_calendar(year: int, month: int) -> Dict[str, dict]:
     return {day["date"]: day for day in monthly_calendar}
 
 
-def inject_training_class_to_calendar(blank_calendar, training_classes: QuerySet["TrainingClass"]):
+def inject_training_class_to_calendar(
+    blank_calendar, training_classes: QuerySet["TrainingClass"]
+):
     # 培训班信息
     training_classes_info: List[dict] = [
         {

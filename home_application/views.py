@@ -20,7 +20,7 @@ def home(request):
     """
     首页
     """
-    return render(request, "home_application/index_home.html")
+    return render(request, "home_application/index.html")
 
 
 def dev_guide(request):

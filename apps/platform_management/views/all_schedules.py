@@ -2,7 +2,10 @@ from typing import Dict
 
 from apps.teaching_space.models import TrainingClass
 from apps.platform_management.serialiers.all_schedules import AllScheduleSerializer
-from common.utils.calander import generate_blank_calendar, inject_training_class_to_calendar
+from common.utils.calander import (
+    generate_blank_calendar,
+    inject_training_class_to_calendar,
+)
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
 from common.utils.drf.response import Response
