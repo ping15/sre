@@ -118,15 +118,15 @@ class ModelViewSet(DRFModelViewSet):
         response_data = []
 
         # 获取模型的 queryset
-        queryset = self.get_queryset()
+        # queryset = self.get_queryset()
 
         for display_name, field_name in self.filter_condition_mapping.items():
-            item = {"id": field_name, "name": display_name, "enum": []}
+            item = {"id": field_name, "name": display_name, "children": []}
 
-            if field_name in self.filter_condition_enum_list:
-                # 获取字段的所有唯一值作为枚举结果
-                unique_values = queryset.values_list(field_name, flat=True).distinct()
-                item["enum"] = list(unique_values)
+            # if field_name in self.filter_condition_enum_list:
+            #     # 获取字段的所有唯一值作为枚举结果
+            #     unique_values = queryset.values_list(field_name, flat=True).distinct()
+            #     item["children"] = list(unique_values)
 
             response_data.append(item)
 
