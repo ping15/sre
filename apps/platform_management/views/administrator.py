@@ -34,7 +34,6 @@ class AdministratorModelViewSet(ModelViewSet):
         "所属公司": "affiliated_manage_company_name",
         "权限角色": "role",
     }
-    filter_condition_enum_list = ["role"]
     ACTION_MAP = {
         "list": AdministratorListSerializer,
         "create": AdministratorCreateSerializer,
