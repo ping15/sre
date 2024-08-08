@@ -311,6 +311,7 @@ class ClientStudent(models.Model):
     """客户学员"""
 
     class Education(models.TextChoices):
+        HIGHSCHOOL = "highschool", "高中"
         ASSOCIATE = "associate", "专科"
         BACHELOR = "bachelor", "本科"
         MASTER = "master", "硕士研究生"
