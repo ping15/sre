@@ -38,7 +38,7 @@ class CourseTemplate(models.Model):
 
     class ExamDuration(models.TextChoices):
         FORTY_FIVE = 45, "45分钟"
-        SIXTY = 60, "60分钟"
+        SIXTY = 90, "90分钟"
         ONE_HUNDRED_TWENTY = 120, "120分钟"
 
     class ExamLanguage(models.TextChoices):
