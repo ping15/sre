@@ -20,6 +20,16 @@ class ManagementCompanyListSerializer(serializers.ModelSerializer):
 
 
 class ManagementCompanyCreateSerializer(serializers.ModelSerializer):
+    type = ChoiceField(
+        choices=ManageCompany.Type.choices, default=ManageCompany.Type.PARTNER.value
+    )
+
+    class Meta:
+        model = ManageCompany
+        fields = "__all__"
+
+
+class ManagementCompanyUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ManageCompany
         exclude = ["type"]
