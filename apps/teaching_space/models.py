@@ -17,36 +17,32 @@ class TrainingClass(models.Model):
     #     verbose_name=_("课程"),
     #     on_delete=models.CASCADE,
     # )
+    class Status(models.TextChoices):
+        PREPARING = "preparing", "筹备中"
+        IN_PROGRESS = "in_progress", "开课中"
+        COMPLETED = "completed", "已结课"
+
+    class ClassMode(models.TextChoices):
+        ONLINE = "online", "线上课"
+        OFFLINE = "offline", "线下课"
+
     course_name = models.CharField(_("课程"), max_length=64)
     session_number = models.CharField(_("课程期数"), max_length=32)
     status = models.CharField(
         _("状态"),
         max_length=16,
-        # choices=[
-        #     ('preparing', _('筹备中')),
-        #     ('in_progress', _('开课中')),
-        #     ('completed', _('已结课')),
-        # ],
-        # default='planned'
+        choices=Status.choices,
     )
     class_mode = models.CharField(
         _("上课模式"),
-        # choices=[
-        #     ('online', _("线上课")),
-        #     ('offline', _("线下课")),
-        # ],
+        choices=ClassMode.choices,
         max_length=16,
     )
     student_count = models.IntegerField(_("学员数量"), default=0)
     start_date = models.DateField(_("开课时间"))
     assessment_method = models.CharField(
         _("考核方式"),
-        # choices=[
-        #     (..., _("闭卷考试")),
-        #     (..., _("闭卷机考")),
-        #     ("practical", _("实操")),
-        #     ("defense", _("答辩")),
-        # ],
+        choices=CourseTemplate.AssessmentMethod.choices,
         max_length=16,
     )
     certification = models.CharField(_("认证证书"), max_length=32)

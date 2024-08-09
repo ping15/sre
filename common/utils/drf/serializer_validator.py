@@ -31,7 +31,7 @@ class BasicSerializerValidator:
         exist_manage_companies = ManageCompany.names
         if value not in exist_manage_companies:
             raise serializers.ValidationError(
-                f"该管理公司不存在, 可选管理公司: {ManageCompany.names}"
+                f"该管理公司不存在, 可选管理公司: {exist_manage_companies}"
             )
         return value
 
@@ -40,7 +40,7 @@ class BasicSerializerValidator:
         exist_client_companies = ClientCompany.names
         if value not in exist_client_companies:
             raise serializers.ValidationError(
-                f"该客户公司不存在, 可选客户公司: {ClientCompany.names}"
+                f"该客户公司不存在, 可选客户公司: {exist_client_companies}"
             )
         return value
 
@@ -50,6 +50,17 @@ class BasicSerializerValidator:
         invalid_courses = [course for course in value if course not in valid_courses]
         if invalid_courses:
             raise serializers.ValidationError(f"存在部分课程不存在, 可选课程: {valid_courses}")
+        return value
+
+    @classmethod
+    def validate_target_client_company_name(cls, value):
+        return cls.validate_affiliated_client_company_name(value)
+
+    @classmethod
+    def validate_course_name(cls, value):
+        exist_courses = CourseTemplate.names
+        if value not in exist_courses:
+            raise serializers.ValidationError(f"该课程不存在, 可选课程: {exist_courses}")
         return value
 
 
