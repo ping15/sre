@@ -25,7 +25,7 @@ class ManagementCompanyModelViewSet(ModelViewSet):
         "list": ManagementCompanyListSerializer,
         "create": ManagementCompanyCreateSerializer,
         "update": ManagementCompanyUpdateSerializer,
-        # "partial_update": ManagementCompanyPartialUpdateSerializer,
+        "partial_update": ManagementCompanyUpdateSerializer,
     }
 
     def update(self, request, *args, **kwargs):
