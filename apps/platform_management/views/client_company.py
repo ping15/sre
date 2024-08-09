@@ -1,9 +1,10 @@
-from apps.platform_management.models import ClientCompany
+from apps.platform_management.models import ClientCompany, ClientStudent
 from apps.platform_management.serialiers.client_company import (
     ClientCompanyListSerializer,
     ClientCompanyCreateSerializer,
     ClientCompanyRetrieveSerializer,
 )
+from apps.teaching_space.models import TrainingClass
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
 
@@ -25,3 +26,15 @@ class ClientCompanyModelViewSet(ModelViewSet):
         "update": ClientCompanyCreateSerializer,
         "partial_update": ClientCompanyCreateSerializer,
     }
+
+    def update(self, request, *args, **kwargs):
+        validated_data = self.validated_data
+        if "name" in validated_data:
+            origin_client_company = self.get_object()
+            ClientStudent.objects.filter(
+                affiliated_client_company_name=origin_client_company.name
+            ).update(affiliated_client_company_name=validated_data["name"])
+            TrainingClass.objects.filter(
+                target_client_company_name=origin_client_company.name
+            ).update(target_client_company_name=validated_data["name"])
+        return super().update(request, *args, **kwargs)

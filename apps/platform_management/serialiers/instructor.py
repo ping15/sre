@@ -46,6 +46,12 @@ class InstructorUpdateSerializer(
         fields = "__all__"
 
 
+class InstructorPartialUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Instructor
+        fields = "__all__"
+
+
 class InstructorCalendarSerializer(serializers.Serializer):
     year = serializers.IntegerField()
     month = serializers.IntegerField()
