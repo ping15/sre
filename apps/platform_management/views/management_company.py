@@ -3,6 +3,7 @@ from apps.platform_management.serialiers.management_company import (
     ManagementCompanyListSerializer,
     ManagementCompanyCreateSerializer,
     ManagementCompanyUpdateSerializer,
+    ManagementCompanyPartialUpdateSerializer,
 )
 from apps.teaching_space.models import TrainingClass
 from common.utils.drf.modelviewset import ModelViewSet
@@ -24,16 +25,12 @@ class ManagementCompanyModelViewSet(ModelViewSet):
         "list": ManagementCompanyListSerializer,
         "create": ManagementCompanyCreateSerializer,
         "update": ManagementCompanyUpdateSerializer,
-        "partial_update": ManagementCompanyUpdateSerializer,
+        # "partial_update": ManagementCompanyPartialUpdateSerializer,
     }
 
     def update(self, request, *args, **kwargs):
-        validated_data = self.validated_data
-        if "name" in validated_data:
-            origin_manage_company = self.get_object()
-            ClientCompany.objects.filter(
-                affiliated_manage_company_name=origin_manage_company.name
-            ).update(affiliated_manage_company_name=validated_data["name"])
+        if "name" in self.request.data:
+            ManageCompany.sync_name(self.get_object().name, self.request.data["name"])
         return super().update(request, *args, **kwargs)
 
     # def list(self, request, *args, **kwargs):
