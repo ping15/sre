@@ -87,9 +87,9 @@ class CourseTemplate(models.Model):
         _("教材内容"),
     )
     course_overview = models.TextField(_("课程概述"))
-    target_students = models.TextField(_("目标学员"))
-    learning_objectives = models.TextField(_("学习目标"))
-    learning_benefits = models.TextField(_("学习收益"))
+    target_students = models.TextField(_("目标学员"), default="")
+    learning_objectives = models.TextField(_("学习目标"), default="")
+    learning_benefits = models.TextField(_("学习收益"), default="")
     course_content = models.TextField(_("课程内容"))
     remarks = models.TextField(_("备注"))
     exam_type = models.JSONField(
@@ -126,6 +126,9 @@ class CourseTemplate(models.Model):
     @classproperty
     def names(self):
         return list(self.objects.values_list("name", flat=True))
+
+    class Meta:
+        ordering = ["-id"]
 
 
 class ManageCompany(models.Model):
