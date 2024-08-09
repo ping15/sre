@@ -1,9 +1,10 @@
-from apps.platform_management.models import ManageCompany
+from apps.platform_management.models import ManageCompany, ClientCompany
 from apps.platform_management.serialiers.management_company import (
     ManagementCompanyListSerializer,
     ManagementCompanyCreateSerializer,
     ManagementCompanyUpdateSerializer,
 )
+from apps.teaching_space.models import TrainingClass
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
 
@@ -25,6 +26,15 @@ class ManagementCompanyModelViewSet(ModelViewSet):
         "update": ManagementCompanyUpdateSerializer,
         "partial_update": ManagementCompanyUpdateSerializer,
     }
+
+    def update(self, request, *args, **kwargs):
+        validated_data = self.validated_data
+        if "name" in validated_data:
+            origin_manage_company = self.get_object()
+            ClientCompany.objects.filter(
+                affiliated_manage_company_name=origin_manage_company.name
+            ).update(affiliated_manage_company_name=validated_data["name"])
+        return super().update(request, *args, **kwargs)
 
     # def list(self, request, *args, **kwargs):
     #     mock_data = [
