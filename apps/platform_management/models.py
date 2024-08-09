@@ -320,6 +320,9 @@ class ClientCompany(models.Model):
         )
 
     def delete(self, using=None, keep_parents=False):
+        from apps.teaching_space.models import TrainingClass
+
+        TrainingClass.objects.filter(target_client_company_name=self.name).delete()
         self.students.delete()
         super().delete(using, keep_parents)
 
