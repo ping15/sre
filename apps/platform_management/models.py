@@ -151,8 +151,15 @@ class ManageCompany(models.Model):
     def names(self) -> List[str]:
         return list(self.objects.values_list("name", flat=True))
 
+    @classmethod
+    def sync_name(cls, old_name: str, new_name: str):
+        ClientCompany.objects.filter(affiliated_manage_company_name=old_name).update(
+            affiliated_manage_company_name=new_name
+        )
+
     def delete(self, using=None, keep_parents=False):
         self.client_companies.delete()
+        self.administrators.delete()
         super().delete(using, keep_parents)
 
     def __str__(self):
@@ -169,9 +176,11 @@ class Administrator(AbstractUser):
 
     username = models.CharField(_("名称"), max_length=64, db_index=True)
     phone = models.CharField(_("手机号码"), max_length=16, db_index=True, unique=True)
-    # affiliated_manage_company_name = models.CharField(_("管理公司"), max_length=32)
     affiliated_manage_company = models.ForeignKey(
-        ManageCompany, on_delete=models.CASCADE, verbose_name=_("管理公司")
+        ManageCompany,
+        on_delete=models.CASCADE,
+        verbose_name=_("管理公司"),
+        related_name="administrators",
     )
     role = models.CharField(
         _("权限角色"),
@@ -298,6 +307,17 @@ class ClientCompany(models.Model):
     @classproperty
     def names(self) -> List[str]:
         return list(self.objects.values_list("name", flat=True))
+
+    @classmethod
+    def sync_name(cls, old_name: str, new_name: str):
+        from apps.teaching_space.models import TrainingClass
+
+        ClientStudent.objects.filter(affiliated_client_company_name=old_name).update(
+            affiliated_client_company_name=new_name
+        )
+        TrainingClass.objects.filter(target_client_company_name=old_name).update(
+            target_client_company_name=new_name
+        )
 
     def delete(self, using=None, keep_parents=False):
         self.students.delete()

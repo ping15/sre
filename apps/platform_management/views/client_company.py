@@ -24,17 +24,10 @@ class ClientCompanyModelViewSet(ModelViewSet):
         "create": ClientCompanyCreateSerializer,
         "retrieve": ClientCompanyRetrieveSerializer,
         "update": ClientCompanyCreateSerializer,
-        "partial_update": ClientCompanyCreateSerializer,
+        # "partial_update": ClientCompanyCreateSerializer,
     }
 
     def update(self, request, *args, **kwargs):
-        validated_data = self.validated_data
-        if "name" in validated_data:
-            origin_client_company = self.get_object()
-            ClientStudent.objects.filter(
-                affiliated_client_company_name=origin_client_company.name
-            ).update(affiliated_client_company_name=validated_data["name"])
-            TrainingClass.objects.filter(
-                target_client_company_name=origin_client_company.name
-            ).update(target_client_company_name=validated_data["name"])
+        if "name" in self.request.data:
+            ClientCompany.sync_name(self.get_object().name, self.request.data["name"])
         return super().update(request, *args, **kwargs)
