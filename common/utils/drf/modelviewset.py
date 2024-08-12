@@ -12,7 +12,8 @@ from common.utils.excel_parser.parser import excel_to_list
 
 
 class FileSerializer(serializers.Serializer):
-    file = serializers.FileField()
+    # file = serializers.FileField()
+    file_path = serializers.CharField()
 
 
 class SimpleQuerySerializer(serializers.Serializer):
@@ -137,7 +138,7 @@ class ModelViewSet(DRFModelViewSet):
         """批量导入"""
         validated_data = self.validated_data
         datas: List[Dict[str, str]] = excel_to_list(
-            validated_data["file"], self.batch_import_mapping
+            validated_data["file_path"], self.batch_import_mapping
         )
         create_serializer = self.batch_import_serializer(data=datas, many=True)
 

@@ -23,7 +23,7 @@ class ClientStudentModelViewSet(ModelViewSet):
     batch_import_mapping = CLIENT_STUDENT_EXCEL_MAPPING
     batch_import_serializer = ClientStudentBatchImportSerializer
     fuzzy_filter_fields = [
-        "name",
+        "username",
         "affiliated_client_company_name",
         "affiliated_manage_company_name",
         "email",
@@ -54,7 +54,7 @@ class ClientStudentModelViewSet(ModelViewSet):
                     "name": manage_company.name,
                     "children": [
                         {
-                            "id": "affiliated_client_company_name",
+                            # "id": "affiliated_client_company_name",
                             "name": client_company.name,
                         }
                         for client_company in manage_company.client_companies

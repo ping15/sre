@@ -1,13 +1,16 @@
+import os
 from typing import Dict, List, Union, Any
+from urllib.parse import unquote
 
 import pandas as pd
+from django.conf import settings
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
 def excel_to_list(
-    file_path: Union[str, InMemoryUploadedFile], mapping: Dict[str, Dict[str, str]]
+    file_path: str, mapping: Dict[str, Dict[str, str]]
 ) -> List[Dict[str, str]]:
-    df = pd.read_excel(file_path)
+    df = pd.read_excel(open(unquote(file_path)[1:], "rb"))
     field_name__field_type: Dict[str, str] = {
         column_mapping["value"]: column_mapping["type"]
         for excel_column, column_mapping in mapping.items()
