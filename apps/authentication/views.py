@@ -1,17 +1,17 @@
-# from django.contrib.auth import login
-import random
+from datetime import timedelta
 
 from django.contrib.auth import logout
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import render
+from django.utils import timezone
+from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import GenericViewSet
 
 from apps.authentication.serializers import LoginSerializer, SMSSerializer
-from apps.platform_management.models import Administrator, Instructor, ClientStudent
-from common.utils.auth import login, SMS_KEY
+from apps.platform_management.models import Administrator, ClientStudent, Instructor
+from common.utils.auth import SMS_KEY, SMS_SEND_TIMESTAMP_KEY, login
 from common.utils.drf.response import Response
 
 
@@ -25,14 +25,7 @@ class AuthenticationViewSet(GenericViewSet):
             validated_data["phone"],
             validated_data["captcha_text"],
         )
-        user_models = [Administrator, Instructor, ClientStudent]
-        user = None
-        for user_model in user_models:
-            try:
-                user = user_model.objects.get(phone=phone)
-                break
-            except ObjectDoesNotExist:
-                continue
+        user = self.get_user_by_phone(phone)
 
         if not user:
             return Response(result=False, err_msg="不存在该手机号的用户")
@@ -54,21 +47,41 @@ class AuthenticationViewSet(GenericViewSet):
 
     @action(methods=["POST"], detail=False, serializer_class=SMSSerializer)
     def send_sms(self, request, *args, **kwargs):
+        phone = self.validated_data["phone"]
+        user = self.get_user_by_phone(phone)
+        if not user:
+            return Response(result=False, err_msg="不存在该手机号的用户")
+
+        # 获取上次发送的时间戳，存在则对比时间间隔
+        last_send_time = cache.get(f"{SMS_SEND_TIMESTAMP_KEY}:{phone}")
+        if last_send_time and timezone.now() - last_send_time < timedelta(seconds=60):
+            return Response(
+                result=False,
+                err_msg="请等待60秒后再发送验证码",
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
         # sms_code = ''.join(random.choices('0123456789', k=6))
         sms_code = "666666"
 
-        cache.set(f'{SMS_KEY}:{self.validated_data["phone"]}', sms_code, timeout=60)
+        # 设置验证码和发送时间戳到缓存
+        cache.set(f"{SMS_KEY}:{phone}", sms_code, timeout=60)
+        cache.set(f"{SMS_SEND_TIMESTAMP_KEY}:{phone}", timezone.now(), timeout=60)
+
         # send_sms(sms_code)
 
         return Response("发送成功")
 
     @action(methods=["GET"], detail=False)
     def permissions(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
-            return Response(
-                {"role": request.user.role, "username": request.user.username}
-            )
-        return Response({"role": "", "username": ""})
+        return Response(
+            {
+                "role": request.user.role if request.user.is_authenticated else "",
+                "username": request.user.username
+                if request.user.is_authenticated
+                else "",
+            }
+        )
 
     @property
     def validated_data(self):
@@ -79,3 +92,20 @@ class AuthenticationViewSet(GenericViewSet):
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         return serializer.validated_data
+
+    @staticmethod
+    def get_user_by_phone(phone):
+        """
+        根据手机号在给定的用户模型列表中查找用户。
+
+        :param phone: 用户的手机号
+        :return: 找到的用户对象或 None
+        """
+        user_models = [Administrator, Instructor, ClientStudent]
+        for user_model in user_models:
+            try:
+                user = user_model.objects.get(phone=phone)
+                return user
+            except ObjectDoesNotExist:
+                continue
+        return None

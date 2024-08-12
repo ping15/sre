@@ -10,6 +10,7 @@ from django.middleware.csrf import rotate_token
 from django.utils.crypto import constant_time_compare
 
 SMS_KEY = "sms"
+SMS_SEND_TIMESTAMP_KEY = "smsTimestamp"
 
 
 def login(request, user, backend=None):
