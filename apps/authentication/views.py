@@ -6,6 +6,7 @@ from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.viewsets import GenericViewSet
 
 from apps.authentication.serializers import LoginSerializer, SMSSerializer
@@ -15,6 +16,8 @@ from common.utils.drf.response import Response
 
 
 class AuthenticationViewSet(GenericViewSet):
+    permission_classes = [AllowAny]
+
     @action(methods=["POST"], detail=False, serializer_class=LoginSerializer)
     def login(self, request, *args, **kwargs):
         validated_data = self.validated_data
