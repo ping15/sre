@@ -251,7 +251,7 @@ class Instructor(models.Model):
 
     @property
     def role(self) -> str:
-        return Instructor.__name__
+        return "instructor"
 
     @property
     def is_active(self) -> bool:
@@ -384,7 +384,7 @@ class ClientStudent(models.Model):
 
     @property
     def role(self) -> str:
-        return ClientStudent.__name__
+        return "client_student"
 
     @property
     def is_active(self) -> bool:

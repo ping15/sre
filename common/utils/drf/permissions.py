@@ -31,7 +31,7 @@ class InstructorPermission(BasePermission):
     """讲师权限"""
 
     def has_permission(self, request, view):
-        if request.user.role == Instructor.__name__:
+        if request.user.is_authenticated and request.user.role == "instructor":
             return True
 
         return False
@@ -41,4 +41,7 @@ class StudentPermission(BasePermission):
     """学员权限"""
 
     def has_permission(self, request, view):
-        return True
+        if request.user.is_authenticated and request.user.role == "client_student":
+            return True
+
+        return False
