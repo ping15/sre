@@ -62,6 +62,14 @@ class AuthenticationViewSet(GenericViewSet):
 
         return Response("发送成功")
 
+    @action(methods=["GET"], detail=False)
+    def permissions(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return Response(
+                {"role": request.user.role, "username": request.user.username}
+            )
+        return Response({"role": "", "username": ""})
+
     @property
     def validated_data(self):
         if self.request.method == "GET":
