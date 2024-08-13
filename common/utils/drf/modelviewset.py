@@ -147,9 +147,7 @@ class ModelViewSet(DRFModelViewSet):
                 data=[], result=False, err_msg=str(create_serializer.errors)
             )
 
-        return self.get_paginated_response(
-            self.paginate_queryset(create_serializer.validated_data)
-        )
+        return Response(create_serializer.validated_data)
 
     @action(methods=["GET"], detail=False)
     def simple_query(self, request, *args, **kwargs):
