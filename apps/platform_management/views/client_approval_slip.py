@@ -1,3 +1,5 @@
+from rest_framework.decorators import action
+
 from apps.platform_management.models import ClientApprovalSlip
 from apps.platform_management.serialiers.client_approval_slip import (
     ClientApprovalSlipListSerializer,
@@ -19,21 +21,13 @@ class ClientApprovalSlipModelViewSet(ModelViewSet):
     queryset = ClientApprovalSlip.objects.all()
     default_serializer_class = ClientApprovalSlipCreateSerializer
     integer_filter_fields = ["id"]
-    fuzzy_filter_fields = [
+    string_fuzzy_filter_fields = [
         "affiliated_manage_company_name",
         "affiliated_client_company_name",
         "submitter",
         "status",
     ]
     datetime_filter_fields = ["submission_datetime"]
-    filter_condition_mapping = {
-        "审批单号": "id",
-        "管理公司": "affiliated_manage_company_name",
-        "客户公司": "affiliated_client_company_name",
-        "提单人": "submitter",
-        "审批状态": "status",
-        "时间": "submission_datetime",
-    }
     ACTION_MAP = {
         "list": ClientApprovalSlipListSerializer,
         "create": ClientApprovalSlipCreateSerializer,
@@ -57,3 +51,24 @@ class ClientApprovalSlipModelViewSet(ModelViewSet):
             create_serializer.save()
 
         return Response()
+
+    @action(methods=["GET"], detail=False)
+    def filter_condition(self, request, *args, **kwargs):
+        return Response(
+            [
+                {"id": "id", "name": "审批单号", "children": []},
+                {
+                    "id": "affiliated_manage_company_name",
+                    "name": "管理公司",
+                    "children": [],
+                },
+                {
+                    "id": "affiliated_client_company_name",
+                    "name": "客户公司",
+                    "children": [],
+                },
+                {"id": "submitter", "name": "提单人", "children": []},
+                {"id": "status", "name": "审批状态", "children": []},
+                {"id": "submission_datetime", "name": "时间", "children": []},
+            ]
+        )

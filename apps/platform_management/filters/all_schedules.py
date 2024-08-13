@@ -3,23 +3,14 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from apps.platform_management.models import ManageCompany, ClientCompany, Instructor
 from apps.teaching_space.models import TrainingClass
+from common.utils.drf.filters import BaseFilterSet
 
 
-class AllScheduleFilterClass(django_filters.FilterSet):
+class AllScheduleFilterClass(BaseFilterSet):
     manage_company = django_filters.NumberFilter(method="filter_manage_company")
     client_company = django_filters.NumberFilter(method="filter_client_company")
     instructor = django_filters.NumberFilter(method="filter_instructor")
     train_class = django_filters.NumberFilter(method="filter_train_class")
-
-    def _filter_by_related_model(
-        self, queryset, value, model, field_name, related_field
-    ):
-        try:
-            related_instance = model.objects.get(id=value)
-            filter_value = getattr(related_instance, related_field)
-            return queryset.filter(**{field_name: filter_value})
-        except ObjectDoesNotExist:
-            return queryset.none()
 
     def filter_manage_company(self, queryset, name, value):
         return self._filter_by_related_model(

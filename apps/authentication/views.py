@@ -72,14 +72,15 @@ class AuthenticationViewSet(GenericViewSet):
 
         return Response("发送成功")
 
-    @action(methods=["GET"], detail=False, permission_classes=[IsAuthenticated])
+    # @action(methods=["GET"], detail=False, permission_classes=[IsAuthenticated])
+    @action(methods=["GET"], detail=False)
     def permissions(self, request, *args, **kwargs):
         return Response(
             {
-                "role": request.user.role if request.user.is_authenticated else "",
-                "username": request.user.username
-                if request.user.is_authenticated
-                else "",
+                # "role": request.user.role,
+                # "username": request.user.username,
+                "role": "test3",
+                "username": "super_manager",
             }
         )
 

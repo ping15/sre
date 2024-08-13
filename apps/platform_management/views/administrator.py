@@ -1,5 +1,6 @@
 from rest_framework.decorators import action
 
+from apps.platform_management.filters.administrator import AdministratorFilterClass
 from apps.platform_management.models import Administrator
 from apps.platform_management.serialiers.administrator import (
     AdministratorListSerializer,
@@ -20,24 +21,34 @@ class AdministratorModelViewSet(ModelViewSet):
     enable_batch_import = True
     batch_import_serializer = AdministratorBatchImportSerializer
     batch_import_mapping = ADMINISTRATOR_EXCEL_MAPPING
-    fuzzy_filter_fields = [
-        "username",
-        "email",
-        "phone",
-        "affiliated_manage_company_name",
-        "role",
-    ]
-    filter_condition_mapping = {
-        "管理员名称": "name",
-        "邮箱": "email",
-        "手机": "phone",
-        "所属公司": "affiliated_manage_company_name",
-        "权限角色": "role",
-    }
+    # string_fuzzy_filter_fields = [
+    #     "username",
+    #     "email",
+    #     "phone",
+    #     "affiliated_manage_company_name",
+    #     "role",
+    # ]
+    filter_class = AdministratorFilterClass
     ACTION_MAP = {
         "list": AdministratorListSerializer,
         "create": AdministratorCreateSerializer,
     }
+
+    @action(methods=["GET"], detail=False)
+    def filter_condition(self, request, *args, **kwargs):
+        return Response(
+            [
+                {"id": "name", "name": "管理员名称", "children": []},
+                {"id": "email", "name": "邮箱", "children": []},
+                {"id": "phone", "name": "手机", "children": []},
+                {
+                    "id": "affiliated_manage_company_name",
+                    "name": "所属公司",
+                    "children": [],
+                },
+                {"id": "role", "name": "权限角色", "children": []},
+            ]
+        )
 
     @action(methods=["GET"], detail=False)
     def role_choices(self, request, *args, **kwargs):

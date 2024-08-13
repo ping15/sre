@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 import django_filters
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class PropertyFilter(django_filters.CharFilter):
@@ -52,14 +53,24 @@ class ForeignFilter(django_filters.Filter):
 
 
 class BaseFilterSet(django_filters.FilterSet):
+    # def __init__(self, *args, **kwargs):
+    #     print(1111111111111111111111111111111)
+    #     for field_name, filter_instance in self.base_filters.items():
+    #         self.base_filters["aaa"] = filter_instance
+    #         if isinstance(filter_instance, (django_filters.DateTimeFilter, django_filters.DateFilter)):
+    #             self.build_filter(field_name, type(filter_instance))
+    #     super().__init__(*args, **kwargs)
+
     @classmethod
     def add_filters(
-        cls, filter_class, filter_fields, filter_type, lookup_exprs, add_prefix
+        cls, filter_set, filter_fields, filter_class, lookup_exprs, add_prefix
     ):
         for field in filter_fields:
             for lookup_expr in lookup_exprs:
-                filter_instance = filter_type(field_name=field, lookup_expr=lookup_expr)
-                filter_class.base_filters[
+                filter_instance = filter_class(
+                    field_name=field, lookup_expr=lookup_expr
+                )
+                filter_set.base_filters[
                     field + (f"_{lookup_expr}" if add_prefix else "")
                 ] = filter_instance
 
@@ -67,17 +78,18 @@ class BaseFilterSet(django_filters.FilterSet):
     def setup_filters(
         cls,
         model,
-        fuzzy_filter_fields=None,
+        string_fuzzy_filter_fields=None,
         time_filter_fields=None,
         property_fuzzy_filter_fields=None,
         datetime_filter_fields=None,
         integer_filter_fields=None,
     ):
+        print(f"cls.base_filterscls.base_filters={cls.base_filters}")
         cls.base_filters = OrderedDict()
 
         filter_mappings = [
             (
-                fuzzy_filter_fields or [],
+                string_fuzzy_filter_fields or [],
                 django_filters.CharFilter,
                 ["icontains"],
                 False,
@@ -103,8 +115,43 @@ class BaseFilterSet(django_filters.FilterSet):
             ),
         ]
 
-        for filter_fields, filter_type, lookup_exprs, add_prefix in filter_mappings:
+        for filter_fields, filter_class, lookup_exprs, add_prefix in filter_mappings:
             if filter_fields:
                 cls.add_filters(
-                    cls, filter_fields, filter_type, lookup_exprs, add_prefix
+                    cls, filter_fields, filter_class, lookup_exprs, add_prefix
                 )
+
+    @classmethod
+    def _filter_by_related_model(cls, queryset, pk, model, field_name, related_field):
+        """
+        1. 从B Model中获取id为pk的实例，获取related_field的值
+        2. 再从queryset中筛选字段field_name为上一步获取的值
+        """
+        try:
+            related_instance = model.objects.get(id=pk)
+            filter_value = getattr(related_instance, related_field)
+            return queryset.filter(**{field_name: filter_value})
+        except ObjectDoesNotExist:
+            return queryset.none()
+
+    @classmethod
+    def add_filter_with_lookups(cls, field_name, filter_type, lookup_exprs):
+        # 添加带有查找表达式的过滤器
+        for lookup_expr in lookup_exprs:
+            lookup_field_name = f"{field_name}_{lookup_expr}"
+            cls.base_filters[lookup_field_name] = filter_type(
+                field_name=field_name, lookup_expr=lookup_expr
+            )
+
+    @classmethod
+    def build_filter(cls, field_name, filter_type):
+        lookup_exprs = ["gte", "gt", "lte", "lt"]
+        cls.add_filter_with_lookups(field_name, filter_type, lookup_exprs)
+
+    # @classmethod
+    # def __init_subclass__(cls, **kwargs):
+    #     super().__init_subclass__(**kwargs)
+    #     # 在子类初始化时设置过滤器
+    #     for field_name, filter_instance in cls.declared_filters.items():
+    #         if isinstance(filter_instance, (django_filters.DateTimeFilter, django_filters.DateFilter)):
+    #             cls.build_filter(field_name, type(filter_instance))

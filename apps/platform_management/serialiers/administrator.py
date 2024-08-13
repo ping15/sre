@@ -61,7 +61,9 @@ class AdministratorUpdateSerializer(
         exclude = ["password"]
 
 
-class AdministratorBatchImportSerializer(serializers.ModelSerializer):
+class AdministratorBatchImportSerializer(
+    serializers.ModelSerializer, PhoneCreateSerializerValidator
+):
     def to_internal_value(self, data):
         data["role"] = reverse_dict(dict(Administrator.Role.choices)).get(data["role"])
         try:
@@ -72,6 +74,8 @@ class AdministratorBatchImportSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 f"该管理公司不存在: {data['affiliated_manage_company_name']}"
             )
+        # return super().to_internal_value(data)
+        PhoneCreateSerializerValidator.validate_phone(data["phone"])
         return data
 
     class Meta:
