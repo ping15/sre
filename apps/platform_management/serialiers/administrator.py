@@ -34,7 +34,10 @@ class AdministratorCreateSerializer(
     role = ChoiceField(choices=Administrator.Role.choices)
 
     def to_internal_value(self, data):
-        data["affiliated_manage_company"] = data.get("affiliated_manage_company_name")
+        if "affiliated_manage_company" not in data:
+            data["affiliated_manage_company"] = data.get(
+                "affiliated_manage_company_name"
+            )
         return super().to_internal_value(data)
 
     class Meta:
