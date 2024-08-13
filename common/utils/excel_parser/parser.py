@@ -30,5 +30,7 @@ def _convert_data(
     for field_name, field_value in data.copy().items():
         if field_name__field_type[field_name] == list:
             data[field_name] = field_value.split(",")
+        elif field_name__field_type[field_name] == str:
+            data[field_name] = str(field_value)
 
     return data

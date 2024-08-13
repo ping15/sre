@@ -1,3 +1,5 @@
+from rest_framework.decorators import action
+
 from apps.platform_management.models import ClientCompany, ClientStudent
 from apps.platform_management.serialiers.client_company import (
     ClientCompanyListSerializer,
@@ -7,18 +9,18 @@ from apps.platform_management.serialiers.client_company import (
 from apps.teaching_space.models import TrainingClass
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
+from common.utils.drf.response import Response
 
 
 class ClientCompanyModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission]
     default_serializer_class = ClientCompanyListSerializer
     queryset = ClientCompany.objects.all()
-    fuzzy_filter_fields = ["name", "contact_email", "affiliated_manage_company_name"]
-    filter_condition_mapping = {
-        "客户公司名称": "name",
-        "联系邮箱": "contact_email",
-        "管理公司名称": "affiliated_manage_company_name",
-    }
+    string_fuzzy_filter_fields = [
+        "name",
+        "contact_email",
+        "affiliated_manage_company_name",
+    ]
     ACTION_MAP = {
         "list": ClientCompanyListSerializer,
         "create": ClientCompanyCreateSerializer,
@@ -31,3 +33,17 @@ class ClientCompanyModelViewSet(ModelViewSet):
         if "name" in self.request.data:
             ClientCompany.sync_name(self.get_object().name, self.request.data["name"])
         return super().update(request, *args, **kwargs)
+
+    @action(methods=["GET"], detail=False)
+    def filter_condition(self, request, *args, **kwargs):
+        return Response(
+            [
+                {"id": "name", "name": "客户公司名称", "children": []},
+                {"id": "contact_email", "name": "联系邮箱", "children": []},
+                {
+                    "id": "affiliated_manage_company_name",
+                    "name": "管理公司名称",
+                    "children": [],
+                },
+            ]
+        )

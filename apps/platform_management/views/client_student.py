@@ -22,20 +22,13 @@ class ClientStudentModelViewSet(ModelViewSet):
     enable_batch_import = True
     batch_import_mapping = CLIENT_STUDENT_EXCEL_MAPPING
     batch_import_serializer = ClientStudentBatchImportSerializer
-    fuzzy_filter_fields = [
+    string_fuzzy_filter_fields = [
         "username",
         "affiliated_client_company_name",
         "affiliated_manage_company_name",
         "email",
         "phone",
     ]
-    filter_condition_mapping = {
-        "学员名称": "name",
-        "所属客户公司": "affiliated_client_company_name",
-        "负责的管理公司": "affiliated_manage_company_name",
-        "邮箱": "email",
-        "手机": "phone",
-    }
     ACTION_MAP = {
         "list": ClientStudentListSerializer,
         "create": ClientStudentCreateSerializer,
@@ -61,5 +54,25 @@ class ClientStudentModelViewSet(ModelViewSet):
                     ],
                 }
                 for manage_company in ManageCompany.objects.all()
+            ]
+        )
+
+    @action(methods=["GET"], detail=False)
+    def filter_condition(self, request, *args, **kwargs):
+        return Response(
+            [
+                {"id": "name", "name": "学员名称", "children": []},
+                {
+                    "id": "affiliated_client_company_name",
+                    "name": "所属客户公司",
+                    "children": [],
+                },
+                {
+                    "id": "affiliated_manage_company_name",
+                    "name": "负责的管理公司",
+                    "children": [],
+                },
+                {"id": "email", "name": "邮箱", "children": []},
+                {"id": "phone", "name": "手机", "children": []},
             ]
         )

@@ -12,7 +12,6 @@ from common.utils.excel_parser.parser import excel_to_list
 
 
 class FileSerializer(serializers.Serializer):
-    # file = serializers.FileField()
     file_path = serializers.CharField()
 
 
@@ -38,10 +37,15 @@ class ModelViewSet(DRFModelViewSet):
     # 筛选, fuzzy: 模糊匹配, time/datetime: 时间匹配, property: 属性匹配,
     filter_class = BaseFilterSet
     copy_filter_class = filter_class
-    fuzzy_filter_fields = []
+    # string模糊匹配
+    string_fuzzy_filter_fields = []
+    # integer匹配
     integer_filter_fields = []
+    # time匹配
     time_filter_fields = []
+    # datetime匹配
     datetime_filter_fields = []
+    # property模糊匹配
     property_fuzzy_filter_fields = []
 
     # 页面关键词 -> 字段
@@ -69,16 +73,16 @@ class ModelViewSet(DRFModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
 
-        filter_class = self.filter_class
-        if issubclass(filter_class, BaseFilterSet):
-            filter_class.setup_filters(
-                model=self.queryset.model,
-                fuzzy_filter_fields=self.fuzzy_filter_fields,
-                time_filter_fields=self.time_filter_fields,
-                property_fuzzy_filter_fields=self.property_fuzzy_filter_fields,
-                datetime_filter_fields=self.datetime_filter_fields,
-                integer_filter_fields=self.integer_filter_fields,
-            )
+        # filter_class = self.filter_class
+        # if issubclass(filter_class, BaseFilterSet):
+        #     filter_class.setup_filters(
+        #         model=self.queryset.model,
+        #         string_fuzzy_filter_fields=self.string_fuzzy_filter_fields,
+        #         time_filter_fields=self.time_filter_fields,
+        #         property_fuzzy_filter_fields=self.property_fuzzy_filter_fields,
+        #         datetime_filter_fields=self.datetime_filter_fields,
+        #         integer_filter_fields=self.integer_filter_fields,
+        #     )
 
         return queryset
 
@@ -118,16 +122,8 @@ class ModelViewSet(DRFModelViewSet):
     def filter_condition(self, request, *args, **kwargs):
         response_data = []
 
-        # 获取模型的 queryset
-        # queryset = self.get_queryset()
-
         for display_name, field_name in self.filter_condition_mapping.items():
             item = {"id": field_name, "name": display_name, "children": []}
-
-            # if field_name in self.filter_condition_enum_list:
-            #     # 获取字段的所有唯一值作为枚举结果
-            #     unique_values = queryset.values_list(field_name, flat=True).distinct()
-            #     item["children"] = list(unique_values)
 
             response_data.append(item)
 

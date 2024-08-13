@@ -1,4 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.decorators import action
 
 from apps.platform_management.models import CourseTemplate
 from apps.platform_management.serialiers.course_template import (
@@ -7,19 +8,24 @@ from apps.platform_management.serialiers.course_template import (
 )
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
+from common.utils.drf.response import Response
 
 
 class CourseTemplateModelViewSet(ModelViewSet):
     queryset = CourseTemplate.objects.all()
     default_serializer_class = CourseTemplateCreateSerializer
-    # filter_backends = [DjangoFilterBackend]
-    fuzzy_filter_fields = ["name", "course_overview"]
+    string_fuzzy_filter_fields = ["name", "course_overview"]
     permission_classes = [SuperAdministratorPermission]
-    filter_condition_mapping = {
-        "课程名称": "name",
-        "课程描述": "course_overview",
-    }
     ACTION_MAP = {
         "list": CourseTemplateListSerializer,
         "create": CourseTemplateCreateSerializer,
     }
+
+    @action(methods=["GET"], detail=False)
+    def filter_condition(self, request, *args, **kwargs):
+        return Response(
+            [
+                {"id": "name", "name": "课程名称", "children": []},
+                {"id": "course_overview", "name": "课程描述", "children": []},
+            ]
+        )

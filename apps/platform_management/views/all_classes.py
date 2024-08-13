@@ -1,27 +1,41 @@
+from rest_framework.decorators import action
+
+from apps.platform_management.filters.all_classes import AllClassesFilterClass
 from apps.teaching_space.models import TrainingClass
 from apps.platform_management.serialiers.all_classes import AllClassesListSerializer
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
+from common.utils.drf.response import Response
 
 
 class AllClassesModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission]
     queryset = TrainingClass.objects.all()
-    fuzzy_filter_fields = ["target_client_company_name", "location"]
-    property_fuzzy_filter_fields = [
-        "name",
-        "instructor_name",
-        "affiliated_manage_company_name",
-    ]
-    time_filter_fields = ["start_date"]
-    filter_condition_mapping = {
-        "客户公司": "target_client_company_name",
-        "管理公司": "affiliated_manage_company_name",
-        "培训班名称": "name",
-        "讲师": "instructor_name",
-        "上课地点": "location",
-        "时间": "start_date",
-    }
+    # string_fuzzy_filter_fields = ["target_client_company_name", "location"]
+    filter_class = AllClassesFilterClass
+    # property_fuzzy_filter_fields = [
+    #     "name",
+    #     "instructor_name",
+    #     "affiliated_manage_company_name",
+    # ]
+    # time_filter_fields = ["start_date"]
     ACTION_MAP = {
         "list": AllClassesListSerializer,
     }
+
+    @action(methods=["GET"], detail=False)
+    def filter_condition(self, request, *args, **kwargs):
+        return Response(
+            [
+                {"id": "target_client_company_name", "name": "客户公司", "children": []},
+                {
+                    "id": "affiliated_manage_company_name",
+                    "name": "管理公司",
+                    "children": [],
+                },
+                {"id": "name", "name": "培训班名称", "children": []},
+                {"id": "instructor_name", "name": "讲师", "children": []},
+                {"id": "location", "name": "上课地点", "children": []},
+                {"id": "start_date", "name": "时间", "children": []},
+            ]
+        )

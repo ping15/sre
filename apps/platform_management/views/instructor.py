@@ -32,11 +32,7 @@ class InstructorModelViewSet(ModelViewSet):
     queryset = Instructor.objects.all()
     enable_batch_import = True
     batch_import_mapping = INSTRUCTOR_EXCEL_MAPPING
-    fuzzy_filter_fields = ["username", "introduction"]
-    filter_condition_mapping = {
-        "讲师名称": "username",
-        "简介": "introduction",
-    }
+    string_fuzzy_filter_fields = ["username", "introduction"]
     ACTION_MAP = {
         "list": InstructorListSerializer,
         "create": InstructorCreateSerializer,
@@ -68,7 +64,7 @@ class InstructorModelViewSet(ModelViewSet):
         self.filter_class.setup_filters(
             TrainingClass,
             property_fuzzy_filter_fields=["name"],
-            fuzzy_filter_fields=["target_client_company_name"],
+            string_fuzzy_filter_fields=["target_client_company_name"],
             time_filter_fields=["start_date"],
         )
         self.enable_filter_backend()
@@ -90,21 +86,9 @@ class InstructorModelViewSet(ModelViewSet):
     def taught_courses_filter_condition(self, request, *args, **kwargs):
         return Response(
             [
-                {
-                    "id": "name",
-                    "name": "培训班名称",
-                    "children": [],
-                },
-                {
-                    "id": "target_client_company_name",
-                    "name": "客户公司",
-                    "children": [],
-                },
-                {
-                    "id": "start_date",
-                    "name": "时间",
-                    "children": [],
-                },
+                {"id": "name", "name": "培训班名称", "children": []},
+                {"id": "target_client_company_name", "name": "客户公司", "children": []},
+                {"id": "start_date", "name": "时间", "children": []},
             ]
         )
 
@@ -120,36 +104,6 @@ class InstructorModelViewSet(ModelViewSet):
         inject_training_class_to_calendar(
             date__daily_calendar_map, self.get_object().training_classes.all()
         )
-
-        # # 培训班信息
-        # training_classes_info: List[dict] = [
-        #     {
-        #         "id": instance.id,
-        #         "start_date": instance.start_date,
-        #         "target_client_company_name": instance.target_client_company_name,
-        #         "name": instance.name,
-        #     }
-        #     for instance in self.get_object().training_classes.all()
-        # ]
-        # date__daily_calendar_map: Dict[str, dict] = generate_calendar(
-        #     validated_data["year"], validated_data["month"]
-        # )
-        # for programme in training_classes_info:
-        #     start_date: datetime.date = programme.pop("start_date")
-        #     formatted_start_date: str = start_date.strftime("%Y-%m-%d")
-        #     formatted_next_date: str = (start_date + timedelta(days=1)).strftime(
-        #         "%Y-%m-%d"
-        #     )
-        #
-        #     # 更新当前日期的日历映射
-        #     if formatted_start_date in date__daily_calendar_map:
-        #         date__daily_calendar_map[formatted_start_date]["data"].append(programme)
-        #         date__daily_calendar_map[formatted_start_date]["count"] += 1
-        #
-        #     # 更新下一天的日历映射
-        #     if formatted_next_date in date__daily_calendar_map:
-        #         date__daily_calendar_map[formatted_next_date]["data"].append(programme)
-        #         date__daily_calendar_map[formatted_next_date]["count"] += 1
 
         return Response(date__daily_calendar_map.values())
 
@@ -174,3 +128,12 @@ class InstructorModelViewSet(ModelViewSet):
             )
 
         return self.get_paginated_response(self.paginate_queryset(taught_courses))
+
+    @action(methods=["GET"], detail=False)
+    def filter_condition(self, request, *args, **kwargs):
+        return Response(
+            [
+                {"id": "username", "name": "讲师名称", "children": []},
+                {"id": "introduction", "name": "简介", "children": []},
+            ]
+        )
