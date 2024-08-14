@@ -1,11 +1,15 @@
+import os
+from datetime import timedelta
 from typing import List, Dict
 
-from django.http import Http404
+from django.db.models import QuerySet
+from django.http import Http404, FileResponse
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
 from rest_framework.viewsets import ModelViewSet as DRFModelViewSet
 
+from apps.teaching_space.models import TrainingClass
 from common.utils.drf.filters import BaseFilterSet
 from common.utils.drf.response import Response
 from common.utils.excel_parser.parser import excel_to_list
@@ -23,6 +27,7 @@ class ModelViewSet(DRFModelViewSet):
     # 是否支持批量导入
     enable_batch_import = False
     batch_import_serializer = None
+    batch_import_template_path = ""
     batch_import_mapping = {}
 
     # 默认序列化器
@@ -56,35 +61,13 @@ class ModelViewSet(DRFModelViewSet):
         super().__init_subclass__(**kwargs)
         if not cls.enable_batch_import and hasattr(cls, "batch_import"):
             cls.batch_import = None
+            cls.batch_import_template = None
         else:
             cls.ACTION_MAP["batch_import"] = FileSerializer
             if not cls.batch_import_serializer:
                 cls.batch_import_serializer = cls.ACTION_MAP.get("create")
 
         cls.ACTION_MAP["simple_query"] = SimpleQuerySerializer
-
-    def disable_filter_backend(self):
-        self.origin_filter_backend = self.filter_backends
-        self.filter_backends = []
-
-    def enable_filter_backend(self):
-        self.filter_backends = self.origin_filter_backend
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-
-        # filter_class = self.filter_class
-        # if issubclass(filter_class, BaseFilterSet):
-        #     filter_class.setup_filters(
-        #         model=self.queryset.model,
-        #         string_fuzzy_filter_fields=self.string_fuzzy_filter_fields,
-        #         time_filter_fields=self.time_filter_fields,
-        #         property_fuzzy_filter_fields=self.property_fuzzy_filter_fields,
-        #         datetime_filter_fields=self.datetime_filter_fields,
-        #         integer_filter_fields=self.integer_filter_fields,
-        #     )
-
-        return queryset
 
     def get_serializer_class(self):
         return self.ACTION_MAP.get(self.action, self.default_serializer_class)  # noqa
@@ -146,6 +129,52 @@ class ModelViewSet(DRFModelViewSet):
         return Response(create_serializer.validated_data)
 
     @action(methods=["GET"], detail=False)
+    def batch_import_template(self, request, *args, **kwargs):
+        # template_path = "common/utils/excel_parser/templates/administrator_template.xlsx"
+        #
+        if not os.path.exists(self.batch_import_template_path):
+            raise Http404("Template file does not exist")
+
+        response = FileResponse(
+            open(self.batch_import_template_path, "rb"),
+            as_attachment=True,
+            filename=os.path.basename(self.batch_import_template_path),
+        )
+        return response
+
+    @action(methods=["GET"], detail=False)
     def simple_query(self, request, *args, **kwargs):
         validated_data = self.validated_data
         return Response(list(self.queryset.values(*validated_data["query"].split(","))))
+
+    @classmethod
+    def build_calendars(cls, training_classes: QuerySet["TrainingClass"]) -> List[dict]:
+        calendar_dict = {}
+
+        for training_class in training_classes:
+            start_date = training_class.start_date
+            end_date = start_date + timedelta(days=1)
+
+            if start_date not in calendar_dict:
+                calendar_dict[start_date] = {
+                    "start_date": start_date,
+                    "end_date": end_date,
+                    "is_available": True,
+                    "data": [],
+                    "count": 0,
+                }
+
+            calendar_dict[start_date]["data"].append(
+                {
+                    "id": training_class.id,
+                    "target_client_company_name": training_class.target_client_company_name,
+                    "instructor_name": training_class.instructor_name,
+                    "name": training_class.name,
+                }
+            )
+            calendar_dict[start_date]["count"] += 1
+
+        # 将字典转换为列表并按 start_date 排序
+        calendar = sorted(calendar_dict.values(), key=lambda x: x["start_date"])
+
+        return calendar

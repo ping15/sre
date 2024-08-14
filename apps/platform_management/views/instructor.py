@@ -5,6 +5,7 @@ from typing import List, Dict
 from django.db.models import QuerySet
 from rest_framework.decorators import action
 
+from apps.platform_management.filters.instructor import InstructorFilterClass
 from apps.platform_management.models import Instructor
 from apps.platform_management.serialiers.instructor import (
     InstructorListSerializer,
@@ -16,7 +17,7 @@ from apps.platform_management.serialiers.instructor import (
     InstructorPartialUpdateSerializer,
 )
 from apps.teaching_space.models import TrainingClass
-from common.utils.calander import (
+from common.utils.calendar import (
     generate_blank_calendar,
     inject_training_class_to_calendar,
 )
@@ -31,8 +32,12 @@ class InstructorModelViewSet(ModelViewSet):
     default_serializer_class = InstructorCreateSerializer
     queryset = Instructor.objects.all()
     enable_batch_import = True
+    batch_import_template_path = (
+        "common/utils/excel_parser/templates/instructor_template.xlsx"
+    )
     batch_import_mapping = INSTRUCTOR_EXCEL_MAPPING
-    string_fuzzy_filter_fields = ["username", "introduction"]
+    filter_class = InstructorFilterClass
+    # string_fuzzy_filter_fields = ["username", "introduction"]
     ACTION_MAP = {
         "list": InstructorListSerializer,
         "create": InstructorCreateSerializer,
@@ -43,17 +48,13 @@ class InstructorModelViewSet(ModelViewSet):
         "partial_update": InstructorPartialUpdateSerializer,
     }
 
-    def list(self, request, *args, **kwargs):
-        print(f"user={request.user}")
-        return super().list(request, *args, **kwargs)
-
     @action(methods=["GET"], detail=True)
     def taught_courses(self, request, *args, **kwargs):
         """已授课程"""
         taught_courses: List[Dict[str:str]] = []
 
         # 禁用讲师的筛选
-        self.disable_filter_backend()
+        # self.disable_filter_backend()
         training_classes: QuerySet[
             "TrainingClass"
         ] = self.get_object().training_classes.filter(
@@ -61,13 +62,14 @@ class InstructorModelViewSet(ModelViewSet):
         )
 
         # 重构筛选为培训班并启用筛选
-        self.filter_class.setup_filters(
-            TrainingClass,
-            property_fuzzy_filter_fields=["name"],
-            string_fuzzy_filter_fields=["target_client_company_name"],
-            time_filter_fields=["start_date"],
-        )
-        self.enable_filter_backend()
+        # self.filter_class.setup_filters(
+        #     TrainingClass,
+        #     property_fuzzy_filter_fields=["name"],
+        #     string_fuzzy_filter_fields=["target_client_company_name"],
+        #     time_filter_fields=["start_date"],
+        # )
+        # self.enable_filter_backend()
+        self.filter_class = InstructorFilterClass
         training_classes = self.filter_queryset(training_classes)
 
         for instance in training_classes:
@@ -97,15 +99,23 @@ class InstructorModelViewSet(ModelViewSet):
         """日程"""
         validated_data = self.validated_data
 
-        date__daily_calendar_map: Dict[str, dict] = generate_blank_calendar(
-            validated_data["year"], validated_data["month"]
+        # date__daily_calendar_map: Dict[str, dict] = generate_blank_calendar(
+        #     validated_data["year"], validated_data["month"]
+        # )
+        #
+        # inject_training_class_to_calendar(
+        #     date__daily_calendar_map, self.get_object().training_classes.all()
+        # )
+        training_classes: QuerySet["TrainingClass"] = (
+            self.get_object()
+            .training_classes.all()
+            .filter(
+                start_date__gte=validated_data["start_date"],
+                start_date__lt=validated_data["end_date"],
+            )
         )
 
-        inject_training_class_to_calendar(
-            date__daily_calendar_map, self.get_object().training_classes.all()
-        )
-
-        return Response(date__daily_calendar_map.values())
+        return Response(self.build_calendars(training_classes))
 
     @action(methods=["GET"], detail=True)
     def review(self, request, *args, **kwargs):

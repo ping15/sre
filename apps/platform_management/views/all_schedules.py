@@ -1,12 +1,14 @@
+from datetime import timedelta
 from typing import Dict
 
+from django.db.models import QuerySet
 from rest_framework.decorators import action
 
 from apps.platform_management.filters.all_schedules import AllScheduleFilterClass
 from apps.platform_management.models import ManageCompany, ClientCompany, Instructor
 from apps.teaching_space.models import TrainingClass
 from apps.platform_management.serialiers.all_schedules import AllScheduleSerializer
-from common.utils.calander import (
+from common.utils.calendar import (
     generate_blank_calendar,
     inject_training_class_to_calendar,
 )
@@ -26,15 +28,19 @@ class AllScheduleModelViewSet(ModelViewSet):
     def list(self, request, *args, **kwargs):
         validated_data = self.validated_data
 
-        date__daily_calendar_map: Dict[str, dict] = generate_blank_calendar(
-            validated_data["year"], validated_data["month"]
+        training_classes: QuerySet["TrainingClass"] = self.queryset.filter(
+            start_date__gte=validated_data["start_date"],
+            start_date__lt=validated_data["end_date"],
         )
+        # date__daily_calendar_map: Dict[str, dict] = generate_blank_calendar(
+        #     validated_data["year"], validated_data["month"]
+        # )
+        #
+        # inject_training_class_to_calendar(
+        #     date__daily_calendar_map, self.filter_queryset(self.queryset)
+        # )
 
-        inject_training_class_to_calendar(
-            date__daily_calendar_map, self.filter_queryset(self.queryset)
-        )
-
-        return Response(date__daily_calendar_map)
+        return Response(self.build_calendars(training_classes))
 
     @staticmethod
     def get_unique_children(queryset, name_field):

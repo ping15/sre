@@ -19,6 +19,9 @@ class AdministratorModelViewSet(ModelViewSet):
     default_serializer_class = AdministratorUpdateSerializer
     queryset = Administrator.objects.all()
     enable_batch_import = True
+    batch_import_template_path = (
+        "common/utils/excel_parser/templates/administrator_template.xlsx"
+    )
     batch_import_serializer = AdministratorBatchImportSerializer
     batch_import_mapping = ADMINISTRATOR_EXCEL_MAPPING
     # string_fuzzy_filter_fields = [
