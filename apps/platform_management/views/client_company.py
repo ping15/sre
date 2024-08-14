@@ -1,5 +1,6 @@
 from rest_framework.decorators import action
 
+from apps.platform_management.filters.client_company import ClientCompanyFilterClass
 from apps.platform_management.models import ClientCompany, ClientStudent
 from apps.platform_management.serialiers.client_company import (
     ClientCompanyListSerializer,
@@ -16,11 +17,12 @@ class ClientCompanyModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission]
     default_serializer_class = ClientCompanyListSerializer
     queryset = ClientCompany.objects.all()
-    string_fuzzy_filter_fields = [
-        "name",
-        "contact_email",
-        "affiliated_manage_company_name",
-    ]
+    filter_class = ClientCompanyFilterClass
+    # string_fuzzy_filter_fields = [
+    #     "name",
+    #     "contact_email",
+    #     "affiliated_manage_company_name",
+    # ]
     ACTION_MAP = {
         "list": ClientCompanyListSerializer,
         "create": ClientCompanyCreateSerializer,

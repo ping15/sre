@@ -53,8 +53,8 @@ class InstructorPartialUpdateSerializer(serializers.ModelSerializer):
 
 
 class InstructorCalendarSerializer(serializers.Serializer):
-    year = serializers.IntegerField()
-    month = serializers.IntegerField()
+    start_date = serializers.DateField()
+    end_date = serializers.DateField()
 
 
 class InstructorRetrieveSerializer(serializers.ModelSerializer):

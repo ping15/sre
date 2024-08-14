@@ -1,5 +1,6 @@
 from rest_framework.decorators import action
 
+from apps.platform_management.filters.client_student import ClientStudentFilterClass
 from apps.platform_management.models import ClientStudent, ManageCompany
 from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import CLIENT_STUDENT_EXCEL_MAPPING
@@ -20,15 +21,19 @@ class ClientStudentModelViewSet(ModelViewSet):
     default_serializer_class = ClientStudentCreateSerializer
     queryset = ClientStudent.objects.all()
     enable_batch_import = True
+    batch_import_template_path = (
+        "common/utils/excel_parser/templates/client_student_template.xlsx"
+    )
     batch_import_mapping = CLIENT_STUDENT_EXCEL_MAPPING
     batch_import_serializer = ClientStudentBatchImportSerializer
-    string_fuzzy_filter_fields = [
-        "username",
-        "affiliated_client_company_name",
-        "affiliated_manage_company_name",
-        "email",
-        "phone",
-    ]
+    filter_class = ClientStudentFilterClass
+    # string_fuzzy_filter_fields = [
+    #     "username",
+    #     "affiliated_client_company_name",
+    #     "affiliated_manage_company_name",
+    #     "email",
+    #     "phone",
+    # ]
     ACTION_MAP = {
         "list": ClientStudentListSerializer,
         "create": ClientStudentCreateSerializer,
@@ -47,7 +52,7 @@ class ClientStudentModelViewSet(ModelViewSet):
                     "name": manage_company.name,
                     "children": [
                         {
-                            # "id": "affiliated_client_company_name",
+                            "id": client_company.id,
                             "name": client_company.name,
                         }
                         for client_company in manage_company.client_companies

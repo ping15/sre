@@ -1,6 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
 
+from apps.platform_management.filters.course_templates import CourseTemplatesFilterClass
 from apps.platform_management.models import CourseTemplate
 from apps.platform_management.serialiers.course_template import (
     CourseTemplateCreateSerializer,
@@ -14,7 +15,8 @@ from common.utils.drf.response import Response
 class CourseTemplateModelViewSet(ModelViewSet):
     queryset = CourseTemplate.objects.all()
     default_serializer_class = CourseTemplateCreateSerializer
-    string_fuzzy_filter_fields = ["name", "course_overview"]
+    filter_class = CourseTemplatesFilterClass
+    # string_fuzzy_filter_fields = ["name", "course_overview"]
     permission_classes = [SuperAdministratorPermission]
     ACTION_MAP = {
         "list": CourseTemplateListSerializer,
