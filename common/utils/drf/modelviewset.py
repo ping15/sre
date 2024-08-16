@@ -166,6 +166,9 @@ class ModelViewSet(DRFModelViewSet):
             else:
                 marking_end_date = min(end_date, event_end_date)
 
+            if marking_start_date > marking_end_date:
+                continue
+
             # 培训班排课
             if event.type == Event.Type.CLASS_SCHEDULE.value:
                 blank_calendar[format_date(marking_start_date)]["count"] += 1

@@ -6,7 +6,7 @@ from django.db.models import QuerySet
 from rest_framework.decorators import action
 
 from apps.platform_management.filters.instructor import InstructorFilterClass
-from apps.platform_management.models import Instructor
+from apps.platform_management.models import Instructor, Event
 from apps.platform_management.serialiers.instructor import (
     InstructorListSerializer,
     InstructorCreateSerializer,
@@ -106,16 +106,22 @@ class InstructorModelViewSet(ModelViewSet):
         # inject_training_class_to_calendar(
         #     date__daily_calendar_map, self.get_object().training_classes.all()
         # )
-        training_classes: QuerySet["TrainingClass"] = (
-            self.get_object()
-            .training_classes.all()
-            .filter(
-                start_date__gte=validated_data["start_date"],
-                start_date__lt=validated_data["end_date"],
+        # training_classes: QuerySet["TrainingClass"] = (
+        #     self.get_object()
+        #     .training_classes.all()
+        #     .filter(
+        #         start_date__gte=validated_data["start_date"],
+        #         start_date__lt=validated_data["end_date"],
+        #     )
+        # )
+
+        return Response(
+            self.build_calendars(
+                Event.objects.all(),
+                start_date=validated_data["start_date"],
+                end_date=validated_data["end_date"],
             )
         )
-
-        return Response(self.build_calendars(training_classes))
 
     @action(methods=["GET"], detail=True)
     def review(self, request, *args, **kwargs):
