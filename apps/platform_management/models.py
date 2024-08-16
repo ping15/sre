@@ -295,6 +295,8 @@ class ClientCompany(models.Model):
     bank_name = models.CharField(_("开户行"), max_length=64)
     bank_account = models.CharField(_("账号"), max_length=32)
 
+    created_date = models.DateField(_("创建时间"), auto_now_add=True)
+
     @property
     def students(self) -> QuerySet["ClientStudent"]:
         return ClientStudent.objects.filter(affiliated_client_company_name=self.name)
@@ -359,6 +361,7 @@ class ClientStudent(models.Model):
     id_photo = models.JSONField(_("证件照"), default=dict)
 
     last_login = models.DateTimeField(_("最后登录时间"), blank=True, null=True)
+    created_date = models.DateField(_("创建时间"), auto_now_add=True)
 
     @property
     def affiliated_client_company(self) -> ClientCompany:
