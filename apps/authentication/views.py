@@ -72,15 +72,15 @@ class AuthenticationViewSet(GenericViewSet):
 
         return Response("发送成功")
 
-    # @action(methods=["GET"], detail=False, permission_classes=[IsAuthenticated])
-    @action(methods=["GET"], detail=False)
+    @action(methods=["GET"], detail=False, permission_classes=[IsAuthenticated])
+    # @action(methods=["GET"], detail=False)
     def permissions(self, request, *args, **kwargs):
         return Response(
             {
-                # "role": request.user.role,
-                # "username": request.user.username,
-                "role": "test3",
-                "username": "super_manager",
+                "role": request.user.role,
+                "username": request.user.username,
+                # "role": "test3",
+                # "username": "super_manager",
             }
         )
 

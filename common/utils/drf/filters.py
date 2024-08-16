@@ -11,7 +11,7 @@ class PropertyFilter(django_filters.CharFilter):
                 id__in=[
                     instance.id
                     for instance in qs
-                    if value in getattr(instance, self.field_name).lower()
+                    if value.lower() in getattr(instance, self.field_name).lower()
                 ]
             )
 
@@ -54,7 +54,6 @@ class ForeignFilter(django_filters.Filter):
 
 class BaseFilterSet(django_filters.FilterSet):
     # def __init__(self, *args, **kwargs):
-    #     print(1111111111111111111111111111111)
     #     for field_name, filter_instance in self.base_filters.items():
     #         self.base_filters["aaa"] = filter_instance
     #         if isinstance(filter_instance, (django_filters.DateTimeFilter, django_filters.DateFilter)):
