@@ -8,12 +8,6 @@ class InstructorFilterClass(BaseFilterSet):
     introduction = django_filters.CharFilter("introduction", lookup_expr="icontains")
 
 
-# self.filter_class.setup_filters(
-#             TrainingClass,
-#             property_fuzzy_filter_fields=["name"],
-#             string_fuzzy_filter_fields=["target_client_company_name"],
-#             time_filter_fields=["start_date"],
-#         )
 class InstructorTaughtCoursesFilterClass(BaseFilterSet):
     name = PropertyFilter("name")
     target_client_company_name = django_filters.CharFilter(

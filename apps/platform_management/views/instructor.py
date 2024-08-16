@@ -5,7 +5,10 @@ from typing import List, Dict
 from django.db.models import QuerySet
 from rest_framework.decorators import action
 
-from apps.platform_management.filters.instructor import InstructorFilterClass
+from apps.platform_management.filters.instructor import (
+    InstructorFilterClass,
+    InstructorTaughtCoursesFilterClass,
+)
 from apps.platform_management.models import Instructor, Event
 from apps.platform_management.serialiers.instructor import (
     InstructorListSerializer,
@@ -17,10 +20,6 @@ from apps.platform_management.serialiers.instructor import (
     InstructorPartialUpdateSerializer,
 )
 from apps.teaching_space.models import TrainingClass
-from common.utils.calendar import (
-    generate_blank_calendar,
-    inject_training_class_to_calendar,
-)
 from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import INSTRUCTOR_EXCEL_MAPPING
 from common.utils.drf.modelviewset import ModelViewSet
@@ -37,7 +36,6 @@ class InstructorModelViewSet(ModelViewSet):
     )
     batch_import_mapping = INSTRUCTOR_EXCEL_MAPPING
     filter_class = InstructorFilterClass
-    # string_fuzzy_filter_fields = ["username", "introduction"]
     ACTION_MAP = {
         "list": InstructorListSerializer,
         "create": InstructorCreateSerializer,
@@ -69,7 +67,7 @@ class InstructorModelViewSet(ModelViewSet):
         #     time_filter_fields=["start_date"],
         # )
         # self.enable_filter_backend()
-        self.filter_class = InstructorFilterClass
+        self.filter_class = InstructorTaughtCoursesFilterClass
         training_classes = self.filter_queryset(training_classes)
 
         for instance in training_classes:
@@ -98,22 +96,6 @@ class InstructorModelViewSet(ModelViewSet):
     def calendar(self, request, *args, **kwargs):
         """日程"""
         validated_data = self.validated_data
-
-        # date__daily_calendar_map: Dict[str, dict] = generate_blank_calendar(
-        #     validated_data["year"], validated_data["month"]
-        # )
-        #
-        # inject_training_class_to_calendar(
-        #     date__daily_calendar_map, self.get_object().training_classes.all()
-        # )
-        # training_classes: QuerySet["TrainingClass"] = (
-        #     self.get_object()
-        #     .training_classes.all()
-        #     .filter(
-        #         start_date__gte=validated_data["start_date"],
-        #         start_date__lt=validated_data["end_date"],
-        #     )
-        # )
 
         return Response(
             self.build_calendars(

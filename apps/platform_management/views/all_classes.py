@@ -11,14 +11,7 @@ from common.utils.drf.response import Response
 class AllClassesModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission]
     queryset = TrainingClass.objects.all()
-    # string_fuzzy_filter_fields = ["target_client_company_name", "location"]
     filter_class = AllClassesFilterClass
-    # property_fuzzy_filter_fields = [
-    #     "name",
-    #     "instructor_name",
-    #     "affiliated_manage_company_name",
-    # ]
-    # time_filter_fields = ["start_date"]
     ACTION_MAP = {
         "list": AllClassesListSerializer,
     }

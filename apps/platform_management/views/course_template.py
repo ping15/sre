@@ -16,7 +16,6 @@ class CourseTemplateModelViewSet(ModelViewSet):
     queryset = CourseTemplate.objects.all()
     default_serializer_class = CourseTemplateCreateSerializer
     filter_class = CourseTemplatesFilterClass
-    # string_fuzzy_filter_fields = ["name", "course_overview"]
     permission_classes = [SuperAdministratorPermission]
     ACTION_MAP = {
         "list": CourseTemplateListSerializer,
