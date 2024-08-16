@@ -21,3 +21,5 @@ media
 common/data
 
 home_application/templates/home_application/index.html
+
+static

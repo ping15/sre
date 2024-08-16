@@ -431,3 +431,46 @@ class ClientApprovalSlip(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Event(models.Model):
+    """日程事件"""
+
+    from apps.teaching_space.models import TrainingClass
+
+    class Type(models.TextChoices):
+        CLASS_SCHEDULE = "class_schedule", "培训班排课"
+        ONE_TIME_UNAVAILABILITY = "one_time_unavailability", "登记一次性不可用时间规则"
+        RECURRING_UNAVAILABILITY = "recurring_unavailability", "登记周期性不可用时间规则"
+        CANCEL_UNAVAILABILITY = "cancel_unavailability", "取消单日不可用时间"
+
+    class FreqType(models.TextChoices):
+        WEEKLY = "weekly", "每周"
+        MONTHLY = "monthly", "每月"
+
+    type = models.CharField(_("事件类型"), max_length=50, choices=Type.choices)
+    freq_type = models.CharField(
+        choices=FreqType.choices, max_length=16, null=True, blank=True
+    )
+    freq_interval = models.JSONField(default=list)
+    # rule = models.JSONField(_("规则"), default=dict)
+    start_date = models.DateField(_("开始时间"))
+    end_date = models.DateField(_("结束时间"), null=True, blank=True)
+    # target_client_company_name = models.CharField(_("目标客户公司"), max_length=255, null=True, blank=True)
+    # instructor_name = models.CharField(_("讲师"), max_length=255, null=True, blank=True)
+    training_class = models.OneToOneField(
+        TrainingClass,
+        on_delete=models.CASCADE,
+        verbose_name=_("培训班"),
+        null=True,
+        blank=True,
+    )
+
+    def __str__(self):
+        return (
+            f"{self.get_type_display()} ({self.start_date} - {self.end_date or 'N/A'})"
+        )
+
+    class Meta:
+        verbose_name = _("日程事件")
+        verbose_name_plural = verbose_name
