@@ -8,7 +8,10 @@ from apps.platform_management.models import (
     Event,
 )
 from apps.teaching_space.models import TrainingClass
-from apps.platform_management.serialiers.all_schedules import AllScheduleSerializer
+from apps.platform_management.serialiers.all_schedules import (
+    AllScheduleListSerializer,
+    AllScheduleCreateSerializer,
+)
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
 from common.utils.drf.response import Response
@@ -19,7 +22,8 @@ class AllScheduleModelViewSet(ModelViewSet):
     queryset = Event.objects.all()
     filter_class = AllScheduleFilterClass
     ACTION_MAP = {
-        "list": AllScheduleSerializer,
+        "list": AllScheduleListSerializer,
+        "create": AllScheduleCreateSerializer,
     }
 
     def list(self, request, *args, **kwargs):
