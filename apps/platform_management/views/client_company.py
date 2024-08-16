@@ -15,7 +15,7 @@ from common.utils.drf.response import Response
 
 class ClientCompanyModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission]
-    default_serializer_class = ClientCompanyListSerializer
+    serializer_class = ClientCompanyListSerializer
     queryset = ClientCompany.objects.all()
     filter_class = ClientCompanyFilterClass
     ACTION_MAP = {

@@ -12,7 +12,7 @@ from common.utils.tools import reverse_dict
 class ClientStudentListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientStudent
-        exclude = ["department", "position"]
+        fields = "__all__"
 
 
 class ClientStudentCreateSerializer(

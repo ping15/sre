@@ -16,7 +16,7 @@ from common.utils.drf.permissions import SuperAdministratorPermission
 
 class AdministratorModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission]
-    default_serializer_class = AdministratorUpdateSerializer
+    serializer_class = AdministratorUpdateSerializer
     queryset = Administrator.objects.all()
     enable_batch_import = True
     batch_import_template_path = (

@@ -5,13 +5,18 @@ from apps.teaching_space.serializers.training_class import (
     TrainingClassRetrieveSerializer,
 )
 from common.utils.drf.modelviewset import ModelViewSet
-from common.utils.drf.permissions import ManageCompanyAdministratorPermission
+from common.utils.drf.permissions import (
+    ManageCompanyAdministratorPermission,
+    SuperAdministratorPermission,
+)
 
 
 class TrainingClassModelViewSet(ModelViewSet):
-    permission_classes = [ManageCompanyAdministratorPermission]
+    permission_classes = [
+        ManageCompanyAdministratorPermission | SuperAdministratorPermission
+    ]
     queryset = TrainingClass.objects.all()
-    default_serializer_class = TrainingClassCreateSerializer
+    serializer_class = TrainingClassCreateSerializer
     ACTION_MAP = {
         "list": TrainingClassListSerializer,
         "create": TrainingClassCreateSerializer,

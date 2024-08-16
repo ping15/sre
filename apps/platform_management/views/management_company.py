@@ -21,7 +21,7 @@ class ManagementCompanyModelViewSet(ModelViewSet):
 
     permission_classes = [SuperAdministratorPermission]
     queryset = ManageCompany.objects.all()
-    default_serializer_class = ManagementCompanyCreateSerializer
+    serializer_class = ManagementCompanyCreateSerializer
     # string_fuzzy_filter_fields = ["name", "email"]
     filter_class = ManagementCompanyFilterClass
     ACTION_MAP = {
