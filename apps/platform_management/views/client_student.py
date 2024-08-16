@@ -1,6 +1,7 @@
 from typing import List
 
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Count
+from django.db.models.functions import TruncDate
 from rest_framework.decorators import action
 
 from apps.platform_management.filters.client_student import ClientStudentFilterClass
@@ -104,3 +105,64 @@ class ClientStudentModelViewSet(ModelViewSet):
     def statistic(self, request, *args, **kwargs):
         client_companies = ClientCompany.objects.all()
         client_students = ClientStudent.objects.all()
+
+        mock_data = {
+            "client_students": [
+                {
+                    "date": "2024-01-01",
+                    "count": 6,
+                },
+                {
+                    "date": "2024-01-01",
+                    "count": 7,
+                },
+            ],
+            "client_companies": [
+                {
+                    "date": "2024-01-01",
+                    "count": 2,
+                },
+                {
+                    "date": "2024-01-01",
+                    "count": 3,
+                },
+            ],
+        }
+
+        return Response(mock_data)
+
+    # @action(methods=["GET"], detail=False)
+    # def statistic(self, request, *args, **kwargs):
+    #     # 聚合 client_companies 数据
+    #     client_companies = (
+    #         ClientCompany.objects
+    #         .annotate(date=TruncDate('created_date'))
+    #         .values('date')
+    #         .annotate(count=Count('id'))
+    #         .values('date', 'count')
+    #     )
+    #
+    #     # 聚合 client_students 数据
+    #     client_students = (
+    #         ClientStudent.objects
+    #         .annotate(date=TruncDate('created_date'))
+    #         .values('date')
+    #         .annotate(count=Count('id'))
+    #         .values('date', 'count')
+    #     )
+    #
+    #     # 将数据格式化为字典
+    #     client_companies_data = [
+    #         {"date": item['date'], "count": item['count']}
+    #         for item in client_companies]
+    #
+    #     client_students_data = [
+    #         {"date": item['date'], "count": item['count']}
+    #         for item in client_students]
+    #
+    #     response_data = {
+    #         "client_companies": client_companies_data,
+    #         "client_students": client_students_data,
+    #     }
+    #
+    #     return Response(response_data)
