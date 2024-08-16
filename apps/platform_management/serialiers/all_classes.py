@@ -7,6 +7,7 @@ class AllClassesListSerializer(serializers.ModelSerializer):
     class Meta:
         model = TrainingClass
         fields = [
+            "id",
             "start_date",
             "name",
             "target_client_company_name",
