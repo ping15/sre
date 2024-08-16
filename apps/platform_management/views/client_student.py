@@ -103,66 +103,31 @@ class ClientStudentModelViewSet(ModelViewSet):
 
     @action(methods=["GET"], detail=False)
     def statistic(self, request, *args, **kwargs):
-        client_companies = ClientCompany.objects.all()
-        client_students = ClientStudent.objects.all()
+        # 聚合 ClientCompany 按创建日期统计数量
+        company_stats = (
+            ClientCompany.objects.values("created_date")
+            .annotate(count=Count("id"))
+            .order_by("created_date")
+        )
 
-        mock_data = {
-            "client_students": [
-                {
-                    "date": "2024-01-01",
-                    "count": 6,
-                },
-                {
-                    "date": "2024-01-01",
-                    "count": 7,
-                },
-            ],
-            "client_companies": [
-                {
-                    "date": "2024-01-01",
-                    "count": 2,
-                },
-                {
-                    "date": "2024-01-01",
-                    "count": 3,
-                },
-            ],
-        }
+        # 聚合 ClientStudent 按创建日期统计数量
+        student_stats = (
+            ClientStudent.objects.values("created_date")
+            .annotate(count=Count("id"))
+            .order_by("created_date")
+        )
 
-        return Response(mock_data)
-
-    # @action(methods=["GET"], detail=False)
-    # def statistic(self, request, *args, **kwargs):
-    #     # 聚合 client_companies 数据
-    #     client_companies = (
-    #         ClientCompany.objects
-    #         .annotate(date=TruncDate('created_date'))
-    #         .values('date')
-    #         .annotate(count=Count('id'))
-    #         .values('date', 'count')
-    #     )
-    #
-    #     # 聚合 client_students 数据
-    #     client_students = (
-    #         ClientStudent.objects
-    #         .annotate(date=TruncDate('created_date'))
-    #         .values('date')
-    #         .annotate(count=Count('id'))
-    #         .values('date', 'count')
-    #     )
-    #
-    #     # 将数据格式化为字典
-    #     client_companies_data = [
-    #         {"date": item['date'], "count": item['count']}
-    #         for item in client_companies]
-    #
-    #     client_students_data = [
-    #         {"date": item['date'], "count": item['count']}
-    #         for item in client_students]
-    #
-    #     response_data = {
-    #         "client_companies": client_companies_data,
-    #         "client_students": client_students_data,
-    #     }
-    #
-    #     return Response(response_data)
+        return Response(
+            Response(
+                {
+                    "client_students": [
+                        {"date": stat["created_date"], "count": stat["count"]}
+                        for stat in company_stats
+                    ],
+                    "client_companies": [
+                        {"date": stat["created_date"], "count": stat["count"]}
+                        for stat in student_stats
+                    ],
+                }
+            )
+        )
