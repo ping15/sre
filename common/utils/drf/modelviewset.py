@@ -7,6 +7,7 @@ from django.db.models import QuerySet
 from django.http import Http404, FileResponse
 from rest_framework import serializers, status
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.settings import api_settings
 from rest_framework.viewsets import ModelViewSet as DRFModelViewSet
 
@@ -219,6 +220,7 @@ class ModelViewSet(DRFModelViewSet):
 
         return {
             "id": event.id,
+            "type": event.type,
             "freq_type": event.freq_type,
             "freq_interval": event.freq_interval,
             "start_date": event.start_date,
