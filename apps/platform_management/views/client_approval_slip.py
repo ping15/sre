@@ -23,14 +23,6 @@ class ClientApprovalSlipModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission]
     queryset = ClientApprovalSlip.objects.all()
     default_serializer_class = ClientApprovalSlipCreateSerializer
-    # integer_filter_fields = ["id"]
-    # string_fuzzy_filter_fields = [
-    #     "affiliated_manage_company_name",
-    #     "affiliated_client_company_name",
-    #     "submitter",
-    #     "status",
-    # ]
-    # datetime_filter_fields = ["submission_datetime"]
     filter_class = ClientApprovalSlipFilterClass
     ACTION_MAP = {
         "list": ClientApprovalSlipListSerializer,

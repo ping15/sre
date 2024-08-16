@@ -27,13 +27,6 @@ class ClientStudentModelViewSet(ModelViewSet):
     batch_import_mapping = CLIENT_STUDENT_EXCEL_MAPPING
     batch_import_serializer = ClientStudentBatchImportSerializer
     filter_class = ClientStudentFilterClass
-    # string_fuzzy_filter_fields = [
-    #     "username",
-    #     "affiliated_client_company_name",
-    #     "affiliated_manage_company_name",
-    #     "email",
-    #     "phone",
-    # ]
     ACTION_MAP = {
         "list": ClientStudentListSerializer,
         "create": ClientStudentCreateSerializer,
@@ -48,7 +41,7 @@ class ClientStudentModelViewSet(ModelViewSet):
         return Response(
             [
                 {
-                    "id": "affiliated_manage_company_name",
+                    "id": manage_company.id,
                     "name": manage_company.name,
                     "children": [
                         {

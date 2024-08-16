@@ -24,13 +24,6 @@ class AdministratorModelViewSet(ModelViewSet):
     )
     batch_import_serializer = AdministratorBatchImportSerializer
     batch_import_mapping = ADMINISTRATOR_EXCEL_MAPPING
-    # string_fuzzy_filter_fields = [
-    #     "username",
-    #     "email",
-    #     "phone",
-    #     "affiliated_manage_company_name",
-    #     "role",
-    # ]
     filter_class = AdministratorFilterClass
     ACTION_MAP = {
         "list": AdministratorListSerializer,
@@ -41,7 +34,7 @@ class AdministratorModelViewSet(ModelViewSet):
     def filter_condition(self, request, *args, **kwargs):
         return Response(
             [
-                {"id": "name", "name": "管理员名称", "children": []},
+                {"id": "username", "name": "管理员名称", "children": []},
                 {"id": "email", "name": "邮箱", "children": []},
                 {"id": "phone", "name": "手机", "children": []},
                 {
@@ -49,7 +42,14 @@ class AdministratorModelViewSet(ModelViewSet):
                     "name": "所属公司",
                     "children": [],
                 },
-                {"id": "role", "name": "权限角色", "children": []},
+                {
+                    "id": "role",
+                    "name": "权限角色",
+                    "children": [
+                        {"id": value, "name": label}
+                        for value, label in Administrator.Role.choices
+                    ],
+                },
             ]
         )
 

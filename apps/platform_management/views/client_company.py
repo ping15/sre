@@ -18,11 +18,6 @@ class ClientCompanyModelViewSet(ModelViewSet):
     default_serializer_class = ClientCompanyListSerializer
     queryset = ClientCompany.objects.all()
     filter_class = ClientCompanyFilterClass
-    # string_fuzzy_filter_fields = [
-    #     "name",
-    #     "contact_email",
-    #     "affiliated_manage_company_name",
-    # ]
     ACTION_MAP = {
         "list": ClientCompanyListSerializer,
         "create": ClientCompanyCreateSerializer,

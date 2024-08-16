@@ -1,5 +1,8 @@
 from rest_framework.decorators import action
 
+from apps.platform_management.filters.management_company import (
+    ManagementCompanyFilterClass,
+)
 from apps.platform_management.models import ManageCompany, ClientCompany
 from apps.platform_management.serialiers.management_company import (
     ManagementCompanyListSerializer,
@@ -19,7 +22,8 @@ class ManagementCompanyModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission]
     queryset = ManageCompany.objects.all()
     default_serializer_class = ManagementCompanyCreateSerializer
-    string_fuzzy_filter_fields = ["name", "email"]
+    # string_fuzzy_filter_fields = ["name", "email"]
+    filter_class = ManagementCompanyFilterClass
     ACTION_MAP = {
         "list": ManagementCompanyListSerializer,
         "create": ManagementCompanyCreateSerializer,
