@@ -28,38 +28,23 @@ class SimpleQuerySerializer(serializers.Serializer):
 
 
 class ModelViewSet(DRFModelViewSet):
-    # 是否支持批量导入
+    # 批量导入设置
     enable_batch_import = False
     batch_import_serializer = None
     batch_import_template_path = ""
     batch_import_mapping = {}
 
-    # 默认序列化器
-    default_serializer_class = None
-
-    # 备份filter_backend
-    # origin_filter_backend = api_settings.DEFAULT_FILTER_BACKENDS
-
     # 视图 -> 序列化器
     ACTION_MAP = {}
 
-    # 筛选, fuzzy: 模糊匹配, time/datetime: 时间匹配, property: 属性匹配,
+    # 视图 -> 权限
+    PERMISSION_MAP = {}
+
+    # 筛选类
     filter_class = BaseFilterSet
-    # copy_filter_class = filter_class
-    # # string模糊匹配
-    # string_fuzzy_filter_fields = []
-    # # integer匹配
-    # integer_filter_fields = []
-    # # time匹配
-    # time_filter_fields = []
-    # # datetime匹配
-    # datetime_filter_fields = []
-    # # property模糊匹配
-    # property_fuzzy_filter_fields = []
 
     # 页面关键词 -> 字段
     filter_condition_mapping = {}
-    # filter_condition_enum_list = []
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -73,8 +58,14 @@ class ModelViewSet(DRFModelViewSet):
 
         cls.ACTION_MAP["simple_query"] = SimpleQuerySerializer
 
+    def get_permissions(self):
+        self.permission_classes = self.PERMISSION_MAP.get(
+            self.action, self.permission_classes
+        )  # noqa
+        return super().get_permissions()
+
     def get_serializer_class(self):
-        return self.ACTION_MAP.get(self.action, self.default_serializer_class)  # noqa
+        return self.ACTION_MAP.get(self.action, self.serializer_class)  # noqa
 
     @property
     def validated_data(self):
@@ -85,6 +76,9 @@ class ModelViewSet(DRFModelViewSet):
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         return serializer.validated_data
+
+    def retrieve(self, request, *args, **kwargs):
+        return Response(super().retrieve(request, *args, **kwargs).data)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(

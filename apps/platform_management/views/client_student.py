@@ -1,11 +1,22 @@
+from typing import List
+
+from django.db.models import QuerySet
 from rest_framework.decorators import action
 
 from apps.platform_management.filters.client_student import ClientStudentFilterClass
-from apps.platform_management.models import ClientStudent, ManageCompany
+from apps.platform_management.models import (
+    ClientStudent,
+    ManageCompany,
+    Administrator,
+    ClientCompany,
+)
 from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import CLIENT_STUDENT_EXCEL_MAPPING
 from common.utils.drf.modelviewset import ModelViewSet
-from common.utils.drf.permissions import SuperAdministratorPermission
+from common.utils.drf.permissions import (
+    SuperAdministratorPermission,
+    ManageCompanyAdministratorPermission,
+)
 from apps.platform_management.serialiers.client_student import (
     ClientStudentListSerializer,
     ClientStudentCreateSerializer,
@@ -18,7 +29,7 @@ from apps.platform_management.serialiers.client_student import (
 
 class ClientStudentModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission]
-    default_serializer_class = ClientStudentCreateSerializer
+    serializer_class = ClientStudentCreateSerializer
     queryset = ClientStudent.objects.all()
     enable_batch_import = True
     batch_import_template_path = (
@@ -36,8 +47,21 @@ class ClientStudentModelViewSet(ModelViewSet):
         "quick_search": ClientStudentQuickSearchSerializer,
     }
 
-    @action(methods=["GET"], detail=False)
+    @action(
+        methods=["GET"],
+        detail=False,
+        permission_classes=[
+            SuperAdministratorPermission | ManageCompanyAdministratorPermission
+        ],
+    )
     def quick_search(self, request, *args, **kwargs):
+        if request.user.role == Administrator.Role.SUPER_MANAGER.value:
+            manage_companies: QuerySet["ManageCompany"] = ManageCompany.objects.all()
+        else:
+            manage_companies: List["ManageCompany"] = [
+                request.user.affiliated_manage_company
+            ]
+
         return Response(
             [
                 {
@@ -51,7 +75,7 @@ class ClientStudentModelViewSet(ModelViewSet):
                         for client_company in manage_company.client_companies
                     ],
                 }
-                for manage_company in ManageCompany.objects.all()
+                for manage_company in manage_companies
             ]
         )
 
@@ -72,5 +96,11 @@ class ClientStudentModelViewSet(ModelViewSet):
                 },
                 {"id": "email", "name": "邮箱", "children": []},
                 {"id": "phone", "name": "手机", "children": []},
+                {"id": "phone", "name": "哈哈哈", "children": []},
             ]
         )
+
+    @action(methods=["GET"], detail=False)
+    def statistic(self, request, *args, **kwargs):
+        client_companies = ClientCompany.objects.all()
+        client_students = ClientStudent.objects.all()

@@ -14,7 +14,7 @@ from common.utils.drf.response import Response
 
 class CourseTemplateModelViewSet(ModelViewSet):
     queryset = CourseTemplate.objects.all()
-    default_serializer_class = CourseTemplateCreateSerializer
+    serializer_class = CourseTemplateCreateSerializer
     filter_class = CourseTemplatesFilterClass
     permission_classes = [SuperAdministratorPermission]
     ACTION_MAP = {

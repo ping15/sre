@@ -15,6 +15,7 @@ from apps.platform_management.serialiers.client_company import (
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import (
     SuperAdministratorPermission,
+    ManageCompanyAdministratorPermission,
 )
 from common.utils.drf.response import Response
 
@@ -22,29 +23,35 @@ from common.utils.drf.response import Response
 class ClientApprovalSlipModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission]
     queryset = ClientApprovalSlip.objects.all()
-    default_serializer_class = ClientApprovalSlipCreateSerializer
+    serializer_class = ClientApprovalSlipCreateSerializer
     filter_class = ClientApprovalSlipFilterClass
     ACTION_MAP = {
         "list": ClientApprovalSlipListSerializer,
         "create": ClientApprovalSlipCreateSerializer,
         "partial_update": ClientApprovalSlipPartialUpdateSerializer,
     }
-
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+    PERMISSION_MAP = {
+        "create": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
+    }
 
     def partial_update(self, request, *args, **kwargs):
-        super().partial_update(request, *args, **kwargs)
+        validated_data = self.validated_data
 
         instance: ClientApprovalSlip = self.get_object()
-        if instance.status == ClientApprovalSlip.Status.APPROVED:
+        if instance.status != ClientApprovalSlip.Status.PENDING.value:
+            return Response(result=False, err_msg="该单据装填已流转，不可更新")
+
+        if validated_data["status"] == ClientApprovalSlip.Status.APPROVED.value:
             create_serializer = ClientCompanyCreateSerializer(
                 data=instance.submission_info
             )
             if not create_serializer.is_valid():
                 return Response(result=False, err_msg=str(create_serializer.errors))
 
+            # 更新单据状态
             create_serializer.save()
+
+        super().partial_update(request, *args, **kwargs)
 
         return Response()
 
