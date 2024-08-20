@@ -52,66 +52,11 @@ class ForeignFilter(django_filters.Filter):
     #         return queryset.none()  # 如果没有找到对应的客户公司，则返回空查询集
 
 
-class BaseFilterSet(django_filters.FilterSet):
-    # @classmethod
-    # def add_filters(
-    #     cls, filter_set, filter_fields, filter_class, lookup_exprs, add_prefix
-    # ):
-    #     for field in filter_fields:
-    #         for lookup_expr in lookup_exprs:
-    #             filter_instance = filter_class(
-    #                 field_name=field, lookup_expr=lookup_expr
-    #             )
-    #             filter_set.base_filters[
-    #                 field + (f"_{lookup_expr}" if add_prefix else "")
-    #             ] = filter_instance
-    #
-    # @classmethod
-    # def setup_filters(
-    #     cls,
-    #     model,
-    #     string_fuzzy_filter_fields=None,
-    #     time_filter_fields=None,
-    #     property_fuzzy_filter_fields=None,
-    #     datetime_filter_fields=None,
-    #     integer_filter_fields=None,
-    # ):
-    #     cls.base_filters = OrderedDict()
-    #
-    #     filter_mappings = [
-    #         (
-    #             string_fuzzy_filter_fields or [],
-    #             django_filters.CharFilter,
-    #             ["icontains"],
-    #             False,
-    #         ),
-    #         (
-    #             time_filter_fields or [],
-    #             django_filters.DateFilter,
-    #             ["gte", "gt", "lte", "lt"],
-    #             True,
-    #         ),
-    #         (
-    #             datetime_filter_fields or [],
-    #             django_filters.DateTimeFilter,
-    #             ["gte", "gt", "lte", "lt"],
-    #             True,
-    #         ),
-    #         (property_fuzzy_filter_fields or [], PropertyFilter, ["icontains"], False),
-    #         (
-    #             integer_filter_fields or [],
-    #             django_filters.NumberFilter,
-    #             ["exact"],
-    #             False,
-    #         ),
-    #     ]
-    #
-    #     for filter_fields, filter_class, lookup_exprs, add_prefix in filter_mappings:
-    #         if filter_fields:
-    #             cls.add_filters(
-    #                 cls, filter_fields, filter_class, lookup_exprs, add_prefix
-    #             )
+class NumberInFilter(django_filters.BaseInFilter, django_filters.NumberFilter):
+    pass
 
+
+class BaseFilterSet(django_filters.FilterSet):
     @classmethod
     def _filter_by_related_model(cls, queryset, pk, model, field_name, related_field):
         """
@@ -124,25 +69,3 @@ class BaseFilterSet(django_filters.FilterSet):
             return queryset.filter(**{field_name: filter_value})
         except ObjectDoesNotExist:
             return queryset.none()
-
-    # @classmethod
-    # def add_filter_with_lookups(cls, field_name, filter_type, lookup_exprs):
-    #     # 添加带有查找表达式的过滤器
-    #     for lookup_expr in lookup_exprs:
-    #         lookup_field_name = f"{field_name}_{lookup_expr}"
-    #         cls.base_filters[lookup_field_name] = filter_type(
-    #             field_name=field_name, lookup_expr=lookup_expr
-    #         )
-    #
-    # @classmethod
-    # def build_filter(cls, field_name, filter_type):
-    #     lookup_exprs = ["gte", "gt", "lte", "lt"]
-    #     cls.add_filter_with_lookups(field_name, filter_type, lookup_exprs)
-
-    # @classmethod
-    # def __init_subclass__(cls, **kwargs):
-    #     super().__init_subclass__(**kwargs)
-    #     # 在子类初始化时设置过滤器
-    #     for field_name, filter_instance in cls.declared_filters.items():
-    #         if isinstance(filter_instance, (django_filters.DateTimeFilter, django_filters.DateFilter)):
-    #             cls.build_filter(field_name, type(filter_instance))

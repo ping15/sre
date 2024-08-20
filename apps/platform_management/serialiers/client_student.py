@@ -67,3 +67,8 @@ class ClientStudentBatchImportSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientStudent
         fields = "__all__"
+
+
+class ClientStudentStatisticSerializer(serializers.Serializer):
+    start_date = serializers.DateField()
+    end_date = serializers.DateField()
