@@ -25,6 +25,7 @@ from apps.platform_management.serialiers.client_student import (
     ClientStudentQuickSearchSerializer,
     ClientStudentUpdateSerializer,
     ClientStudentBatchImportSerializer,
+    ClientStudentStatisticSerializer,
 )
 
 
@@ -46,6 +47,7 @@ class ClientStudentModelViewSet(ModelViewSet):
         "partial_update": ClientStudentUpdateSerializer,
         "retrieve": ClientStudentRetrieveSerializer,
         "quick_search": ClientStudentQuickSearchSerializer,
+        "statistic": ClientStudentStatisticSerializer,
     }
 
     @action(
@@ -103,31 +105,45 @@ class ClientStudentModelViewSet(ModelViewSet):
 
     @action(methods=["GET"], detail=False)
     def statistic(self, request, *args, **kwargs):
+        validated_data = self.validated_data
+
         # 聚合 ClientCompany 按创建日期统计数量
         company_stats = (
-            ClientCompany.objects.values("created_date")
+            ClientCompany.objects.filter(
+                created_date__gte=validated_data["start_date"],
+                created_date__lte=validated_data["end_date"],
+            )
+            .values("created_date")
             .annotate(count=Count("id"))
             .order_by("created_date")
         )
 
         # 聚合 ClientStudent 按创建日期统计数量
         student_stats = (
-            ClientStudent.objects.values("created_date")
+            ClientStudent.objects.filter(
+                created_date__gte=validated_data["start_date"],
+                created_date__lte=validated_data["end_date"],
+            )
+            .values("created_date")
             .annotate(count=Count("id"))
             .order_by("created_date")
         )
 
         return Response(
-            Response(
-                {
-                    "client_students": [
+            {
+                "client_students": {
+                    "total": sum(stat["count"] for stat in company_stats),
+                    "data": [
                         {"date": stat["created_date"], "count": stat["count"]}
                         for stat in company_stats
                     ],
-                    "client_companies": [
+                },
+                "client_companies": {
+                    "total": sum(stat["count"] for stat in student_stats),
+                    "data": [
                         {"date": stat["created_date"], "count": stat["count"]}
                         for stat in student_stats
                     ],
-                }
-            )
+                },
+            }
         )

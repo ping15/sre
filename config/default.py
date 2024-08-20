@@ -37,6 +37,7 @@ INSTALLED_APPS = (
     "apps.platform_management",
     "apps.teaching_space",
     "apps.authentication",
+    "apps.my_lectures",
 )
 
 # 请在这里加入你的自定义 APP

@@ -441,7 +441,7 @@ class Event(models.Model):
 
     from apps.teaching_space.models import TrainingClass
 
-    class Type(models.TextChoices):
+    class EventType(models.TextChoices):
         CLASS_SCHEDULE = "class_schedule", "培训班排课"
         ONE_TIME_UNAVAILABILITY = "one_time_unavailability", "登记一次性不可用时间规则"
         RECURRING_UNAVAILABILITY = "recurring_unavailability", "登记周期性不可用时间规则"
@@ -451,7 +451,7 @@ class Event(models.Model):
         WEEKLY = "weekly", "每周"
         MONTHLY = "monthly", "每月"
 
-    type = models.CharField(_("事件类型"), max_length=50, choices=Type.choices)
+    event_type = models.CharField(_("事件类型"), max_length=50, choices=EventType.choices)
     freq_type = models.CharField(
         choices=FreqType.choices, max_length=16, null=True, blank=True
     )
@@ -461,6 +461,9 @@ class Event(models.Model):
     end_date = models.DateField(_("结束时间"), null=True, blank=True)
     # target_client_company_name = models.CharField(_("目标客户公司"), max_length=255, null=True, blank=True)
     # instructor_name = models.CharField(_("讲师"), max_length=255, null=True, blank=True)
+    instructor = models.ForeignKey(
+        Instructor, on_delete=models.CASCADE, null=True, blank=True
+    )
     training_class = models.OneToOneField(
         TrainingClass,
         on_delete=models.CASCADE,

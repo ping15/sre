@@ -5,6 +5,7 @@ from typing import List, Dict
 from django.db.models import QuerySet
 from rest_framework.decorators import action
 
+from apps.my_lectures.handles.event import EventHandler
 from apps.platform_management.filters.instructor import (
     InstructorFilterClass,
     InstructorTaughtCoursesFilterClass,
@@ -88,7 +89,7 @@ class InstructorModelViewSet(ModelViewSet):
         validated_data = self.validated_data
 
         return Response(
-            self.build_calendars(
+            EventHandler.build_calendars(
                 Event.objects.all(),
                 start_date=validated_data["start_date"],
                 end_date=validated_data["end_date"],

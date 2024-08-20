@@ -5,6 +5,7 @@ from rest_framework.exceptions import (
     ValidationError,
     PermissionDenied,
     NotAuthenticated,
+    ParseError,
 )
 
 from common.utils.drf.response import Response
@@ -18,6 +19,7 @@ def exception_handler(exc, context):
         ValidationError,
         PermissionDenied,
         NotAuthenticated,
+        ParseError,
     )
     if isinstance(exc, custom_exceptions):
         exc_detail = exc.detail
@@ -26,8 +28,6 @@ def exception_handler(exc, context):
             if isinstance(exc, NotAuthenticated)
             else exc.status_code
         )
-        if isinstance(exc_detail, list):
-            exc_detail = ([detail for detail in exc.detail if detail],)
         return Response(status=status_code, err_msg=str(exc_detail), result=False)
 
     # 处理其他类型的异常，如果有的话，可以在这里添加自定义处理

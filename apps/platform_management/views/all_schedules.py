@@ -1,5 +1,9 @@
+from collections import defaultdict
+
+from django.db.models import QuerySet
 from rest_framework.decorators import action
 
+from apps.my_lectures.handles.event import EventHandler
 from apps.platform_management.filters.all_schedules import AllScheduleFilterClass
 from apps.platform_management.models import (
     ManageCompany,
@@ -29,23 +33,27 @@ class AllScheduleModelViewSet(ModelViewSet):
     def list(self, request, *args, **kwargs):
         validated_data = self.validated_data
         return Response(
-            self.build_calendars(
-                self.get_queryset(),
+            EventHandler.build_calendars(
+                self.filter_queryset(
+                    self.get_queryset().filter(
+                        event_type=Event.EventType.CLASS_SCHEDULE.value
+                    )
+                ),
                 validated_data["start_date"],
                 validated_data["end_date"],
             )
         )
 
     @staticmethod
-    def get_unique_children(queryset, name_field):
-        seen_names = set()
-        unique_children = []
+    def aggregate_items(queryset, field_name):
+        aggregation_dict = defaultdict(list)
         for item in queryset:
-            name = getattr(item, name_field)
-            if name not in seen_names:
-                seen_names.add(name)
-                unique_children.append({"id": item.id, "name": name})
-        return unique_children
+            field_value = getattr(item, field_name)
+            aggregation_dict[field_value].append(str(item.id))
+        return [
+            {"id": ",".join(ids), "name": name}
+            for name, ids in aggregation_dict.items()
+        ]
 
     @action(methods=["GET"], detail=False)
     def filter_condition(self, request, *args, **kwargs):
@@ -54,28 +62,28 @@ class AllScheduleModelViewSet(ModelViewSet):
                 {
                     "id": "manage_company",
                     "name": "管理公司",
-                    "children": self.get_unique_children(
+                    "children": self.aggregate_items(
                         ManageCompany.objects.all(), "name"
                     ),
                 },
                 {
                     "id": "client_company",
                     "name": "客户公司",
-                    "children": self.get_unique_children(
+                    "children": self.aggregate_items(
                         ClientCompany.objects.all(), "name"
                     ),
                 },
                 {
                     "id": "instructor",
                     "name": "讲师",
-                    "children": self.get_unique_children(
+                    "children": self.aggregate_items(
                         Instructor.objects.all(), "username"
                     ),
                 },
                 {
                     "id": "training_classes",
                     "name": "培训班",
-                    "children": self.get_unique_children(
+                    "children": self.aggregate_items(
                         TrainingClass.objects.all(), "name"
                     ),
                 },
