@@ -103,13 +103,32 @@ class ClientStudentModelViewSet(ModelViewSet):
             ]
         )
 
-    @action(methods=["GET"], detail=False)
+    @action(
+        methods=["GET"],
+        detail=False,
+        permission_classes=[
+            SuperAdministratorPermission | ManageCompanyAdministratorPermission
+        ],
+    )
     def statistic(self, request, *args, **kwargs):
         validated_data = self.validated_data
 
+        # 超级管理员能看到所有客户公司和所有学员的信息
+        # 管理公司管理员只能看到所在管理公司下面所有客户公司和下面所有学员的信息
+        if request.user.role == Administrator.Role.SUPER_MANAGER.value:
+            client_companies: QuerySet["ClientCompany"] = ClientCompany.objects.all()
+            client_students: QuerySet["ClientStudent"] = ClientStudent.objects.all()
+        else:
+            client_companies: QuerySet[
+                "ClientCompany"
+            ] = request.user.affiliated_manage_company.client_companies
+            client_students: QuerySet[
+                "ClientStudent"
+            ] = request.user.affiliated_manage_company.students
+
         # 聚合 ClientCompany 按创建日期统计数量
         company_stats = (
-            ClientCompany.objects.filter(
+            client_companies.filter(
                 created_date__gte=validated_data["start_date"],
                 created_date__lte=validated_data["end_date"],
             )
@@ -120,7 +139,7 @@ class ClientStudentModelViewSet(ModelViewSet):
 
         # 聚合 ClientStudent 按创建日期统计数量
         student_stats = (
-            ClientStudent.objects.filter(
+            client_students.filter(
                 created_date__gte=validated_data["start_date"],
                 created_date__lte=validated_data["end_date"],
             )
@@ -131,14 +150,14 @@ class ClientStudentModelViewSet(ModelViewSet):
 
         return Response(
             {
-                "client_students": {
+                "client_companies": {
                     "total": sum(stat["count"] for stat in company_stats),
                     "data": [
                         {"date": stat["created_date"], "count": stat["count"]}
                         for stat in company_stats
                     ],
                 },
-                "client_companies": {
+                "client_students": {
                     "total": sum(stat["count"] for stat in student_stats),
                     "data": [
                         {"date": stat["created_date"], "count": stat["count"]}
