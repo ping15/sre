@@ -82,24 +82,46 @@ class ClientStudentModelViewSet(ModelViewSet):
             ]
         )
 
-    @action(methods=["GET"], detail=False)
+    @action(
+        methods=["GET"],
+        detail=False,
+        permission_classes=[
+            SuperAdministratorPermission | ManageCompanyAdministratorPermission
+        ],
+    )
     def filter_condition(self, request, *args, **kwargs):
+        if request.user.role == Administrator.Role.SUPER_MANAGER.value:
+            return Response(
+                [
+                    {"id": "name", "name": "学员名称", "children": []},
+                    {
+                        "id": "affiliated_client_company_name",
+                        "name": "所属客户公司",
+                        "children": [],
+                    },
+                    {
+                        "id": "affiliated_manage_company_name",
+                        "name": "负责的管理公司",
+                        "children": [],
+                    },
+                    {"id": "email", "name": "邮箱", "children": []},
+                    {"id": "phone", "name": "手机", "children": []},
+                    {"id": "phone", "name": "哈哈哈", "children": []},
+                ]
+            )
+
         return Response(
             [
-                {"id": "name", "name": "学员名称", "children": []},
-                {
-                    "id": "affiliated_client_company_name",
-                    "name": "所属客户公司",
-                    "children": [],
-                },
-                {
-                    "id": "affiliated_manage_company_name",
-                    "name": "负责的管理公司",
-                    "children": [],
-                },
-                {"id": "email", "name": "邮箱", "children": []},
-                {"id": "phone", "name": "手机", "children": []},
-                {"id": "phone", "name": "哈哈哈", "children": []},
+                {"id": "", "name": "学员名称", "children": []},
+                {"id": "", "name": "性别", "children": []},
+                {"id": "", "name": "身份证", "children": []},
+                {"id": "", "name": "学历", "children": []},
+                {"id": "", "name": "", "children": []},
+                {"id": "", "name": "", "children": []},
+                {"id": "", "name": "", "children": []},
+                {"id": "", "name": "", "children": []},
+                {"id": "", "name": "", "children": []},
+                {"id": "", "name": "", "children": []},
             ]
         )
 
