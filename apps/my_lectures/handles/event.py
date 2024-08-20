@@ -230,7 +230,7 @@ class EventHandler:
             training_class=training_class,
         )
 
-        if event_type in [
+        if new_event.event_type in [
             Event.EventType.ONE_TIME_UNAVAILABILITY.value,
             Event.EventType.RECURRING_UNAVAILABILITY.value,
         ]:
@@ -250,7 +250,7 @@ class EventHandler:
                 if EventHandler.is_event_conflict_to_rule(event, rule):
                     event.delete()
 
-        elif event_type == Event.EventType.CLASS_SCHEDULE.value:
+        elif new_event.event_type == Event.EventType.CLASS_SCHEDULE.value:
             event = new_event
 
             # 如果该讲师的不可用时间和培训班日程冲突，直接返回不创建
