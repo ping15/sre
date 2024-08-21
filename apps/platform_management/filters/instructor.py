@@ -1,8 +1,9 @@
+import datetime
 from typing import List
 
 import django_filters
-from django.db.models import QuerySet
 
+from apps.my_lectures.handles.event import EventHandler
 from apps.platform_management.models import Event
 from common.utils import global_constants
 from common.utils.drf.filters import BaseFilterSet, PropertyFilter
@@ -15,17 +16,35 @@ class InstructorFilterClass(BaseFilterSet):
     city = django_filters.CharFilter("city", lookup_expr="exact")
     availability_date = django_filters.DateFilter(method="filter_availability_date")
 
-    def filter_availability_date(self, queryset, name, value):
+    def filter_availability_date(self, queryset, name, today):
         if not self.request.user.role == global_constants.Role.INSTRUCTOR.value:
             return queryset
 
+        # 当 今天可用 + 明天可用 时，这个讲师可以预约
+        today_can_use = tomorrow_can_use = False
+        tomorrow = today + datetime.timedelta(days=1)
         instructor_ids: List = []
         for instructor in queryset:
-            rules: QuerySet["Event"] = instructor.events.filter(event_type__in=[
-                Event.EventType.RECURRING_UNAVAILABILITY.value, Event.EventType.ONE_TIME_UNAVAILABILITY.value
-            ])
-            for rule in rules:
-                pass
+            if EventHandler.is_current_date_in_cancel_events(today):
+                today_can_use = True
+
+            if EventHandler.is_current_date_in_cancel_events(tomorrow):
+                tomorrow_can_use = True
+
+            if today_can_use and tomorrow_can_use:
+                instructor_ids.append(instructor.id)
+                continue
+
+            for rule in instructor.events.filter(event_type__in=Event.EventType.rule_types):
+                if not EventHandler.is_current_date_in_rule(today, rule):
+                    today_can_use = True
+
+                if not EventHandler.is_current_date_in_rule(tomorrow, rule):
+                    tomorrow_can_use = True
+
+            if today_can_use and tomorrow_can_use:
+                instructor_ids.append(instructor.id)
+                continue
 
         return queryset.filter(id__in=instructor_ids)
 
