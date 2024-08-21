@@ -1,17 +1,15 @@
 from rest_framework.decorators import action
 
-from apps.platform_management.filters.administrator import AdministratorFilterClass
+from apps.platform_management.filters.administrator import \
+    AdministratorFilterClass
 from apps.platform_management.models import Administrator
 from apps.platform_management.serialiers.administrator import (
-    AdministratorListSerializer,
-    AdministratorCreateSerializer,
-    AdministratorUpdateSerializer,
-    AdministratorBatchImportSerializer,
-)
-from common.utils.drf.response import Response
-from common.utils.excel_parser.mapping import ADMINISTRATOR_EXCEL_MAPPING
+    AdministratorBatchImportSerializer, AdministratorCreateSerializer,
+    AdministratorListSerializer, AdministratorUpdateSerializer)
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
+from common.utils.drf.response import Response
+from common.utils.excel_parser.mapping import ADMINISTRATOR_EXCEL_MAPPING
 
 
 class AdministratorModelViewSet(ModelViewSet):

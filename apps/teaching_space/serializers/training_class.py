@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
 from apps.platform_management.models import CourseTemplate
-from apps.platform_management.serialiers.course_template import CourseTemplateSerializer
+from apps.platform_management.serialiers.course_template import \
+    CourseTemplateSerializer
 from apps.teaching_space.models import TrainingClass
 from common.utils.drf.serializer_fields import ChoiceField
 from common.utils.drf.serializer_validator import BasicSerializerValidator

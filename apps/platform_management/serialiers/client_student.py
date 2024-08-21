@@ -1,11 +1,9 @@
 from rest_framework import serializers
 
-from apps.platform_management.models import ClientStudent, ClientCompany
+from apps.platform_management.models import ClientStudent
 from common.utils.drf.serializer_fields import ChoiceField
 from common.utils.drf.serializer_validator import (
-    BasicSerializerValidator,
-    PhoneCreateSerializerValidator,
-)
+    BasicSerializerValidator, PhoneCreateSerializerValidator)
 from common.utils.tools import reverse_dict
 
 

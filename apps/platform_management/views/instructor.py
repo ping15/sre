@@ -1,30 +1,24 @@
 import datetime
 from datetime import timedelta
-from typing import List, Dict
+from typing import Dict, List
 
 from django.db.models import QuerySet
 from rest_framework.decorators import action
 
 from apps.my_lectures.handles.event import EventHandler
 from apps.platform_management.filters.instructor import (
-    InstructorFilterClass,
-    InstructorTaughtCoursesFilterClass,
-)
-from apps.platform_management.models import Instructor, Event
+    InstructorFilterClass, InstructorTaughtCoursesFilterClass)
+from apps.platform_management.models import Event, Instructor
 from apps.platform_management.serialiers.instructor import (
-    InstructorListSerializer,
-    InstructorCreateSerializer,
-    InstructorCalendarSerializer,
-    InstructorRetrieveSerializer,
-    InstructorReviewSerializer,
-    InstructorUpdateSerializer,
-    InstructorPartialUpdateSerializer,
-)
+    InstructorCalendarSerializer, InstructorCreateSerializer,
+    InstructorListSerializer, InstructorPartialUpdateSerializer,
+    InstructorRetrieveSerializer, InstructorReviewSerializer,
+    InstructorUpdateSerializer)
 from apps.teaching_space.models import TrainingClass
-from common.utils.drf.response import Response
-from common.utils.excel_parser.mapping import INSTRUCTOR_EXCEL_MAPPING
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
+from common.utils.drf.response import Response
+from common.utils.excel_parser.mapping import INSTRUCTOR_EXCEL_MAPPING
 
 
 class InstructorModelViewSet(ModelViewSet):

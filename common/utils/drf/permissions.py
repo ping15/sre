@@ -1,16 +1,13 @@
 from rest_framework.permissions import BasePermission
 
-from apps.platform_management.models import Administrator, Instructor
+from apps.platform_management.models import Administrator
 
 
 class SuperAdministratorPermission(BasePermission):
     """超级管理员权限"""
 
     def has_permission(self, request, view):
-        if (
-            request.user.is_authenticated
-            and request.user.role == Administrator.Role.SUPER_MANAGER.value
-        ):
+        if request.user.is_authenticated and request.user.role == Administrator.Role.SUPER_MANAGER.value:
             return True
         return False
 
@@ -24,6 +21,7 @@ class ManageCompanyAdministratorPermission(BasePermission):
             Administrator.Role.COMPANY_MANAGER.value,
         ]:
             return True
+
         return False
 
 

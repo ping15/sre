@@ -7,7 +7,7 @@ from rest_framework.exceptions import ParseError
 
 from apps.platform_management.models import Event, Instructor
 from apps.teaching_space.models import TrainingClass
-from common.utils.calendar import generate_blank_calendar, format_date, between
+from common.utils.calendar import between, format_date, generate_blank_calendar
 
 
 class EventHandler:
@@ -62,9 +62,7 @@ class EventHandler:
         blank_calendar = {
             current_date: calendar_info
             for current_date, calendar_info in blank_calendar.items()
-            if calendar_info["data"]
-            or calendar_info["rules"]
-            or not calendar_info["is_available"]
+            if calendar_info["data"] or calendar_info["rules"] or not calendar_info["is_available"]
         }
 
         # 将字典转换为列表并按 start_date 排序
@@ -177,20 +175,12 @@ class EventHandler:
         ]
 
         if rule.event_type == Event.EventType.ONE_TIME_UNAVAILABILITY.value:
-            return cls.is_current_date_in_range(
-                current_date, rule.start_date, rule.end_date
-            )
+            return cls.is_current_date_in_range(current_date, rule.start_date, rule.end_date)
 
-        elif (
-            rule.freq_type == Event.FreqType.WEEKLY
-            and current_date.isoweekday() in rule.freq_interval
-        ):
+        elif rule.freq_type == Event.FreqType.WEEKLY and current_date.isoweekday() in rule.freq_interval:
             return True
 
-        elif (
-            rule.freq_type == Event.FreqType.MONTHLY
-            and current_date.day in rule.freq_interval
-        ):
+        elif rule.freq_type == Event.FreqType.MONTHLY and current_date.day in rule.freq_interval:
             return True
         return False
 
@@ -242,6 +232,8 @@ class EventHandler:
             ):
                 if EventHandler.is_event_conflict_to_rule(event, rule):
                     raise ParseError("该规则与已有的培训班日程存在冲突")
+
+            # 如果与讲师参与广告报名冲突，直接返回不创建
 
             # [取消单日不可用时间]如果在规则内，则清除该类型的事件
             for event in Event.objects.filter(

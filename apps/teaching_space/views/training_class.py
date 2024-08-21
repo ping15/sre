@@ -4,15 +4,11 @@ from apps.my_lectures.handles.event import EventHandler
 from apps.platform_management.models import Event
 from apps.teaching_space.models import TrainingClass
 from apps.teaching_space.serializers.training_class import (
-    TrainingClassListSerializer,
-    TrainingClassCreateSerializer,
-    TrainingClassRetrieveSerializer,
-)
+    TrainingClassCreateSerializer, TrainingClassListSerializer,
+    TrainingClassRetrieveSerializer)
 from common.utils.drf.modelviewset import ModelViewSet
-from common.utils.drf.permissions import (
-    ManageCompanyAdministratorPermission,
-    SuperAdministratorPermission,
-)
+from common.utils.drf.permissions import (ManageCompanyAdministratorPermission,
+                                          SuperAdministratorPermission)
 
 
 class TrainingClassModelViewSet(ModelViewSet):

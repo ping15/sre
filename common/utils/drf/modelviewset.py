@@ -1,19 +1,11 @@
-import datetime
 import os
-from datetime import timedelta, date
-from typing import List, Dict
+from typing import Dict, List
 
-from django.db.models import QuerySet
-from django.http import Http404, FileResponse
+from django.http import FileResponse, Http404
 from rest_framework import serializers, status
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
-from rest_framework.settings import api_settings
 from rest_framework.viewsets import ModelViewSet as DRFModelViewSet
 
-from apps.platform_management.models import Event
-from apps.teaching_space.models import TrainingClass
-from common.utils.calendar import generate_blank_calendar, between, format_date
 from common.utils.drf.filters import BaseFilterSet
 from common.utils.drf.response import Response
 from common.utils.excel_parser.parser import excel_to_list

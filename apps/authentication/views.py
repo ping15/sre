@@ -10,7 +10,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
 from apps.authentication.serializers import LoginSerializer, SMSSerializer
-from apps.platform_management.models import Administrator, ClientStudent, Instructor
+from apps.platform_management.models import (Administrator, ClientStudent,
+                                             Instructor)
 from common.utils.auth import SMS_KEY, SMS_SEND_TIMESTAMP_KEY, login
 from common.utils.drf.response import Response
 

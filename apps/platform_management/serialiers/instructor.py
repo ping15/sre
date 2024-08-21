@@ -2,9 +2,7 @@ from rest_framework import serializers
 
 from apps.platform_management.models import Instructor
 from common.utils.drf.serializer_validator import (
-    BasicSerializerValidator,
-    PhoneCreateSerializerValidator,
-)
+    BasicSerializerValidator, PhoneCreateSerializerValidator)
 
 
 class InstructorListSerializer(serializers.ModelSerializer):

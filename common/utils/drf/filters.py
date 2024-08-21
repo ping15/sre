@@ -1,5 +1,3 @@
-from collections import OrderedDict
-
 import django_filters
 from django.core.exceptions import ObjectDoesNotExist
 
