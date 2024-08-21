@@ -35,25 +35,18 @@ class ModelViewSet(DRFModelViewSet):
     # 筛选类
     filter_class = BaseFilterSet
 
-    # 页面关键词 -> 字段
-    filter_condition_mapping = {}
-
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if not cls.enable_batch_import and hasattr(cls, "batch_import"):
-            cls.batch_import = None
-            cls.batch_import_template = None
+            cls.batch_import = cls.batch_import_template = None
         else:
             cls.ACTION_MAP["batch_import"] = FileSerializer
-            if not cls.batch_import_serializer:
-                cls.batch_import_serializer = cls.ACTION_MAP.get("create")
+            cls.batch_import_serializer = cls.batch_import_serializer or cls.ACTION_MAP.get("create")
 
         cls.ACTION_MAP["simple_query"] = SimpleQuerySerializer
 
     def get_permissions(self):
-        self.permission_classes = self.PERMISSION_MAP.get(
-            self.action, self.permission_classes  # noqa
-        )
+        self.permission_classes = self.PERMISSION_MAP.get(self.action, self.permission_classes)  # noqa
         return super().get_permissions()
 
     def get_serializer_class(self):
@@ -61,10 +54,7 @@ class ModelViewSet(DRFModelViewSet):
 
     @property
     def validated_data(self):
-        if self.request.method == "GET":
-            data = self.request.query_params
-        else:
-            data = self.request.data
+        data = self.request.query_params if self.request.method == "GET" else self.request.data
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         return serializer.validated_data
@@ -73,52 +63,33 @@ class ModelViewSet(DRFModelViewSet):
         return Response(super().retrieve(request, *args, **kwargs).data)
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(
-            data=request.data, many=True if isinstance(request.data, list) else False
-        )
+        serializer = self.get_serializer(data=request.data, many=True if isinstance(request.data, list) else False)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED,
-            instance=serializer.instance,
-        )
+        return Response(serializer.data, status=status.HTTP_201_CREATED, instance=serializer.instance)
 
     def update(self, request, *args, **kwargs):
         return Response(super().update(request, *args, **kwargs).data)
 
     def destroy(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-        except Http404 as e:
-            return Response(result=False, err_msg=e.args[0])
-        self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(super().destroy(request, *args, **kwargs).data, status=status.HTTP_204_NO_CONTENT)
 
     @action(methods=["GET"], detail=False)
     def filter_condition(self, request, *args, **kwargs):
-        response_data = []
-
-        for display_name, field_name in self.filter_condition_mapping.items():
-            item = {"id": field_name, "name": display_name, "children": []}
-
-            response_data.append(item)
-
-        return Response(response_data)
+        return NotImplemented("条件筛选")
 
     @action(methods=["POST"], detail=False)
     def batch_import(self, request, *args, **kwargs):
         """批量导入"""
         validated_data = self.validated_data
-        datas: List[Dict[str, str]] = excel_to_list(
-            validated_data["file_path"], self.batch_import_mapping
-        )
+
+        # 解析excel
+        datas: List[Dict[str, str]] = excel_to_list(validated_data["file_path"], self.batch_import_mapping)
+
         create_serializer = self.batch_import_serializer(data=datas, many=True)
 
         if not create_serializer.is_valid():
-            return Response(
-                data=[], result=False, err_msg=str(create_serializer.errors)
-            )
+            return Response(data=[], result=False, err_msg=str(create_serializer.errors))
 
         return Response(create_serializer.validated_data)
 
@@ -127,12 +98,11 @@ class ModelViewSet(DRFModelViewSet):
         if not os.path.exists(self.batch_import_template_path):
             raise Http404("Template file does not exist")
 
-        response = FileResponse(
+        return FileResponse(
             open(self.batch_import_template_path, "rb"),
             as_attachment=True,
             filename=os.path.basename(self.batch_import_template_path),
         )
-        return response
 
     @action(methods=["GET"], detail=False)
     def simple_query(self, request, *args, **kwargs):

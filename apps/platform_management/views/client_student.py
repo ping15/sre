@@ -12,12 +12,12 @@ from apps.platform_management.serialiers.client_student import (
     ClientStudentFilterConditionSerializer, ClientStudentListSerializer,
     ClientStudentQuickSearchSerializer, ClientStudentRetrieveSerializer,
     ClientStudentStatisticSerializer, ClientStudentUpdateSerializer)
-from common.utils.constants import AppModule
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import (ManageCompanyAdministratorPermission,
                                           SuperAdministratorPermission)
 from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import CLIENT_STUDENT_EXCEL_MAPPING
+from common.utils.global_constants import AppModule
 
 
 class ClientStudentModelViewSet(ModelViewSet):
@@ -25,9 +25,7 @@ class ClientStudentModelViewSet(ModelViewSet):
     serializer_class = ClientStudentCreateSerializer
     queryset = ClientStudent.objects.all()
     enable_batch_import = True
-    batch_import_template_path = (
-        "common/utils/excel_parser/templates/client_student_template.xlsx"
-    )
+    batch_import_template_path = "common/utils/excel_parser/templates/client_student_template.xlsx"
     batch_import_mapping = CLIENT_STUDENT_EXCEL_MAPPING
     batch_import_serializer = ClientStudentBatchImportSerializer
     filter_class = ClientStudentFilterClass
@@ -53,9 +51,7 @@ class ClientStudentModelViewSet(ModelViewSet):
         if request.user.role == Administrator.Role.SUPER_MANAGER.value:
             manage_companies: QuerySet["ManageCompany"] = ManageCompany.objects.all()
         else:
-            manage_companies: List["ManageCompany"] = [
-                request.user.affiliated_manage_company
-            ]
+            manage_companies: List["ManageCompany"] = [request.user.affiliated_manage_company]
 
         return Response(
             [
@@ -127,12 +123,8 @@ class ClientStudentModelViewSet(ModelViewSet):
             client_companies: QuerySet["ClientCompany"] = ClientCompany.objects.all()
             client_students: QuerySet["ClientStudent"] = ClientStudent.objects.all()
         else:
-            client_companies: QuerySet[
-                "ClientCompany"
-            ] = request.user.affiliated_manage_company.client_companies
-            client_students: QuerySet[
-                "ClientStudent"
-            ] = request.user.affiliated_manage_company.students
+            client_companies: QuerySet["ClientCompany"] = request.user.affiliated_manage_company.client_companies
+            client_students: QuerySet["ClientStudent"] = request.user.affiliated_manage_company.students
 
         # 聚合 ClientCompany 按创建日期统计数量
         company_stats = (
@@ -161,14 +153,20 @@ class ClientStudentModelViewSet(ModelViewSet):
                 "client_companies": {
                     "total": sum(stat["count"] for stat in company_stats),
                     "data": [
-                        {"date": stat["created_date"], "count": stat["count"]}
+                        {
+                            "date": stat["created_date"],
+                            "count": stat["count"]
+                        }
                         for stat in company_stats
                     ],
                 },
                 "client_students": {
                     "total": sum(stat["count"] for stat in student_stats),
                     "data": [
-                        {"date": stat["created_date"], "count": stat["count"]}
+                        {
+                            "date": stat["created_date"],
+                            "count": stat["count"]
+                        }
                         for stat in student_stats
                     ],
                 },

@@ -6,6 +6,8 @@ from django.db.models import QuerySet
 from django.utils.functional import classproperty
 from django.utils.translation import ugettext_lazy as _
 
+from common.utils import global_constants
+
 
 class Attachment(models.Model):
     file = models.FileField(_("附件"), upload_to="attachment/")
@@ -259,7 +261,7 @@ class Instructor(models.Model):
 
     @property
     def role(self) -> str:
-        return "instructor"
+        return global_constants.Role.CLIENT_STUDENT.value
 
     @property
     def is_active(self) -> bool:
@@ -395,7 +397,7 @@ class ClientStudent(models.Model):
 
     @property
     def role(self) -> str:
-        return "client_student"
+        return global_constants.Role.CLIENT_STUDENT.value
 
     @property
     def is_active(self) -> bool:
@@ -470,10 +472,16 @@ class Event(models.Model):
     # target_client_company_name = models.CharField(_("目标客户公司"), max_length=255, null=True, blank=True)
     # instructor_name = models.CharField(_("讲师"), max_length=255, null=True, blank=True)
     instructor = models.ForeignKey(
-        Instructor, on_delete=models.CASCADE, null=True, blank=True
+        Instructor,
+        related_name="events",
+        verbose_name=_("讲师"),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
     )
     training_class = models.OneToOneField(
         TrainingClass,
+        related_name="events",
         on_delete=models.CASCADE,
         verbose_name=_("培训班"),
         null=True,

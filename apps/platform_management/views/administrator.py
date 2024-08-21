@@ -6,6 +6,7 @@ from apps.platform_management.models import Administrator
 from apps.platform_management.serialiers.administrator import (
     AdministratorBatchImportSerializer, AdministratorCreateSerializer,
     AdministratorListSerializer, AdministratorUpdateSerializer)
+from common.utils import global_constants
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
 from common.utils.drf.response import Response
@@ -59,8 +60,6 @@ class AdministratorModelViewSet(ModelViewSet):
                     {"id": choice.value, "name": choice.label}  # noqa
                     for choice in Administrator.Role
                 ],
-                "role_tooltips": """平台管理员：有系统全局的权限
-    鸿雪公司管理员：有鸿雪公司对应授课空间的权限（可管理对应的客户授课）
-    合作伙伴管理员：有合作伙伴公司对应授课空间的权限（可管理对应的客户授课）""",
+                "role_tooltips": global_constants.ROLE_TOOLTIPS
             }
         )
