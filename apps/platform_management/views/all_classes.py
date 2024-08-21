@@ -1,8 +1,9 @@
 from rest_framework.decorators import action
 
 from apps.platform_management.filters.all_classes import AllClassesFilterClass
+from apps.platform_management.serialiers.all_classes import \
+    AllClassesListSerializer
 from apps.teaching_space.models import TrainingClass
-from apps.platform_management.serialiers.all_classes import AllClassesListSerializer
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
 from common.utils.drf.response import Response

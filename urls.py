@@ -16,7 +16,6 @@ from django.contrib import admin
 from django.urls import re_path
 from django.views.static import serve
 
-
 urlpatterns = [
     url(r"^admin/", admin.site.urls),
     url(r"^account/", include("blueapps.account.urls")),

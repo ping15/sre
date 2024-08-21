@@ -1,21 +1,15 @@
 from collections import defaultdict
 
-from django.db.models import QuerySet
 from rest_framework.decorators import action
 
 from apps.my_lectures.handles.event import EventHandler
-from apps.platform_management.filters.all_schedules import AllScheduleFilterClass
-from apps.platform_management.models import (
-    ManageCompany,
-    ClientCompany,
-    Instructor,
-    Event,
-)
-from apps.teaching_space.models import TrainingClass
+from apps.platform_management.filters.all_schedules import \
+    AllScheduleFilterClass
+from apps.platform_management.models import (ClientCompany, Event, Instructor,
+                                             ManageCompany)
 from apps.platform_management.serialiers.all_schedules import (
-    AllScheduleListSerializer,
-    AllScheduleCreateSerializer,
-)
+    AllScheduleCreateSerializer, AllScheduleListSerializer)
+from apps.teaching_space.models import TrainingClass
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
 from common.utils.drf.response import Response

@@ -1,11 +1,9 @@
 import datetime
-import json
-from typing import Dict, List, Generator
+from typing import Dict, Generator, List
 
 from django.db.models import QuerySet
 
 from apps.teaching_space.models import TrainingClass
-
 
 # def parse_holiday_file(holiday_filepath: str) -> dict:
 #     with open(holiday_filepath, "r", encoding="utf-8") as f:

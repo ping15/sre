@@ -1,12 +1,8 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from apps.platform_management.models import (
-    CourseTemplate,
-    Instructor,
-    ManageCompany,
-    ClientCompany,
-)
+from apps.platform_management.models import (ClientCompany, CourseTemplate,
+                                             Instructor, ManageCompany)
 
 
 class TrainingClass(models.Model):

@@ -1,13 +1,11 @@
 from rest_framework.decorators import action
 
-from apps.platform_management.filters.client_company import ClientCompanyFilterClass
-from apps.platform_management.models import ClientCompany, ClientStudent
+from apps.platform_management.filters.client_company import \
+    ClientCompanyFilterClass
+from apps.platform_management.models import ClientCompany
 from apps.platform_management.serialiers.client_company import (
-    ClientCompanyListSerializer,
-    ClientCompanyCreateSerializer,
-    ClientCompanyRetrieveSerializer,
-)
-from apps.teaching_space.models import TrainingClass
+    ClientCompanyCreateSerializer, ClientCompanyListSerializer,
+    ClientCompanyRetrieveSerializer)
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
 from common.utils.drf.response import Response

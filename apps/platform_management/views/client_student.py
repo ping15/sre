@@ -1,32 +1,22 @@
 from typing import List
 
-from django.db.models import QuerySet, Count
-from django.db.models.functions import TruncDate
+from django.db.models import Count, QuerySet
 from rest_framework.decorators import action
 
-from apps.platform_management.filters.client_student import ClientStudentFilterClass
-from apps.platform_management.models import (
-    ClientStudent,
-    ManageCompany,
-    Administrator,
-    ClientCompany,
-)
+from apps.platform_management.filters.client_student import \
+    ClientStudentFilterClass
+from apps.platform_management.models import (Administrator, ClientCompany,
+                                             ClientStudent, ManageCompany)
+from apps.platform_management.serialiers.client_student import (
+    ClientStudentBatchImportSerializer, ClientStudentCreateSerializer,
+    ClientStudentListSerializer, ClientStudentQuickSearchSerializer,
+    ClientStudentRetrieveSerializer, ClientStudentStatisticSerializer,
+    ClientStudentUpdateSerializer)
+from common.utils.drf.modelviewset import ModelViewSet
+from common.utils.drf.permissions import (ManageCompanyAdministratorPermission,
+                                          SuperAdministratorPermission)
 from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import CLIENT_STUDENT_EXCEL_MAPPING
-from common.utils.drf.modelviewset import ModelViewSet
-from common.utils.drf.permissions import (
-    SuperAdministratorPermission,
-    ManageCompanyAdministratorPermission,
-)
-from apps.platform_management.serialiers.client_student import (
-    ClientStudentListSerializer,
-    ClientStudentCreateSerializer,
-    ClientStudentRetrieveSerializer,
-    ClientStudentQuickSearchSerializer,
-    ClientStudentUpdateSerializer,
-    ClientStudentBatchImportSerializer,
-    ClientStudentStatisticSerializer,
-)
 
 
 class ClientStudentModelViewSet(ModelViewSet):

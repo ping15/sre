@@ -1,6 +1,6 @@
 import django_filters
 
-from common.utils.drf.filters import BaseFilterSet, PropertyFilter
+from common.utils.drf.filters import BaseFilterSet
 
 
 class ManagementCompanyFilterClass(BaseFilterSet):

@@ -1,10 +1,7 @@
-import os
-from typing import Dict, List, Union, Any
+from typing import Any, Dict, List
 from urllib.parse import unquote
 
 import pandas as pd
-from django.conf import settings
-from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
 def excel_to_list(

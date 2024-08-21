@@ -1,8 +1,6 @@
-from typing import List
-
 from rest_framework import serializers
 
-from apps.platform_management.models import ClientCompany, ManageCompany
+from apps.platform_management.models import ClientCompany
 from common.utils.drf.serializer_fields import ChoiceField
 from common.utils.drf.serializer_validator import BasicSerializerValidator
 

@@ -1,11 +1,6 @@
-from django.contrib.auth import (
-    SESSION_KEY,
-    _get_user_session_key,
-    HASH_SESSION_KEY,
-    _get_backends,
-    BACKEND_SESSION_KEY,
-    user_logged_in,
-)
+from django.contrib.auth import (BACKEND_SESSION_KEY, HASH_SESSION_KEY,
+                                 SESSION_KEY, _get_backends,
+                                 _get_user_session_key, user_logged_in)
 from django.middleware.csrf import rotate_token
 from django.utils.crypto import constant_time_compare
 
@@ -26,12 +21,8 @@ def login(request, user, backend=None):
         session_auth_hash = user.get_session_auth_hash()
 
     if SESSION_KEY in request.session:
-        if _get_user_session_key(request) != user.pk or (
-            session_auth_hash
-            and not constant_time_compare(
-                request.session.get(HASH_SESSION_KEY, ""), session_auth_hash
-            )
-        ):
+        if (_get_user_session_key(request) != user.pk or session_auth_hash and not
+                constant_time_compare(request.session.get(HASH_SESSION_KEY, ""), session_auth_hash)):
             # To avoid reusing another user's session, create a new, empty
             # session if the existing session corresponds to a different
             # authenticated user.

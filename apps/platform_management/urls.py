@@ -1,15 +1,14 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework import routers
 
 from .views.administrator import AdministratorModelViewSet
 from .views.all_classes import AllClassesModelViewSet
 from .views.all_schedules import AllScheduleModelViewSet
+from .views.attachment import FileDownloadView, FileUploadView
 from .views.client_approval_slip import ClientApprovalSlipModelViewSet
-
 from .views.client_company import ClientCompanyModelViewSet
 from .views.client_student import ClientStudentModelViewSet
 from .views.course_template import CourseTemplateModelViewSet
-from .views.attachment import FileUploadView, FileDownloadView
 from .views.instructor import InstructorModelViewSet
 from .views.management_company import ManagementCompanyModelViewSet
 
