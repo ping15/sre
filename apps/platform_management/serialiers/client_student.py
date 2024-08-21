@@ -1,7 +1,9 @@
+from dateutil.relativedelta import relativedelta
 from rest_framework import serializers
 
 from apps.platform_management.models import ClientStudent
-from common.utils.drf.serializer_fields import ChoiceField
+from common.utils.constants import AppModule
+from common.utils.drf.serializer_fields import ChoiceField, MonthYearField
 from common.utils.drf.serializer_validator import (
     BasicSerializerValidator, PhoneCreateSerializerValidator)
 from common.utils.tools import reverse_dict
@@ -68,5 +70,9 @@ class ClientStudentBatchImportSerializer(serializers.ModelSerializer):
 
 
 class ClientStudentStatisticSerializer(serializers.Serializer):
-    start_date = serializers.DateField()
-    end_date = serializers.DateField()
+    start_date = MonthYearField()
+    end_date = MonthYearField(time_delta=relativedelta(months=1, days=-1))
+
+
+class ClientStudentFilterConditionSerializer(serializers.Serializer):
+    module = ChoiceField(choices=AppModule.choices, default=AppModule.PLATFORM_MANAGEMENT.value)

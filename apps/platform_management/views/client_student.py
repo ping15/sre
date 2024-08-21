@@ -9,9 +9,10 @@ from apps.platform_management.models import (Administrator, ClientCompany,
                                              ClientStudent, ManageCompany)
 from apps.platform_management.serialiers.client_student import (
     ClientStudentBatchImportSerializer, ClientStudentCreateSerializer,
-    ClientStudentListSerializer, ClientStudentQuickSearchSerializer,
-    ClientStudentRetrieveSerializer, ClientStudentStatisticSerializer,
-    ClientStudentUpdateSerializer)
+    ClientStudentFilterConditionSerializer, ClientStudentListSerializer,
+    ClientStudentQuickSearchSerializer, ClientStudentRetrieveSerializer,
+    ClientStudentStatisticSerializer, ClientStudentUpdateSerializer)
+from common.utils.constants import AppModule
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import (ManageCompanyAdministratorPermission,
                                           SuperAdministratorPermission)
@@ -38,6 +39,7 @@ class ClientStudentModelViewSet(ModelViewSet):
         "retrieve": ClientStudentRetrieveSerializer,
         "quick_search": ClientStudentQuickSearchSerializer,
         "statistic": ClientStudentStatisticSerializer,
+        "filter_condition": ClientStudentFilterConditionSerializer,
     }
 
     @action(
@@ -80,40 +82,34 @@ class ClientStudentModelViewSet(ModelViewSet):
         ],
     )
     def filter_condition(self, request, *args, **kwargs):
-        if request.user.role == Administrator.Role.SUPER_MANAGER.value:
+        validated_date = self.validated_data
+
+        if validated_date["module"] == AppModule.PLATFORM_MANAGEMENT.value:
             return Response(
                 [
                     {"id": "name", "name": "学员名称", "children": []},
-                    {
-                        "id": "affiliated_client_company_name",
-                        "name": "所属客户公司",
-                        "children": [],
-                    },
-                    {
-                        "id": "affiliated_manage_company_name",
-                        "name": "负责的管理公司",
-                        "children": [],
-                    },
+                    {"id": "affiliated_client_company_name", "name": "所属客户公司", "children": []},
+                    {"id": "affiliated_manage_company_name", "name": "负责的管理公司", "children": []},
                     {"id": "email", "name": "邮箱", "children": []},
                     {"id": "phone", "name": "手机", "children": []},
-                    {"id": "phone", "name": "哈哈哈", "children": []},
                 ]
             )
 
-        return Response(
-            [
-                {"id": "", "name": "学员名称", "children": []},
-                {"id": "", "name": "性别", "children": []},
-                {"id": "", "name": "身份证", "children": []},
-                {"id": "", "name": "学历", "children": []},
-                {"id": "", "name": "", "children": []},
-                {"id": "", "name": "", "children": []},
-                {"id": "", "name": "", "children": []},
-                {"id": "", "name": "", "children": []},
-                {"id": "", "name": "", "children": []},
-                {"id": "", "name": "", "children": []},
-            ]
-        )
+        elif validated_date["module"] == AppModule.TEACHING_SPACE.value:
+            return Response(
+                [
+                    {"id": "username", "name": "学员名称", "children": []},
+                    {"id": "sex", "name": "性别", "children": []},
+                    {"id": "id_number", "name": "身份证", "children": []},
+                    {"id": "education", "name": "学历", "children": []},
+                    {"id": "phone", "name": "电话", "children": []},
+                    {"id": "email", "name": "邮箱", "children": []},
+                    {"id": "department", "name": "部门", "children": []},
+                    {"id": "position", "name": "职位", "children": []},
+                ]
+            )
+
+        return Response([])
 
     @action(
         methods=["GET"],

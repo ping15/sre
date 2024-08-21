@@ -480,11 +480,6 @@ class Event(models.Model):
         blank=True,
     )
 
-    def __str__(self):
-        return (
-            f"{self.get_type_display()} ({self.start_date} - {self.end_date or 'N/A'})"
-        )
-
     class Meta:
         verbose_name = _("日程事件")
         verbose_name_plural = verbose_name
