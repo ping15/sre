@@ -113,7 +113,7 @@ class EventHandler:
                 cls._mark_unavailable(blank_calendar, event, current_date)
 
             elif event_type == Event.EventType.RECURRING_UNAVAILABILITY.value:
-                if cls.is_current_date_in_freq_interval(current_date, event):
+                if cls.is_current_date_in_rule(current_date, event):
                     cls._mark_unavailable(blank_calendar, event, current_date)
 
     @classmethod
@@ -142,12 +142,10 @@ class EventHandler:
         判断当前事件是否与规则冲突
         """
         for current_date in between(event.start_date, event.end_date):
-            if not cls.is_current_date_in_range(
-                current_date, rule.start_date, rule.end_date
-            ):
+            if not cls.is_current_date_in_range(current_date, rule.start_date, rule.end_date):
                 continue
 
-            if cls.is_current_date_in_freq_interval(current_date, rule):
+            if cls.is_current_date_in_rule(current_date, rule):
                 return True
 
         return False
@@ -165,7 +163,7 @@ class EventHandler:
         return start_date <= current_date <= end_date
 
     @classmethod
-    def is_current_date_in_freq_interval(cls, current_date: date, rule: Event) -> bool:
+    def is_current_date_in_rule(cls, current_date: date, rule: Event) -> bool:
         """
         检查 current_date 是否在规则周期范围内
         """

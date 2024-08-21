@@ -11,14 +11,15 @@ from apps.platform_management.filters.instructor import (
 from apps.platform_management.models import Event, Instructor
 from apps.platform_management.serialiers.instructor import (
     InstructorCalendarSerializer, InstructorCreateSerializer,
-    InstructorListSerializer, InstructorPartialUpdateSerializer,
-    InstructorRetrieveSerializer, InstructorReviewSerializer,
-    InstructorUpdateSerializer)
+    InstructorFilterConditionSerializer, InstructorListSerializer,
+    InstructorPartialUpdateSerializer, InstructorRetrieveSerializer,
+    InstructorReviewSerializer, InstructorUpdateSerializer)
 from apps.teaching_space.models import TrainingClass
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
 from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import INSTRUCTOR_EXCEL_MAPPING
+from common.utils.global_constants import AppModule
 
 
 class InstructorModelViewSet(ModelViewSet):
@@ -26,9 +27,7 @@ class InstructorModelViewSet(ModelViewSet):
     serializer_class = InstructorCreateSerializer
     queryset = Instructor.objects.all()
     enable_batch_import = True
-    batch_import_template_path = (
-        "common/utils/excel_parser/templates/instructor_template.xlsx"
-    )
+    batch_import_template_path = "common/utils/excel_parser/templates/instructor_template.xlsx"
     batch_import_mapping = INSTRUCTOR_EXCEL_MAPPING
     filter_class = InstructorFilterClass
     ACTION_MAP = {
@@ -39,6 +38,7 @@ class InstructorModelViewSet(ModelViewSet):
         "review": InstructorReviewSerializer,
         "update": InstructorUpdateSerializer,
         "partial_update": InstructorPartialUpdateSerializer,
+        "filter_condition": InstructorFilterConditionSerializer,
     }
 
     @action(methods=["GET"], detail=True)
@@ -46,9 +46,7 @@ class InstructorModelViewSet(ModelViewSet):
         """已授课程"""
         taught_courses: List[Dict[str:str]] = []
 
-        training_classes: QuerySet[
-            "TrainingClass"
-        ] = self.get_object().training_classes.filter(
+        training_classes: QuerySet["TrainingClass"] = self.get_object().training_classes.filter(
             start_date__lte=datetime.datetime.now()
         )
 
@@ -114,9 +112,20 @@ class InstructorModelViewSet(ModelViewSet):
 
     @action(methods=["GET"], detail=False)
     def filter_condition(self, request, *args, **kwargs):
-        return Response(
-            [
+        validated_data = self.validated_data
+
+        if validated_data["module"] == AppModule.PLATFORM_MANAGEMENT.value:
+            return Response([
                 {"id": "username", "name": "讲师名称", "children": []},
                 {"id": "introduction", "name": "简介", "children": []},
-            ]
-        )
+            ])
+
+        elif validated_data["module"] == AppModule.TEACHING_SPACE.value:
+            return Response([
+                {"id": "username", "name": "讲师名称", "children": []},
+                {"id": "satisfaction_score", "name": "讲师评分", "children": []},
+                {"id": "city", "name": "城市", "children": []},
+                {"id": "availability_date", "name": "讲师可预约时间", "children": []},
+            ])
+
+        return Response([])

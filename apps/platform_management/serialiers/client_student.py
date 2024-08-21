@@ -2,10 +2,10 @@ from dateutil.relativedelta import relativedelta
 from rest_framework import serializers
 
 from apps.platform_management.models import ClientStudent
-from common.utils.constants import AppModule
 from common.utils.drf.serializer_fields import ChoiceField, MonthYearField
 from common.utils.drf.serializer_validator import (
     BasicSerializerValidator, PhoneCreateSerializerValidator)
+from common.utils.global_constants import AppModule
 from common.utils.tools import reverse_dict
 
 

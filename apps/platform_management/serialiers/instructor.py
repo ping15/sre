@@ -1,8 +1,10 @@
 from rest_framework import serializers
 
 from apps.platform_management.models import Instructor
+from common.utils.drf.serializer_fields import ChoiceField
 from common.utils.drf.serializer_validator import (
     BasicSerializerValidator, PhoneCreateSerializerValidator)
+from common.utils.global_constants import AppModule
 
 
 class InstructorListSerializer(serializers.ModelSerializer):
@@ -63,3 +65,7 @@ class InstructorRetrieveSerializer(serializers.ModelSerializer):
 
 class InstructorReviewSerializer(serializers.ModelSerializer):
     pass
+
+
+class InstructorFilterConditionSerializer:
+    module = ChoiceField(choices=AppModule.choices)
