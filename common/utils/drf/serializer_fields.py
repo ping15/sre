@@ -1,5 +1,7 @@
+from datetime import datetime
 from enum import Enum
 
+from dateutil.relativedelta import relativedelta
 from rest_framework import serializers
 
 from common.utils.cipher import cipher
@@ -30,3 +32,20 @@ class ChoiceField(serializers.ChoiceField):
 
     def to_representation(self, value):
         return super().to_representation(value)
+
+
+class MonthYearField(serializers.Field):
+    def __init__(self, *args, time_delta=relativedelta(), **kwargs):
+        super().__init__(*args, **kwargs)
+        self.time_delta = time_delta
+
+    def to_internal_value(self, data):
+        try:
+            # 将传入的格式 'YYYY-MM' 转换为 datetime.date
+            return datetime.strptime(data, '%Y-%m').date() + self.time_delta
+        except ValueError:
+            raise serializers.ValidationError("Date format should be 'YYYY-MM'")
+
+    # def to_representation(self, value):
+    #     # 序列化时只返回年月部分
+    #     return value.strftime('%Y-%m') + self.time_delta
