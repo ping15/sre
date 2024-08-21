@@ -165,7 +165,7 @@ class EventHandler:
     @classmethod
     def is_current_date_in_rule(cls, current_date: date, rule: Event) -> bool:
         """
-        检查 current_date 是否在规则周期范围内
+        检查 current_date 是否在规则范围内
         """
         assert rule.event_type in [
             Event.EventType.ONE_TIME_UNAVAILABILITY.value,
@@ -183,6 +183,16 @@ class EventHandler:
         return False
 
     @classmethod
+    def is_current_date_in_cancel_events(cls, current_date: date) -> bool:
+        """
+        检查 current_date 是否在取消不可用时间范围内
+        """
+        cancel_dates: List[date] = Event.objects.filter(
+            event_type=Event.EventType.CANCEL_UNAVAILABILITY).values_list("start_date", flat=True)
+
+        return current_date in cancel_dates
+
+    @classmethod
     def create_event(
         cls,
         event_type: str,
@@ -193,18 +203,11 @@ class EventHandler:
         instructor: Optional[Instructor] = None,
         training_class: Optional[TrainingClass] = None,
     ) -> Event:
-        assert (
-            instructor or training_class
-        ), "instructor 或者 training_class 必须有一个，否则没有讲师信息"
-        assert (
-            start_date or training_class
-        ), "start_date 或者 training_class 必须有一个，否则没有开始时间"
+        assert instructor or training_class, "instructor 或者 training_class 必须有一个，否则没有讲师信息"
+        assert start_date or training_class, "start_date 或者 training_class 必须有一个，否则没有开始时间"
         freq_interval = freq_interval or []
         if training_class:
-            start_date, end_date = (
-                training_class.start_date,
-                training_class.start_date + datetime.timedelta(days=1),
-            )
+            start_date, end_date = training_class.start_date, training_class.start_date + datetime.timedelta(days=1)
             event_type = Event.EventType.CLASS_SCHEDULE.value
             instructor = training_class.instructor
 
@@ -245,14 +248,8 @@ class EventHandler:
 
             # [取消单日不可用时间]如果覆盖培训班日程，则不受规则约束
             cancel_dates: List[date] = Event.objects.filter(
-                event_type=Event.EventType.CANCEL_UNAVAILABILITY
-            ).values_list("start_date", flat=True)
-            if not all(
-                [
-                    current_date in cancel_dates
-                    for current_date in between(start_date, end_date)
-                ]
-            ):
+                event_type=Event.EventType.CANCEL_UNAVAILABILITY).values_list("start_date", flat=True)
+            if not all([current_date in cancel_dates for current_date in between(start_date, end_date)]):
                 # 如果该讲师的不可用时间和培训班日程冲突，直接返回不创建
                 for rule in Event.objects.filter(
                     event_type__in=[
