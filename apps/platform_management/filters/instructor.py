@@ -23,12 +23,14 @@ class InstructorFilterClass(BaseFilterSet):
         # 当 今天可用 + 明天可用 时，这个讲师可以预约
         today_can_use = tomorrow_can_use = False
         tomorrow = today + datetime.timedelta(days=1)
+        cancel_events: List[datetime.date] = Event.objects.filter(
+            event_type=Event.EventType.CANCEL_UNAVAILABILITY).values_list("start_date", flat=True)
         instructor_ids: List = []
         for instructor in queryset:
-            if EventHandler.is_current_date_in_cancel_events(today):
+            if EventHandler.is_current_date_in_cancel_events(today, cancel_events):
                 today_can_use = True
 
-            if EventHandler.is_current_date_in_cancel_events(tomorrow):
+            if EventHandler.is_current_date_in_cancel_events(tomorrow, cancel_events):
                 tomorrow_can_use = True
 
             if today_can_use and tomorrow_can_use:

@@ -183,11 +183,11 @@ class EventHandler:
         return False
 
     @classmethod
-    def is_current_date_in_cancel_events(cls, current_date: date) -> bool:
+    def is_current_date_in_cancel_events(cls, current_date: date, cancel_dates: Optional[List[date]] = None) -> bool:
         """
         检查 current_date 是否在取消不可用时间范围内
         """
-        cancel_dates: List[date] = Event.objects.filter(
+        cancel_dates: List[date] = cancel_dates or Event.objects.filter(
             event_type=Event.EventType.CANCEL_UNAVAILABILITY).values_list("start_date", flat=True)
 
         return current_date in cancel_dates
