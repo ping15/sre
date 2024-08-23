@@ -16,6 +16,8 @@ from django.contrib import admin
 from django.urls import re_path
 from django.views.static import serve
 
+from home_application import views
+
 urlpatterns = [
     url(r"^admin/", admin.site.urls),
     url(r"^account/", include("blueapps.account.urls")),
@@ -34,4 +36,5 @@ urlpatterns = [
     # url(r"^swagger/", swagger_schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     # url(r"^redoc/", swagger_schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
+    url(r"^(?:.*)/?$", views.home),
 ]

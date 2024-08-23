@@ -71,6 +71,22 @@ MIDDLEWARE = (
     "django.middleware.locale.LocaleMiddleware",
 )
 
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": (os.path.join(BASE_DIR, "templates"),),
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    },
+]
+
 # 自定义中间件
 MIDDLEWARE += ()  # noqa
 
