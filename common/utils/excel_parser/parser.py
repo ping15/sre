@@ -21,12 +21,10 @@ def excel_to_list(
     return datas
 
 
-def _convert_data(
-    data: Dict[str, Any], field_name__field_type: Dict[str, str]
-) -> Dict[str, str]:
+def _convert_data(data: Dict[str, Any], field_name__field_type: Dict[str, str]) -> Dict[str, str]:
     for field_name, field_value in data.copy().items():
         if field_name__field_type[field_name] == list:
-            data[field_name] = field_value.split(",")
+            data[field_name] = str(field_value).split(",")
         elif field_name__field_type[field_name] == str:
             data[field_name] = str(field_value)
 
