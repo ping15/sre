@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 from rest_framework import serializers
 
 from common.utils.cipher import cipher
+from common.utils.tools import reverse_dict
 
 
 class PasswordField(serializers.CharField):
@@ -21,6 +22,7 @@ class ChoiceField(serializers.ChoiceField):
     }
 
     def to_internal_value(self, data):
+        data = reverse_dict(self.choices).get(data, data)
         if data == "" and self.allow_blank:
             return ""
         if isinstance(data, Enum) and str(data) != str(data.value):
@@ -31,7 +33,7 @@ class ChoiceField(serializers.ChoiceField):
             self.fail("invalid_choice", input=data, choices=list(self.choices.keys()))
 
     def to_representation(self, value):
-        return super().to_representation(value)
+        return super().to_representation(self.choices.get(value))
 
 
 class MonthYearField(serializers.Field):
@@ -45,7 +47,3 @@ class MonthYearField(serializers.Field):
             return datetime.strptime(data, '%Y-%m').date() + self.time_delta
         except ValueError:
             raise serializers.ValidationError("Date format should be 'YYYY-MM'")
-
-    # def to_representation(self, value):
-    #     # 序列化时只返回年月部分
-    #     return value.strftime('%Y-%m') + self.time_delta

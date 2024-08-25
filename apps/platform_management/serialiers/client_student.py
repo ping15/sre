@@ -3,13 +3,14 @@ from rest_framework import serializers
 
 from apps.platform_management.models import ClientStudent
 from common.utils.drf.serializer_fields import ChoiceField, MonthYearField
-from common.utils.drf.serializer_validator import (
-    BasicSerializerValidator, PhoneCreateSerializerValidator)
+from common.utils.drf.serializer_validator import BasicSerializerValidator, PhoneCreateSerializerValidator
 from common.utils.global_constants import AppModule
 from common.utils.tools import reverse_dict
 
 
 class ClientStudentListSerializer(serializers.ModelSerializer):
+    education = ChoiceField(choices=ClientStudent.Education.choices)
+
     class Meta:
         model = ClientStudent
         fields = "__all__"
@@ -27,10 +28,7 @@ class ClientStudentCreateSerializer(
         fields = "__all__"
 
 
-class ClientStudentUpdateSerializer(
-    serializers.ModelSerializer,
-    BasicSerializerValidator,
-):
+class ClientStudentUpdateSerializer(serializers.ModelSerializer, BasicSerializerValidator,):
     education = ChoiceField(choices=ClientStudent.Education.choices)
 
     def save(self, **kwargs):
@@ -57,12 +55,25 @@ class ClientStudentQuickSearchSerializer(serializers.Serializer):
     children = ClientCompanySerializer(source="client_companies", many=True)
 
 
-class ClientStudentBatchImportSerializer(serializers.ModelSerializer):
-    def to_internal_value(self, data):
-        data["education"] = reverse_dict(dict(ClientStudent.Education.choices)).get(
-            data["education"]
-        )
-        return data
+class ClientStudentBatchImportSerializer(
+    serializers.ModelSerializer,
+    PhoneCreateSerializerValidator,
+    BasicSerializerValidator
+):
+    education = ChoiceField(choices=ClientStudent.Education.choices)
+
+    # def to_internal_value(self, data):
+    #     data["education"] = reverse_dict(dict(ClientStudent.Education.choices)).get(data["education"])
+    #     return data
+
+    # def to_representation(self, instance):
+    #     instance.education = ClientStudent.Education.choices.get(instance.education)
+    #     return super().to_representation(instance)
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        attrs["education"] = dict(ClientStudent.Education.choices).get(attrs["education"])
+        return attrs
 
     class Meta:
         model = ClientStudent

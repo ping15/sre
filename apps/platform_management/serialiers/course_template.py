@@ -17,6 +17,9 @@ class CourseTemplateCreateSerializer(serializers.ModelSerializer):
     exam_duration = ChoiceField(choices=CourseTemplate.ExamDuration.choices)
     exam_language = ChoiceField(choices=CourseTemplate.ExamLanguage.choices)
     certification_body = serializers.ListSerializer(child=ChoiceField(choices=CourseTemplate.CertificationBody.choices))
+    target_students = serializers.CharField(default="", allow_null=True, allow_blank=True)
+    learning_objectives = serializers.CharField(default="", allow_null=True, allow_blank=True)
+    learning_benefits = serializers.CharField(default="", allow_null=True, allow_blank=True)
 
     class Meta:
         model = CourseTemplate
