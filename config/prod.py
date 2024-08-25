@@ -28,15 +28,31 @@ RUN_MODE = "PRODUCT"
 
 # 正式环境数据库可以在这里配置
 
-# DATABASES.update(
-#     {
-#         'default': {
-#             'ENGINE': 'django.db.backends.mysql',
-#             'NAME': '',  # 数据库名
-#             'USER': '',  # 数据库用户
-#             'PASSWORD': '',  # 数据库密码
-#             'HOST': '',  # 数据库主机
-#             'PORT': '3306',  # 数据库端口
-#         },
-#     }
-# )
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DATABASE_NAME'),
+        'USER': os.getenv('DATABASE_USER'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+        'HOST': os.getenv('DATABASE_HOST'),
+        'PORT': '3306',
+    }
+}
+
+REDIS_HOST = os.getenv('REDIS_HOST', '127.0.0.1')
+REDIS_PORT = os.getenv('REDIS_PORT', 6379)
+REDIS_DB_INDEX = os.getenv('REDIS_DB_INDEX', 1)
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_INDEX}',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    },
+    'login_db': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'account_cache'
+    },
+}
