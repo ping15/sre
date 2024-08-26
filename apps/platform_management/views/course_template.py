@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework.decorators import action
 
 from apps.platform_management.filters.course_templates import \
@@ -6,7 +7,8 @@ from apps.platform_management.models import CourseTemplate
 from apps.platform_management.serialiers.course_template import (
     CourseTemplateCreateSerializer, CourseTemplateListSerializer)
 from common.utils.drf.modelviewset import ModelViewSet
-from common.utils.drf.permissions import SuperAdministratorPermission
+from common.utils.drf.permissions import (ManageCompanyAdministratorPermission,
+                                          SuperAdministratorPermission)
 from common.utils.drf.response import Response
 
 
@@ -28,3 +30,18 @@ class CourseTemplateModelViewSet(ModelViewSet):
                 {"id": "course_overview", "name": "课程描述", "children": []},
             ]
         )
+
+    @action(methods=["GET"], detail=False, permission_classes=[
+        SuperAdministratorPermission | ManageCompanyAdministratorPermission
+    ])
+    def choices(self, request, *args, **kwargs):
+        return Response([
+            {
+                "id": course_template.id,
+                "name": course_template.name,
+            }
+            for course_template in self.get_queryset().filter(
+                Q(status=CourseTemplate.Status.IN_PROGRESS.value) | Q(
+                    status=CourseTemplate.Status.PREPARATION.value, teaching_count__lt=5)
+            )
+        ])

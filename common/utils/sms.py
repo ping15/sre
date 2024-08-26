@@ -1,7 +1,6 @@
 import urllib
 import urllib.request
 
-
 status_mapping = {
     '0': '短信发送成功',
     '-1': '参数不全',

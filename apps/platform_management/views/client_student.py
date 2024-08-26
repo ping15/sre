@@ -1,6 +1,8 @@
 from typing import List
 
+from dateutil.relativedelta import relativedelta
 from django.db.models import Count, QuerySet
+from django.db.models.functions import TruncMonth
 from rest_framework.decorators import action
 
 from apps.platform_management.filters.client_student import \
@@ -36,7 +38,8 @@ class ClientStudentModelViewSet(ModelViewSet):
         "partial_update": ClientStudentUpdateSerializer,
         "retrieve": ClientStudentRetrieveSerializer,
         "quick_search": ClientStudentQuickSearchSerializer,
-        "statistic": ClientStudentStatisticSerializer,
+        "statistic_client_companies": ClientStudentStatisticSerializer,
+        "statistic_client_students": ClientStudentStatisticSerializer,
         "filter_condition": ClientStudentFilterConditionSerializer,
     }
 
@@ -69,6 +72,16 @@ class ClientStudentModelViewSet(ModelViewSet):
                 for manage_company in manage_companies
             ]
         )
+
+    @action(methods=["GET"], detail=False)
+    def choices(self, request, *args, **kwargs):
+        return Response([
+            {
+                "id": client_student.id,
+                "name": client_student.name,
+            }
+            for client_student in self.get_queryset()
+        ])
 
     @action(
         methods=["GET"],
@@ -114,61 +127,68 @@ class ClientStudentModelViewSet(ModelViewSet):
             SuperAdministratorPermission | ManageCompanyAdministratorPermission
         ],
     )
-    def statistic(self, request, *args, **kwargs):
+    def statistic_client_companies(self, request, *args, **kwargs):
         validated_data = self.validated_data
 
-        # 超级管理员能看到所有客户公司和所有学员的信息
-        # 管理公司管理员只能看到所在管理公司下面所有客户公司和下面所有学员的信息
+        start_date, end_date = validated_data["start_date"], validated_data["end_date"]
+
+        # 超级管理员能看到所有客户公司的信息
+        # 管理公司管理员只能看到所在管理公司下面所有客户公司的信息
         if request.user.role == Administrator.Role.SUPER_MANAGER.value:
             client_companies: QuerySet["ClientCompany"] = ClientCompany.objects.all()
-            client_students: QuerySet["ClientStudent"] = ClientStudent.objects.all()
         else:
             client_companies: QuerySet["ClientCompany"] = request.user.affiliated_manage_company.client_companies
+
+        return Response(self._handle_statistic(client_companies, start_date, end_date))
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        permission_classes=[
+            SuperAdministratorPermission | ManageCompanyAdministratorPermission
+        ],
+    )
+    def statistic_client_students(self, request, *args, **kwargs):
+        validated_data = self.validated_data
+
+        start_date, end_date = validated_data["start_date"], validated_data["end_date"]
+
+        # 超级管理员能看到所有客户公司的信息
+        # 管理公司管理员只能看到所在管理公司下面所有客户公司的信息
+        if request.user.role == Administrator.Role.SUPER_MANAGER.value:
+            client_students: QuerySet["ClientStudent"] = ClientStudent.objects.all()
+        else:
             client_students: QuerySet["ClientStudent"] = request.user.affiliated_manage_company.students
 
-        # 聚合 ClientCompany 按创建日期统计数量
+        return Response(self._handle_statistic(client_students, start_date, end_date))
+
+    @staticmethod
+    def _handle_statistic(queryset, start_date, end_date):
+        # 截取日期到月份级别并聚合统计
         company_stats = (
-            client_companies.filter(
-                created_date__gte=validated_data["start_date"],
-                created_date__lte=validated_data["end_date"],
-            )
-            .values("created_date")
+            queryset.filter(created_date__gte=start_date, created_date__lte=end_date)
+            .annotate(month=TruncMonth("created_date"))
+            .values("month")
             .annotate(count=Count("id"))
-            .order_by("created_date")
+            .order_by("month")
         )
 
-        # 聚合 ClientStudent 按创建日期统计数量
-        student_stats = (
-            client_students.filter(
-                created_date__gte=validated_data["start_date"],
-                created_date__lte=validated_data["end_date"],
-            )
-            .values("created_date")
-            .annotate(count=Count("id"))
-            .order_by("created_date")
-        )
+        # 构建月份区间列表
+        start_month = start_date.replace(day=1)
+        end_month = end_date.replace(day=1)
+        months = []
+        while start_month <= end_month:
+            months.append(start_month)
+            start_month += relativedelta(months=1)
 
-        return Response(
-            {
-                "client_companies": {
-                    "total": sum(stat["count"] for stat in company_stats),
-                    "data": [
-                        {
-                            "date": stat["created_date"],
-                            "count": stat["count"]
-                        }
-                        for stat in company_stats
-                    ],
-                },
-                "client_students": {
-                    "total": sum(stat["count"] for stat in student_stats),
-                    "data": [
-                        {
-                            "date": stat["created_date"],
-                            "count": stat["count"]
-                        }
-                        for stat in student_stats
-                    ],
-                },
-            }
-        )
+        # 构建返回数据
+        return {
+            "total": sum(stat["count"] for stat in company_stats),
+            "data": [
+                {
+                    "date": month.strftime("%Y-%m"),
+                    "count": next((stat["count"] for stat in company_stats if stat["month"] == month), 0)
+                }
+                for month in months
+            ],
+        }
