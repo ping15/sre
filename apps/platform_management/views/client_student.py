@@ -36,7 +36,8 @@ class ClientStudentModelViewSet(ModelViewSet):
         "partial_update": ClientStudentUpdateSerializer,
         "retrieve": ClientStudentRetrieveSerializer,
         "quick_search": ClientStudentQuickSearchSerializer,
-        "statistic": ClientStudentStatisticSerializer,
+        "statistic_client_companies": ClientStudentStatisticSerializer,
+        "statistic_client_students": ClientStudentStatisticSerializer,
         "filter_condition": ClientStudentFilterConditionSerializer,
     }
 
@@ -114,17 +115,15 @@ class ClientStudentModelViewSet(ModelViewSet):
             SuperAdministratorPermission | ManageCompanyAdministratorPermission
         ],
     )
-    def statistic(self, request, *args, **kwargs):
+    def statistic_client_companies(self, request, *args, **kwargs):
         validated_data = self.validated_data
 
-        # 超级管理员能看到所有客户公司和所有学员的信息
-        # 管理公司管理员只能看到所在管理公司下面所有客户公司和下面所有学员的信息
+        # 超级管理员能看到所有客户公司的信息
+        # 管理公司管理员只能看到所在管理公司下面所有客户公司的信息
         if request.user.role == Administrator.Role.SUPER_MANAGER.value:
             client_companies: QuerySet["ClientCompany"] = ClientCompany.objects.all()
-            client_students: QuerySet["ClientStudent"] = ClientStudent.objects.all()
         else:
             client_companies: QuerySet["ClientCompany"] = request.user.affiliated_manage_company.client_companies
-            client_students: QuerySet["ClientStudent"] = request.user.affiliated_manage_company.students
 
         # 聚合 ClientCompany 按创建日期统计数量
         company_stats = (
@@ -136,6 +135,36 @@ class ClientStudentModelViewSet(ModelViewSet):
             .annotate(count=Count("id"))
             .order_by("created_date")
         )
+
+        return Response(
+            {
+                "total": sum(stat["count"] for stat in company_stats),
+                "data": [
+                    {
+                        "date": stat["created_date"],
+                        "count": stat["count"]
+                    }
+                    for stat in company_stats
+                ],
+            }
+        )
+
+    @action(
+        methods=["GET"],
+        detail=False,
+        permission_classes=[
+            SuperAdministratorPermission | ManageCompanyAdministratorPermission
+        ],
+    )
+    def statistic_client_students(self, request, *args, **kwargs):
+        validated_data = self.validated_data
+
+        # 超级管理员能看到所有所有学员的信息
+        # 管理公司管理员只能看到所在管理公司下面所有学员的信息
+        if request.user.role == Administrator.Role.SUPER_MANAGER.value:
+            client_students: QuerySet["ClientStudent"] = ClientStudent.objects.all()
+        else:
+            client_students: QuerySet["ClientStudent"] = request.user.affiliated_manage_company.students
 
         # 聚合 ClientStudent 按创建日期统计数量
         student_stats = (
@@ -150,25 +179,13 @@ class ClientStudentModelViewSet(ModelViewSet):
 
         return Response(
             {
-                "client_companies": {
-                    "total": sum(stat["count"] for stat in company_stats),
-                    "data": [
-                        {
-                            "date": stat["created_date"],
-                            "count": stat["count"]
-                        }
-                        for stat in company_stats
-                    ],
-                },
-                "client_students": {
-                    "total": sum(stat["count"] for stat in student_stats),
-                    "data": [
-                        {
-                            "date": stat["created_date"],
-                            "count": stat["count"]
-                        }
-                        for stat in student_stats
-                    ],
-                },
+                "total": sum(stat["count"] for stat in student_stats),
+                "data": [
+                    {
+                        "date": stat["created_date"],
+                        "count": stat["count"]
+                    }
+                    for stat in student_stats
+                ],
             }
         )
