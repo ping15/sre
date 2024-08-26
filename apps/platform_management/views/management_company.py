@@ -40,7 +40,7 @@ class ManagementCompanyModelViewSet(ModelViewSet):
         )
 
     @action(methods=["GET"], detail=False)
-    def summary(self, request, *args, **kwargs):
+    def choices(self, request, *args, **kwargs):
         return Response([
             {
                 "id": manage_company.id,
