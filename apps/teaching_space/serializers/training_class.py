@@ -20,7 +20,7 @@ class TrainingClassListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TrainingClass
-        fields = ["name", "status", "student_count", "instructor_name"]
+        fields = ["id", "name", "status", "student_count", "instructor_name"]
 
 
 class TrainingClassRetrieveSerializer(serializers.ModelSerializer):
