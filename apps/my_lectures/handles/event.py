@@ -12,9 +12,7 @@ from common.utils.calendar import between, format_date, generate_blank_calendar
 
 class EventHandler:
     @classmethod
-    def build_calendars(
-        cls, events: QuerySet["Event"], start_date: date, end_date: date
-    ) -> List[dict]:
+    def build_calendars(cls, events: QuerySet["Event"], start_date: date, end_date: date) -> List[dict]:
         """
         构建日程
         """

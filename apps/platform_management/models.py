@@ -471,11 +471,8 @@ class Event(models.Model):
         choices=FreqType.choices, max_length=16, null=True, blank=True
     )
     freq_interval = models.JSONField(default=list)
-    # rule = models.JSONField(_("规则"), default=dict)
     start_date = models.DateField(_("开始时间"))
     end_date = models.DateField(_("结束时间"), null=True, blank=True)
-    # target_client_company_name = models.CharField(_("目标客户公司"), max_length=255, null=True, blank=True)
-    # instructor_name = models.CharField(_("讲师"), max_length=255, null=True, blank=True)
     instructor = models.ForeignKey(
         Instructor,
         related_name="events",
