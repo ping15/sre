@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework.decorators import action
 
 from apps.platform_management.filters.course_templates import \
@@ -39,5 +40,8 @@ class CourseTemplateModelViewSet(ModelViewSet):
                 "id": course_template.id,
                 "name": course_template.name,
             }
-            for course_template in self.get_queryset()
+            for course_template in self.get_queryset().filter(
+                Q(status=CourseTemplate.Status.IN_PROGRESS.value) | Q(
+                    status=CourseTemplate.Status.PREPARATION.value, teaching_count__lt=5)
+            )
         ])

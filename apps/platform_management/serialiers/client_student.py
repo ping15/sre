@@ -82,7 +82,7 @@ class ClientStudentBatchImportSerializer(
 
 class ClientStudentStatisticSerializer(serializers.Serializer):
     start_date = MonthYearField()
-    end_date = MonthYearField(time_delta=relativedelta(months=1, days=-1))
+    end_date = MonthYearField(time_delta=relativedelta(months=1))
 
 
 class ClientStudentFilterConditionSerializer(serializers.Serializer):

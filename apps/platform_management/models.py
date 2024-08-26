@@ -117,6 +117,8 @@ class CourseTemplate(models.Model):
         default=list,
     )
 
+    teaching_count = models.IntegerField(_("授课次数"), default=0)
+
     def __str__(self):
         return self.name
 
