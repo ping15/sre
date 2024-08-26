@@ -17,7 +17,6 @@ class ManagementCompanyModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission]
     queryset = ManageCompany.objects.all()
     serializer_class = ManagementCompanyCreateSerializer
-    # string_fuzzy_filter_fields = ["name", "email"]
     filter_class = ManagementCompanyFilterClass
     ACTION_MAP = {
         "list": ManagementCompanyListSerializer,
@@ -39,3 +38,13 @@ class ManagementCompanyModelViewSet(ModelViewSet):
                 {"id": "email", "name": "联系邮箱", "children": []},
             ]
         )
+
+    @action(methods=["GET"], detail=False)
+    def summary(self, request, *args, **kwargs):
+        return Response([
+            {
+                "id": manage_company.id,
+                "name": manage_company.name,
+            }
+            for manage_company in self.get_queryset()
+        ])

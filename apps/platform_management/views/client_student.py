@@ -71,6 +71,16 @@ class ClientStudentModelViewSet(ModelViewSet):
             ]
         )
 
+    @action(methods=["GET"], detail=False)
+    def summary(self, request, *args, **kwargs):
+        return Response([
+            {
+                "id": client_student.id,
+                "name": client_student.name,
+            }
+            for client_student in self.get_queryset()
+        ])
+
     @action(
         methods=["GET"],
         detail=False,

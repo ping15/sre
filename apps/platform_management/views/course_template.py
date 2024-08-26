@@ -6,7 +6,8 @@ from apps.platform_management.models import CourseTemplate
 from apps.platform_management.serialiers.course_template import (
     CourseTemplateCreateSerializer, CourseTemplateListSerializer)
 from common.utils.drf.modelviewset import ModelViewSet
-from common.utils.drf.permissions import SuperAdministratorPermission
+from common.utils.drf.permissions import (ManageCompanyAdministratorPermission,
+                                          SuperAdministratorPermission)
 from common.utils.drf.response import Response
 
 
@@ -28,3 +29,15 @@ class CourseTemplateModelViewSet(ModelViewSet):
                 {"id": "course_overview", "name": "课程描述", "children": []},
             ]
         )
+
+    @action(methods=["GET"], detail=False, permission_classes=[
+        SuperAdministratorPermission | ManageCompanyAdministratorPermission
+    ])
+    def choices(self, request, *args, **kwargs):
+        return Response([
+            {
+                "id": course_template.id,
+                "name": course_template.name,
+            }
+            for course_template in self.get_queryset()
+        ])

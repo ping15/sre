@@ -66,8 +66,8 @@ class TrainingClass(models.Model):
         return f"{self.course.name}-{self.session_number}"
 
     @property
-    def target_client_company_name(self) -> ClientCompany:
-        return ClientCompany.objects.get(name=self.target_client_company.name)
+    def target_client_company_name(self) -> str:
+        return self.target_client_company.name
 
     @property
     def num_lessons(self) -> int:
