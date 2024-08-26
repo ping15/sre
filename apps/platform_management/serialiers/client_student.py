@@ -3,9 +3,9 @@ from rest_framework import serializers
 
 from apps.platform_management.models import ClientStudent
 from common.utils.drf.serializer_fields import ChoiceField, MonthYearField
-from common.utils.drf.serializer_validator import BasicSerializerValidator, PhoneCreateSerializerValidator
+from common.utils.drf.serializer_validator import (
+    BasicSerializerValidator, PhoneCreateSerializerValidator)
 from common.utils.global_constants import AppModule
-from common.utils.tools import reverse_dict
 
 
 class ClientStudentListSerializer(serializers.ModelSerializer):
@@ -82,7 +82,7 @@ class ClientStudentBatchImportSerializer(
 
 class ClientStudentStatisticSerializer(serializers.Serializer):
     start_date = MonthYearField()
-    end_date = MonthYearField(time_delta=relativedelta(months=1, days=-1))
+    end_date = MonthYearField(time_delta=relativedelta(months=1))
 
 
 class ClientStudentFilterConditionSerializer(serializers.Serializer):

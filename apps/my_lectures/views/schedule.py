@@ -6,7 +6,7 @@ from common.utils.drf.permissions import InstructorPermission
 from common.utils.drf.response import Response
 
 
-class EventModelViewSet(ModelViewSet):
+class ScheduleModelViewSet(ModelViewSet):
     permission_classes = [InstructorPermission]
     queryset = Event.objects.all()
     ACTION_MAP = {

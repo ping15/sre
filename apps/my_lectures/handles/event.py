@@ -12,9 +12,7 @@ from common.utils.calendar import between, format_date, generate_blank_calendar
 
 class EventHandler:
     @classmethod
-    def build_calendars(
-        cls, events: QuerySet["Event"], start_date: date, end_date: date
-    ) -> List[dict]:
+    def build_calendars(cls, events: QuerySet["Event"], start_date: date, end_date: date) -> List[dict]:
         """
         构建日程
         """
@@ -117,18 +115,12 @@ class EventHandler:
                     cls._mark_unavailable(blank_calendar, event, current_date)
 
     @classmethod
-    def _mark_unavailable(
-        cls, blank_calendar: Dict[str, dict], event: Event, current_date: date
-    ):
+    def _mark_unavailable(cls, blank_calendar: Dict[str, dict], event: Event, current_date: date):
         blank_calendar[format_date(current_date)]["is_available"] = False
-        blank_calendar[format_date(current_date)]["rules"].append(
-            cls.build_event_data(event)
-        )
+        blank_calendar[format_date(current_date)]["rules"].append(cls.build_event_data(event))
 
     @classmethod
-    def marking_canceled(
-        cls, blank_calendar: Dict[str, dict], start_date: date, end_date: date
-    ):
+    def marking_canceled(cls, blank_calendar: Dict[str, dict], start_date: date, end_date: date):
         """
         取消单日不可用时间
         """
@@ -151,9 +143,7 @@ class EventHandler:
         return False
 
     @classmethod
-    def is_current_date_in_range(
-        cls, current_date: date, start_date: date, end_date: Optional[date]
-    ) -> bool:
+    def is_current_date_in_range(cls, current_date: date, start_date: date, end_date: Optional[date]) -> bool:
         """
         检查 current_date 是否在 start_date 和 end_date 之间。
         如果 end_date 是 None，表示没有结束日期，范围延续到无穷远。
