@@ -17,6 +17,11 @@ class TrainingClass(models.Model):
         ONLINE = "online", "线上课"
         OFFLINE = "offline", "线下课"
 
+    class PublishType(models.TextChoices):
+        NONE = "none", "未发布"
+        PUBLISH_ADVERTISEMENT = "publish_advertisement", "发布广告"
+        DESIGNATE_INSTRUCTOR = "designate_instructor", "指定讲师"
+
     course = models.ForeignKey(
         CourseTemplate,
         related_name="training_classes",
@@ -56,6 +61,8 @@ class TrainingClass(models.Model):
     )
     hours_per_lesson = models.IntegerField(_("课程课时"), default=6)
     review = models.TextField(_("课后复盘"), default="")
+
+    publish_type = models.CharField("发布方式", max_length=24, choices=PublishType.choices, default=PublishType.NONE)
 
     @property
     def course_name(self) -> CourseTemplate:

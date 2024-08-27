@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List
+from typing import Dict, List, Any
 
 from django.http import FileResponse, Http404
 from rest_framework import serializers, status
@@ -58,6 +58,9 @@ class ModelViewSet(DRFModelViewSet):
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         return serializer.validated_data
+
+    def paginate_data(self, datas: List[Any]) -> List[Any]:
+        return self.get_paginated_response(self.paginate_queryset(datas)).data["data"]
 
     # def list(self, request, *args, **kwargs):
     #     queryset = self.filter_queryset(self.get_queryset())

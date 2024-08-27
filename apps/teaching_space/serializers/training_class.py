@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from apps.my_lectures.models import InstructorEnrolment
+from apps.my_lectures.serializers.advertisement import AdvertisementListSerializer
 from apps.my_lectures.serializers.instructor_event import \
     InstructorEventListSerializer
 from apps.platform_management.models import CourseTemplate
@@ -61,9 +63,13 @@ class TrainingClassPublishAdvertisementSerializer(serializers.Serializer):
     deadline_datetime = serializers.DateTimeField()
 
 
-class TrainingClassAdvertisementSerializer(serializers.Serializer):
-    status = serializers.CharField()
+class TrainingClassAdvertisementSerializer(serializers.ModelSerializer):
     instructor = InstructorListSerializer()
+    # advertisement = AdvertisementListSerializer()
+
+    class Meta:
+        model = InstructorEnrolment
+        fields = "__all__"
 
 
 class TrainingClassSelectInstructorSerializer(serializers.Serializer):
