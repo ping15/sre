@@ -1,5 +1,6 @@
 from typing import Dict, List
 
+from django.db import transaction
 from django.db.models import QuerySet
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -54,10 +55,23 @@ class AdvertisementViewSet(ModelViewSet):
     def advertisement_registration(self, request, *args, **kwargs):
         validated_data = self.validated_data
 
-        # 创建一条报名状况
-        InstructorEnrolment.objects.get_or_create(
-            instructor=self.request.user,
-            advertisement_id=validated_data["advertisement_id"],
-        )
+        # 如果该广告不存在，直接返回
+        try:
+            advertisement: Advertisement = Advertisement.objects.get(id=validated_data["advertisement_id"])
+        except Advertisement.DoesNotExist:
+            return Response(result=False, err_msg="该广告不存在")
+
+        with transaction.atomic():
+            # 创建一条报名状况
+            _, created = InstructorEnrolment.objects.get_or_create(
+                instructor=self.request.user,
+                advertisement_id=validated_data["advertisement_id"],
+            )
+            if not created:
+                return Response(result=False, err_msg="已参加过报名")
+
+            # 广告报名人数加1
+            advertisement.enrolment_count += 1
+            advertisement.save()
 
         return Response()

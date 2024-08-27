@@ -34,7 +34,8 @@ class TrainingClassModelViewSet(ModelViewSet):
     }
 
     @action(detail=True, methods=["POST"])
-    def add_instructor(self, request, *args, **kwargs):
+    def designate_instructor(self, request, *args, **kwargs):
+        """指定讲师"""
         validated_data = self.validated_data
         training_class: TrainingClass = self.get_object()
 
@@ -46,10 +47,9 @@ class TrainingClassModelViewSet(ModelViewSet):
         if training_class.instructor:
             return Response(result=False, err_msg="该培训班已制定了讲师")
 
-        # 指定讲师
         try:
+            # 指定讲师
             training_class.instructor = Instructor.objects.get(id=validated_data["instructor"])
-            training_class.save()
 
             # 新增讲师事件
             InstructorEvent.objects.create(
@@ -59,6 +59,10 @@ class TrainingClassModelViewSet(ModelViewSet):
                 training_class=training_class,
             )
 
+            # 培训班发布类型为[指定讲师]
+            training_class.publish_type = TrainingClass.PublishType.DESIGNATE_INSTRUCTOR
+            training_class.save()
+
         except Instructor.DoesNotExist:
             return Response(result=False, err_msg="该讲师不存在")
 
@@ -66,7 +70,9 @@ class TrainingClassModelViewSet(ModelViewSet):
 
     @action(detail=True, methods=["POST"])
     def reassign_instructor(self, request, *args, **kwargs):
+        """重新分配讲师"""
         training_class: TrainingClass = self.get_object()
+        instructor_event: InstructorEvent = training_class.instructor_event
 
         # 无讲师代办事件不可取消
         if not hasattr(training_class, "instructor_event") or training_class.instructor_event is None:
@@ -77,20 +83,28 @@ class TrainingClassModelViewSet(ModelViewSet):
             return Response(result=False, err_msg="该培训班已开课，不可移除")
 
         with transaction.atomic():
-            # 把该培训班的该讲师的日程取消
-            if training_class.instructor:
+            # 当讲师同意时，会产生相应的日程，移除讲师时需将日程清除
+            if training_class.instructor and instructor_event.status == InstructorEvent.Status.AGREED:
+                # 把该培训班的该讲师的日程取消
                 Event.objects.filter(
                     event_type=Event.EventType.CLASS_SCHEDULE.value, instructor=training_class.instructor).delete()
 
-            # 删除讲师代办事件，取消培训班的讲师
-            training_class.instructor_event.delete()
+                # 讲师事项状态由[已同意]转成[已被移除]
+                instructor_event.status = InstructorEvent.Status.REMOVED
+                instructor_event.save()
+
+            # 取消培训班的讲师
             training_class.instructor = None
+
+            # 培训班发布类型为[未发布]
+            training_class.publish_type = TrainingClass.PublishType.NONE
             training_class.save()
 
         return Response()
 
     @action(detail=True, methods=["POST"])
     def revoke_instructor(self, request, *args, **kwargs):
+        """撤销讲师"""
         training_class: TrainingClass = self.get_object()
 
         # 无讲师代办事件不可取消
@@ -101,19 +115,32 @@ class TrainingClassModelViewSet(ModelViewSet):
         if training_class.instructor_event.status == InstructorEvent.Status.AGREED:
             return Response(result=False, err_msg="该代办事件讲师已确认")
 
-        # 删除讲师代办事件，取消培训班的讲师
         with transaction.atomic():
+            # 删除讲师代办事件，取消培训班的讲师
             training_class.instructor_event.delete()
             training_class.instructor = None
+            training_class.save()
+
+            # 培训班发布类型为[未发布]
+            training_class.publish_type = TrainingClass.PublishType.NONE
             training_class.save()
 
         return Response()
 
     @action(detail=True, methods=["POST"])
     def publish_advertisement(self, request, *args, **kwargs):
+        """发布广告"""
         validated_data = self.validated_data
         training_class: TrainingClass = self.get_object()
         now = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
+
+        # 如果培训班不处于未发布状态，不可发布
+        if training_class.publish_type != TrainingClass.PublishType.NONE:
+            return Response(result=False, err_msg="该培训班不处于未发布状态")
+
+        # 如果已经发布过广告，不可重复发布广告
+        if Advertisement.objects.filter(training_class=training_class).exists():
+            return Response(result=False, err_msg="已发布过广告")
 
         # 如果报名截止时间大于等于当前时间，不可发布广告
         if validated_data["deadline_datetime"] <= now:
@@ -123,31 +150,54 @@ class TrainingClassModelViewSet(ModelViewSet):
         if training_class.start_date <= now.date():
             return Response(result=False, err_msg="开课时间小于等于当前时间，不可发布广告")
 
-        # 发布广告
-        Advertisement.objects.create(
-            training_class=training_class,
-            deadline_datetime=validated_data["deadline_datetime"],
-            location=validated_data["location"],
-        )
+        with transaction.atomic():
+            # 发布广告
+            Advertisement.objects.create(
+                training_class=training_class,
+                deadline_datetime=validated_data["deadline_datetime"],
+                location=validated_data["location"],
+            )
+
+            # 培训班发布类型为[发布广告]
+            training_class.publish_type = TrainingClass.PublishType.PUBLISH_ADVERTISEMENT
+            training_class.save()
 
         return Response()
 
     @action(detail=True, methods=["GET"])
     def advertisement(self, request, *args, **kwargs):
-        # 寻找培训班的广告的报名状况
+        """报名状况"""
+        # 培训班，广告，报名状况
         training_class: TrainingClass = self.get_object()
-        instructor_enrolments: QuerySet["InstructorEnrolment"] = (
-            training_class.advertisement.instructor_enrolments.all()
-        )
+        advertisement: Advertisement = training_class.advertisement
+        instructor_enrolments: QuerySet["InstructorEnrolment"] = advertisement.instructor_enrolments.all()
+        now: datetime = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
+        is_expired: bool = False
 
-        # 序列化数据
-        serializer = self.get_serializer(instructor_enrolments, many=True)
+        if training_class.publish_type != TrainingClass.PublishType.PUBLISH_ADVERTISEMENT:
+            return Response(result=False, err_msg="该培训班未发布广告")
 
-        # 返回序列化后的数据
-        return Response(serializer.data)
+        # 如果报名截止时间大于等于当前时间
+        if advertisement.deadline_datetime <= now:
+            # 培训班发布类型为[未发布]
+            training_class.publish_type = TrainingClass.PublishType.NONE
+            training_class.save()
+
+            # 广告清除
+            training_class.advertisement.delete()
+
+            is_expired = True
+
+        return Response({
+            "is_expired": is_expired,
+            "total": advertisement.enrolment_count,
+            "deadline": advertisement.deadline_datetime,
+            "instructor_enrolments": self.paginate_data(self.get_serializer(instructor_enrolments, many=True).data)
+        })
 
     @action(detail=True, methods=["POST"])
     def select_instructor(self, request, *args, **kwargs):
+        """从报名中选择讲师"""
         validated_data = self.validated_data
 
         # 寻找培训班的广告的报名状况
