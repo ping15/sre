@@ -43,6 +43,17 @@ class ClientStudentModelViewSet(ModelViewSet):
         "filter_condition": ClientStudentFilterConditionSerializer,
     }
 
+    def list(self, request, *args, **kwargs):
+        # user: Administrator = request.user
+        #
+        # # 非超级管理员只能看到自己所属管理公司下面的客户学员
+        # if user.role in [Administrator.Role.PARTNER_MANAGER, Administrator.Role.COMPANY_MANAGER]:
+        #     self.queryset = self.get_queryset().filter(affiliated_client_company_name__in=[
+        #         user.affiliated_manage_company.client_company_names
+        #     ])
+
+        return super().list(request, *args, **kwargs)
+
     @action(
         methods=["GET"],
         detail=False,

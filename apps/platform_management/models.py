@@ -155,6 +155,10 @@ class ManageCompany(models.Model):
         return ClientCompany.objects.filter(affiliated_manage_company_name=self.name)
 
     @property
+    def client_company_names(self) -> List[str]:
+        return list(self.client_companies.values_list("name", flat=True))
+
+    @property
     def students(self) -> QuerySet["ClientStudent"]:
         return ClientStudent.objects.filter(
             affiliated_client_company_name__in=self.client_companies.values_list(
@@ -174,7 +178,7 @@ class ManageCompany(models.Model):
 
     def delete(self, using=None, keep_parents=False):
         self.client_companies.delete()
-        self.administrators.delete()
+        self.administrators.all().delete()
         super().delete(using, keep_parents)
 
     def __str__(self):

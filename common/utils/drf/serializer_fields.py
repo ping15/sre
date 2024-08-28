@@ -32,8 +32,8 @@ class ChoiceField(serializers.ChoiceField):
         except KeyError:
             self.fail("invalid_choice", input=data, choices=list(self.choices.keys()))
 
-    def to_representation(self, value):
-        return super().to_representation(self.choices.get(value))
+    # def to_representation(self, value):
+    #     return super().to_representation(self.choices.get(value))
 
 
 class MonthYearField(serializers.Field):

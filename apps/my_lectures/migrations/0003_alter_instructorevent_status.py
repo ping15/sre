@@ -13,6 +13,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='instructorevent',
             name='status',
-            field=models.CharField(choices=[('pending', '待处理'), ('agreed', '已同意'), ('rejected', '已拒绝'), ('removed', '已被移除')], default='pending', max_length=50, verbose_name='状态'),
+            field=models.CharField(
+                choices=[('pending', '待处理'), ('agreed', '已同意'), ('rejected', '已拒绝'), ('removed', '已被移除')],
+                default='pending', max_length=50, verbose_name='状态'),
         ),
     ]
