@@ -1,9 +1,6 @@
 from rest_framework import serializers
 
 from apps.my_lectures.models import InstructorEnrolment
-from apps.my_lectures.serializers.advertisement import AdvertisementListSerializer
-from apps.my_lectures.serializers.instructor_event import \
-    InstructorEventListSerializer
 from apps.platform_management.models import CourseTemplate
 from apps.platform_management.serialiers.course_template import \
     CourseTemplateCreateSerializer
@@ -32,7 +29,7 @@ class TrainingClassListSerializer(serializers.ModelSerializer):
 class TrainingClassRetrieveSerializer(serializers.ModelSerializer):
     course = CourseTemplateCreateSerializer()
     certification_body = serializers.JSONField()
-    instructor_event = InstructorEventListSerializer()
+    name = serializers.ReadOnlyField()
 
     class Meta:
         model = TrainingClass
@@ -50,8 +47,8 @@ class TrainingClassCreateSerializer(serializers.ModelSerializer, BasicSerializer
         fields = "__all__"
 
 
-class TrainingClassAddInstructorSerializer(serializers.Serializer):
-    instructor = serializers.IntegerField()
+class TrainingClassDesignateInstructorSerializer(serializers.Serializer):
+    instructor_id = serializers.IntegerField()
 
 
 # class TrainingClassRemoveInstructorSerializer(serializers.Serializer):

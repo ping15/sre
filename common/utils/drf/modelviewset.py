@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 from django.http import FileResponse, Http404
 from rest_framework import serializers, status
@@ -72,6 +72,10 @@ class ModelViewSet(DRFModelViewSet):
     #
     #     serializer = self.get_serializer(queryset, many=True)
     #     return Response(serializer.data)
+
+    @staticmethod
+    def transform_choices(choices):
+        return [{"id": value, "name": label} for value, label in choices]
 
     def retrieve(self, request, *args, **kwargs):
         return Response(super().retrieve(request, *args, **kwargs).data)

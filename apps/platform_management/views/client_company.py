@@ -24,6 +24,16 @@ class ClientCompanyModelViewSet(ModelViewSet):
         # "partial_update": ClientCompanyCreateSerializer,
     }
 
+    def list(self, request, *args, **kwargs):
+        # user: Administrator = request.user
+        #
+        # # 非超级管理员只能看到自己所属管理公司下面的客户公司
+        # if user.role in [Administrator.Role.PARTNER_MANAGER, Administrator.Role.COMPANY_MANAGER]:
+        #     self.queryset = self.get_queryset().filter(
+        #         affiliated_manage_company_name=user.affiliated_manage_company_name)
+
+        return super().list(request, *args, **kwargs)
+
     def update(self, request, *args, **kwargs):
         if "name" in self.request.data:
             ClientCompany.sync_name(self.get_object().name, self.request.data["name"])

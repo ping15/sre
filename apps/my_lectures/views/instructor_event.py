@@ -1,6 +1,8 @@
 from django.db import transaction
 from rest_framework.permissions import AllowAny
 
+from apps.my_lectures.filters.instructor_event import \
+    InstructorEventFilterClass
 from apps.my_lectures.handles.event import EventHandler
 from apps.my_lectures.models import InstructorEvent
 from apps.my_lectures.serializers.instructor_event import (
@@ -13,9 +15,11 @@ from common.utils.drf.response import Response
 class InstructorEventModelViewSet(ModelViewSet):
     permission_classes = [AllowAny]
     queryset = InstructorEvent.objects.all()
+    filter_class = InstructorEventFilterClass
     ACTION_MAP = {
         "list": InstructorEventListSerializer,
         "update": InstructorEventUpdateSerializer,
+        "partial_update": InstructorEventUpdateSerializer,
     }
 
     def update(self, request, *args, **kwargs):
