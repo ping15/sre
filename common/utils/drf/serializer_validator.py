@@ -2,9 +2,14 @@ import re
 
 from rest_framework import serializers
 
-from apps.platform_management.models import (Administrator, ClientCompany,
-                                             ClientStudent, CourseTemplate,
-                                             Instructor, ManageCompany)
+from apps.platform_management.models import (
+    Administrator,
+    ClientCompany,
+    ClientStudent,
+    CourseTemplate,
+    Instructor,
+    ManageCompany,
+)
 
 
 class BasicSerializerValidator:

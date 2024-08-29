@@ -36,26 +36,19 @@ class EventHandler:
             # 培训班排课
             if event.event_type == Event.EventType.CLASS_SCHEDULE.value:
                 blank_calendar[format_date(marking_start_date)]["count"] += 1
-                blank_calendar[format_date(marking_start_date)]["data"].append(
-                    cls.build_event_data(event)
-                )
+                blank_calendar[format_date(marking_start_date)]["data"].append(cls.build_event_data(event))
 
             # 取消单日不可用时间
             elif event.event_type == Event.EventType.CANCEL_UNAVAILABILITY.value:
                 assert event_start_date == event_end_date
-                cls.marking_canceled(
-                    blank_calendar, marking_start_date, marking_end_date
-                )
+                cls.marking_canceled(blank_calendar, marking_start_date, marking_end_date)
 
             # 登记一次性不可用时间规则和周期性不可用时间规则
             elif event.event_type in [
-                Event.EventType.ONE_TIME_UNAVAILABILITY.value,
-                Event.EventType.RECURRING_UNAVAILABILITY.value,
+                Event.EventType.ONE_TIME_UNAVAILABILITY, Event.EventType.RECURRING_UNAVAILABILITY
             ]:
                 # blank_calendar[format_date(marking_start_date)]["rules"].append(cls.build_event_data(event))
-                cls.marking_unavailable(
-                    blank_calendar, event, marking_start_date, marking_end_date
-                )
+                cls.marking_unavailable(blank_calendar, event, marking_start_date, marking_end_date)
 
         blank_calendar = {
             current_date: calendar_info
@@ -92,13 +85,7 @@ class EventHandler:
         }
 
     @classmethod
-    def marking_unavailable(
-        cls,
-        blank_calendar: Dict[str, dict],
-        event: Event,
-        start_date: date,
-        end_date: date,
-    ):
+    def marking_unavailable(cls, blank_calendar: Dict[str, dict], event: Event, start_date: date, end_date: date):
         """
         标记不可用时间
         """
@@ -157,19 +144,21 @@ class EventHandler:
         """
         检查 current_date 是否在规则范围内
         """
-        assert rule.event_type in [
-            Event.EventType.ONE_TIME_UNAVAILABILITY.value,
-            Event.EventType.RECURRING_UNAVAILABILITY.value,
-        ]
+        assert rule.event_type in [Event.EventType.ONE_TIME_UNAVAILABILITY, Event.EventType.RECURRING_UNAVAILABILITY]
+
+        # 不在时间范围内，规则无效
+        if not cls.is_current_date_in_range(current_date, rule.start_date, rule.end_date):
+            return False
 
         if rule.event_type == Event.EventType.ONE_TIME_UNAVAILABILITY.value:
-            return cls.is_current_date_in_range(current_date, rule.start_date, rule.end_date)
+            return True
 
         elif rule.freq_type == Event.FreqType.WEEKLY and current_date.isoweekday() in rule.freq_interval:
             return True
 
         elif rule.freq_type == Event.FreqType.MONTHLY and current_date.day in rule.freq_interval:
             return True
+
         return False
 
     @classmethod
@@ -211,25 +200,18 @@ class EventHandler:
             training_class=training_class,
         )
 
-        if new_event.event_type in [
-            Event.EventType.ONE_TIME_UNAVAILABILITY.value,
-            Event.EventType.RECURRING_UNAVAILABILITY.value,
-        ]:
+        if new_event.event_type in [Event.EventType.ONE_TIME_UNAVAILABILITY, Event.EventType.RECURRING_UNAVAILABILITY]:
             rule = new_event
 
             # 如果与培训班日程冲突，直接返回不创建
-            for event in Event.objects.filter(
-                event_type=Event.EventType.CLASS_SCHEDULE.value
-            ):
+            for event in Event.objects.filter(event_type=Event.EventType.CLASS_SCHEDULE.value):
                 if EventHandler.is_event_conflict_to_rule(event, rule):
                     raise ParseError("该规则与已有的培训班日程存在冲突")
 
             # 如果与讲师参与广告报名冲突，直接返回不创建
 
             # [取消单日不可用时间]如果在规则内，则清除该类型的事件
-            for event in Event.objects.filter(
-                event_type=Event.EventType.CANCEL_UNAVAILABILITY
-            ):
+            for event in Event.objects.filter(event_type=Event.EventType.CANCEL_UNAVAILABILITY):
                 if EventHandler.is_event_conflict_to_rule(event, rule):
                     event.delete()
 
@@ -241,11 +223,8 @@ class EventHandler:
                 event_type=Event.EventType.CANCEL_UNAVAILABILITY).values_list("start_date", flat=True)
             if not all([current_date in cancel_dates for current_date in between(start_date, end_date)]):
                 # 如果该讲师的不可用时间和培训班日程冲突，直接返回不创建
-                for rule in Event.objects.filter(
-                    event_type__in=[
-                        Event.EventType.ONE_TIME_UNAVAILABILITY.value,
-                        Event.EventType.RECURRING_UNAVAILABILITY.value,
-                    ]
+                for rule in Event.objects.filter(event_type__in=[
+                    Event.EventType.ONE_TIME_UNAVAILABILITY, Event.EventType.RECURRING_UNAVAILABILITY]
                 ):
                     if EventHandler.is_event_conflict_to_rule(event, rule):
                         raise ParseError("该培训班与已有的规则存在冲突")
@@ -253,3 +232,61 @@ class EventHandler:
         new_event.save()
 
         return new_event
+
+    @classmethod
+    def is_current_date_usable(
+        cls,
+        current_date: date,
+        instructor_id: int,
+        without_training_class: bool = False,
+        without_rule: bool = False,
+        without_cancel_event: bool = False,
+    ) -> bool:
+        for event in Event.objects.filter(instructor_id=instructor_id):
+            # 判断是否在培训班日程范围内
+            if (
+                not without_training_class
+                and event.event_type == Event.EventType.CLASS_SCHEDULE
+                and cls.is_current_date_in_range(current_date, event.start_date, event.end_date)
+            ):
+                return False
+
+            # 判断是否在取消不可用时间范围内
+            if (
+                not without_cancel_event
+                and event.event_type == Event.EventType.CANCEL_UNAVAILABILITY
+                and cls.is_current_date_in_cancel_events(current_date, event)
+            ):
+                return True
+
+            # 判断是否在规则范围内
+            if (
+                not without_rule
+                and event.event_type in Event.EventType.rule_types
+                and cls.is_current_date_in_rule(current_date, event)
+            ):
+                return False
+
+        return True
+
+    @classmethod
+    def is_range_date_usable(
+        cls,
+        start_date: date,
+        end_date: date,
+        instructor_id: int,
+        without_training_class: bool = False,
+        without_rule: bool = False,
+        without_cancel_event: bool = False,
+    ) -> bool:
+        for current_date in between(start_date, end_date):
+            if not cls.is_current_date_usable(
+                current_date=current_date,
+                instructor_id=instructor_id,
+                without_training_class=without_training_class,
+                without_rule=without_rule,
+                without_cancel_event=without_cancel_event,
+            ):
+                return False
+
+        return True

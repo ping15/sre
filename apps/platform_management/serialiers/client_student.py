@@ -4,7 +4,9 @@ from rest_framework import serializers
 from apps.platform_management.models import ClientStudent
 from common.utils.drf.serializer_fields import ChoiceField, MonthYearField
 from common.utils.drf.serializer_validator import (
-    BasicSerializerValidator, PhoneCreateSerializerValidator)
+    BasicSerializerValidator,
+    PhoneCreateSerializerValidator,
+)
 from common.utils.global_constants import AppModule
 
 

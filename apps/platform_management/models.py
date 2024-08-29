@@ -117,8 +117,6 @@ class CourseTemplate(models.Model):
         default=list,
     )
 
-    teaching_count = models.IntegerField(_("授课次数"), default=0)
-
     def __str__(self):
         return self.name
 
@@ -463,8 +461,9 @@ class Event(models.Model):
         RECURRING_UNAVAILABILITY = "recurring_unavailability", "登记周期性不可用时间规则"
         CANCEL_UNAVAILABILITY = "cancel_unavailability", "取消单日不可用时间"
 
-        def rule_types(self) -> List[str]:
-            return [self.ONE_TIME_UNAVAILABILITY.value + self.RECURRING_UNAVAILABILITY.value]
+        @classmethod
+        def rule_types(cls) -> List[str]:
+            return [cls.ONE_TIME_UNAVAILABILITY, cls.RECURRING_UNAVAILABILITY]
 
     class FreqType(models.TextChoices):
         WEEKLY = "weekly", "每周"

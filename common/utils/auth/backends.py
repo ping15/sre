@@ -1,8 +1,7 @@
 from django.contrib.auth.backends import ModelBackend as DJANGOModelBackend
 from django.core.exceptions import ObjectDoesNotExist
 
-from apps.platform_management.models import (Administrator, ClientStudent,
-                                             Instructor)
+from apps.platform_management.models import Administrator, ClientStudent, Instructor
 
 
 class ModelBackend(DJANGOModelBackend):

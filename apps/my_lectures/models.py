@@ -11,6 +11,7 @@ class InstructorEvent(models.Model):
         AGREED = "agreed", "已同意"
         REJECTED = "rejected", "已拒绝"
         REMOVED = "removed", "已被移除"
+        TIMEOUT = "timeout", "已超时"
 
     event_name = models.CharField("事项名", max_length=255)
     initiator = models.CharField("发起人", max_length=255)
@@ -21,7 +22,16 @@ class InstructorEvent(models.Model):
         verbose_name="培训班",
         related_name="instructor_event"
     )
+    instructor = models.ForeignKey(
+        Instructor,
+        on_delete=models.CASCADE,
+        verbose_name="讲师",
+        related_name="instructor_event",
+        null=True,
+        blank=True,
+    )
     created_datetime = models.DateField("发起时间", auto_now_add=True)
+    start_date = models.DateField("开课时间", null=True, blank=True)
     review = models.TextField("课后复盘", default="")
 
 

@@ -1,11 +1,14 @@
 from rest_framework.decorators import action
 
-from apps.platform_management.filters.management_company import \
-    ManagementCompanyFilterClass
+from apps.platform_management.filters.management_company import (
+    ManagementCompanyFilterClass,
+)
 from apps.platform_management.models import ManageCompany
 from apps.platform_management.serialiers.management_company import (
-    ManagementCompanyCreateSerializer, ManagementCompanyListSerializer,
-    ManagementCompanyUpdateSerializer)
+    ManagementCompanyCreateSerializer,
+    ManagementCompanyListSerializer,
+    ManagementCompanyUpdateSerializer,
+)
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
 from common.utils.drf.response import Response

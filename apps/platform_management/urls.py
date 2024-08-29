@@ -12,7 +12,7 @@ from .views.course_template import CourseTemplateModelViewSet
 from .views.instructor import InstructorModelViewSet
 from .views.management_company import ManagementCompanyModelViewSet
 
-router = routers.DefaultRouter(trailing_slash=True)
+router = routers.DefaultRouter()
 
 # 客户资料审批
 router.register(

@@ -1,16 +1,22 @@
 from rest_framework.decorators import action
 
-from apps.platform_management.filters.client_approval_slip import \
-    ClientApprovalSlipFilterClass
+from apps.platform_management.filters.client_approval_slip import (
+    ClientApprovalSlipFilterClass,
+)
 from apps.platform_management.models import ClientApprovalSlip
 from apps.platform_management.serialiers.client_approval_slip import (
-    ClientApprovalSlipCreateSerializer, ClientApprovalSlipListSerializer,
-    ClientApprovalSlipPartialUpdateSerializer)
-from apps.platform_management.serialiers.client_company import \
-    ClientCompanyCreateSerializer
+    ClientApprovalSlipCreateSerializer,
+    ClientApprovalSlipListSerializer,
+    ClientApprovalSlipPartialUpdateSerializer,
+)
+from apps.platform_management.serialiers.client_company import (
+    ClientCompanyCreateSerializer,
+)
 from common.utils.drf.modelviewset import ModelViewSet
-from common.utils.drf.permissions import (ManageCompanyAdministratorPermission,
-                                          SuperAdministratorPermission)
+from common.utils.drf.permissions import (
+    ManageCompanyAdministratorPermission,
+    SuperAdministratorPermission,
+)
 from common.utils.drf.response import Response
 
 

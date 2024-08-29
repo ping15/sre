@@ -1,5 +1,9 @@
-from rest_framework.exceptions import (NotAuthenticated, ParseError,
-                                       PermissionDenied, ValidationError)
+from rest_framework.exceptions import (
+    NotAuthenticated,
+    ParseError,
+    PermissionDenied,
+    ValidationError,
+)
 from rest_framework.status import HTTP_401_UNAUTHORIZED
 from rest_framework.views import exception_handler as drf_exception_handler
 

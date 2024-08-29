@@ -1,6 +1,11 @@
-from django.contrib.auth import (BACKEND_SESSION_KEY, HASH_SESSION_KEY,
-                                 SESSION_KEY, _get_backends,
-                                 _get_user_session_key, user_logged_in)
+from django.contrib.auth import (
+    BACKEND_SESSION_KEY,
+    HASH_SESSION_KEY,
+    SESSION_KEY,
+    _get_backends,
+    _get_user_session_key,
+    user_logged_in,
+)
 from django.middleware.csrf import rotate_token
 from django.utils.crypto import constant_time_compare
 

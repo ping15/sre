@@ -1,22 +1,28 @@
 import datetime
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 
-from apps.my_lectures.models import (Advertisement, InstructorEnrolment,
-                                     InstructorEvent)
-from apps.my_lectures.serializers.instructor_event import \
-    InstructorEventListSerializer
-from apps.platform_management.models import CourseTemplate, Event, Instructor
+from apps.my_lectures.handles.event import EventHandler
+from apps.my_lectures.models import Advertisement, InstructorEnrolment, InstructorEvent
+from apps.my_lectures.serializers.instructor_event import InstructorEventListSerializer
+from apps.platform_management.models import CourseTemplate, Event
+from apps.platform_management.serialiers.client_student import (
+    ClientStudentListSerializer,
+)
 from apps.teaching_space.filters.training_class import TrainingClassFilterClass
 from apps.teaching_space.models import TrainingClass
 from apps.teaching_space.serializers.training_class import (
-    TrainingClassAdvertisementSerializer, TrainingClassCreateSerializer,
-    TrainingClassDesignateInstructorSerializer, TrainingClassListSerializer,
+    TrainingClassAdvertisementSerializer,
+    TrainingClassCreateSerializer,
+    TrainingClassDesignateInstructorSerializer,
+    TrainingClassListSerializer,
     TrainingClassPublishAdvertisementSerializer,
-    TrainingClassRetrieveSerializer, TrainingClassSelectInstructorSerializer)
+    TrainingClassRetrieveSerializer,
+    TrainingClassSelectInstructorSerializer,
+)
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.response import Response
 
@@ -38,6 +44,11 @@ class TrainingClassModelViewSet(ModelViewSet):
     }
 
     @action(detail=True, methods=["GET"])
+    def students(self, request, *args, **kwargs):
+        training_class: TrainingClass = self.get_object()
+        return Response(ClientStudentListSerializer(training_class.target_client_company.students, many=True).data)
+
+    @action(detail=True, methods=["GET"])
     def instructor_event(self, request, *args, **kwargs):
         training_class: TrainingClass = self.get_object()
 
@@ -47,7 +58,15 @@ class TrainingClassModelViewSet(ModelViewSet):
         if not hasattr(training_class, "instructor_event") or training_class.instructor_event is None:
             return Response(result=False, err_msg="该讲师无代办事项")
 
-        return Response(InstructorEventListSerializer(training_class.instructor_event.last()).data)
+        instructor_event: InstructorEvent = training_class.instructor_event.last()
+
+        # 如果该单据已经过了截至时间则超时了
+        deadline_date: datetime.date = instructor_event.start_date or training_class.start_date
+        if InstructorEvent.Status != InstructorEvent.Status.TIMEOUT and deadline_date <= datetime.datetime.now().date():
+            instructor_event.status = InstructorEvent.Status.TIMEOUT
+            instructor_event.save()
+
+        return Response(InstructorEventListSerializer(instructor_event).data)
 
     @action(detail=True, methods=["POST"])
     def designate_instructor(self, request, *args, **kwargs):
@@ -67,8 +86,32 @@ class TrainingClassModelViewSet(ModelViewSet):
             return Response(result=False, err_msg="该培训班已制定了讲师")
 
         try:
+            start_date: datetime.date = validated_data.get("start_date", training_class.start_date)
+
+            # 讲师无法同时在一天内给多个客户公司上课
+            # 如果该讲师已经在这个时间段存在日程，不允许邀请
+            # 假如讲师开课时间为a, a+1, 则如果说在a-1, a, a+1存在排期的话与讲师的排期冲突
+            # 1. set(a, a+1) & set(a-1, a  ) = set(a)
+            # 2. set(a, a+1) & set(a  , a+1) = set(a, a+1)
+            # 3. set(a, a+1) & set(a+1, a+2) = set(a+1)
+            if Event.objects.filter(
+                event_type=Event.EventType.CLASS_SCHEDULE,
+                instructor_id=validated_data["instructor_id"],
+                start_date__range=(start_date - datetime.timedelta(days=1), start_date + datetime.timedelta(days=1)),
+            ).exists():
+                return Response(result=False, err_msg="该讲师已经在这个时间段存在日程，不允许邀请")
+
+            # 如果指定讲师的时候，开课时间和[不可用时间规则，取消单日不可用时间]规则冲突，不允许邀请
+            if not EventHandler.is_range_date_usable(
+                start_date,
+                start_date + datetime.timedelta(days=1),
+                validated_data["instructor_id"],
+                without_training_class=True
+            ):
+                return Response(result=False, err_msg="该讲师已经在这个时间段存在不可用规则限制，不允许邀请")
+
             # 指定讲师
-            training_class.instructor = Instructor.objects.get(id=validated_data["instructor_id"])
+            training_class.instructor_id = validated_data["instructor_id"]
 
             # 新增讲师事件
             InstructorEvent.objects.create(
@@ -76,13 +119,14 @@ class TrainingClassModelViewSet(ModelViewSet):
                            f"[{training_class.target_client_company_name}]上课",
                 initiator=self.request.user.username,
                 training_class=training_class,
+                start_date=start_date,
             )
 
             # 培训班发布类型为[指定讲师]
             training_class.publish_type = TrainingClass.PublishType.DESIGNATE_INSTRUCTOR
             training_class.save()
 
-        except Instructor.DoesNotExist:
+        except IntegrityError:
             return Response(result=False, err_msg="该讲师不存在")
 
         return Response()

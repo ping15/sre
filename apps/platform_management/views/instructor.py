@@ -7,13 +7,20 @@ from rest_framework.decorators import action
 
 from apps.my_lectures.handles.event import EventHandler
 from apps.platform_management.filters.instructor import (
-    InstructorFilterClass, InstructorTaughtCoursesFilterClass)
+    InstructorFilterClass,
+    InstructorTaughtCoursesFilterClass,
+)
 from apps.platform_management.models import Event, Instructor
 from apps.platform_management.serialiers.instructor import (
-    InstructorCalendarSerializer, InstructorCreateSerializer,
-    InstructorFilterConditionSerializer, InstructorListSerializer,
-    InstructorPartialUpdateSerializer, InstructorRetrieveSerializer,
-    InstructorReviewSerializer, InstructorUpdateSerializer)
+    InstructorCalendarSerializer,
+    InstructorCreateSerializer,
+    InstructorFilterConditionSerializer,
+    InstructorListSerializer,
+    InstructorPartialUpdateSerializer,
+    InstructorRetrieveSerializer,
+    InstructorReviewSerializer,
+    InstructorUpdateSerializer,
+)
 from apps.teaching_space.models import TrainingClass
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
