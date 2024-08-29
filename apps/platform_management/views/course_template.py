@@ -1,14 +1,17 @@
 from django.db.models import Q
 from rest_framework.decorators import action
 
-from apps.platform_management.filters.course_templates import \
-    CourseTemplatesFilterClass
+from apps.platform_management.filters.course_templates import CourseTemplatesFilterClass
 from apps.platform_management.models import CourseTemplate
 from apps.platform_management.serialiers.course_template import (
-    CourseTemplateCreateSerializer, CourseTemplateListSerializer)
+    CourseTemplateCreateSerializer,
+    CourseTemplateListSerializer,
+)
 from common.utils.drf.modelviewset import ModelViewSet
-from common.utils.drf.permissions import (ManageCompanyAdministratorPermission,
-                                          SuperAdministratorPermission)
+from common.utils.drf.permissions import (
+    ManageCompanyAdministratorPermission,
+    SuperAdministratorPermission,
+)
 from common.utils.drf.response import Response
 
 

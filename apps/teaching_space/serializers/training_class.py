@@ -2,10 +2,10 @@ from rest_framework import serializers
 
 from apps.my_lectures.models import InstructorEnrolment
 from apps.platform_management.models import CourseTemplate
-from apps.platform_management.serialiers.course_template import \
-    CourseTemplateCreateSerializer
-from apps.platform_management.serialiers.instructor import \
-    InstructorListSerializer
+from apps.platform_management.serialiers.course_template import (
+    CourseTemplateCreateSerializer,
+)
+from apps.platform_management.serialiers.instructor import InstructorListSerializer
 from apps.teaching_space.models import TrainingClass
 from common.utils.drf.serializer_fields import ChoiceField
 from common.utils.drf.serializer_validator import BasicSerializerValidator
@@ -27,9 +27,20 @@ class TrainingClassListSerializer(serializers.ModelSerializer):
 
 
 class TrainingClassRetrieveSerializer(serializers.ModelSerializer):
+    instructor = InstructorListSerializer()
     course = CourseTemplateCreateSerializer()
     certification_body = serializers.JSONField()
     name = serializers.ReadOnlyField()
+    instructor_count = serializers.SerializerMethodField(method_name="statistic_instructor_count")
+
+    def statistic_instructor_count(self, obj: TrainingClass):
+        if obj.publish_type == TrainingClass.PublishType.PUBLISH_ADVERTISEMENT:
+            return InstructorEnrolment.objects.filter(advertisement__training_class=obj).count()
+
+        if obj.publish_type == TrainingClass.PublishType.DESIGNATE_INSTRUCTOR:
+            return 1
+
+        return 0
 
     class Meta:
         model = TrainingClass
@@ -49,6 +60,7 @@ class TrainingClassCreateSerializer(serializers.ModelSerializer, BasicSerializer
 
 class TrainingClassDesignateInstructorSerializer(serializers.Serializer):
     instructor_id = serializers.IntegerField()
+    deadline_date = serializers.DateField(required=False, allow_null=True)
 
 
 # class TrainingClassRemoveInstructorSerializer(serializers.Serializer):

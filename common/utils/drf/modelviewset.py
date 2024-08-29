@@ -103,7 +103,6 @@ class ModelViewSet(DRFModelViewSet):
 
         # 解析excel
         datas: List[Dict[str, str]] = excel_to_list(validated_data["file_path"], self.batch_import_mapping)
-
         create_serializer = self.batch_import_serializer(data=datas, many=True)
 
         if not create_serializer.is_valid():

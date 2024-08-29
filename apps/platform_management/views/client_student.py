@@ -5,18 +5,28 @@ from django.db.models import Count, QuerySet
 from django.db.models.functions import TruncMonth
 from rest_framework.decorators import action
 
-from apps.platform_management.filters.client_student import \
-    ClientStudentFilterClass
-from apps.platform_management.models import (Administrator, ClientCompany,
-                                             ClientStudent, ManageCompany)
+from apps.platform_management.filters.client_student import ClientStudentFilterClass
+from apps.platform_management.models import (
+    Administrator,
+    ClientCompany,
+    ClientStudent,
+    ManageCompany,
+)
 from apps.platform_management.serialiers.client_student import (
-    ClientStudentBatchImportSerializer, ClientStudentCreateSerializer,
-    ClientStudentFilterConditionSerializer, ClientStudentListSerializer,
-    ClientStudentQuickSearchSerializer, ClientStudentRetrieveSerializer,
-    ClientStudentStatisticSerializer, ClientStudentUpdateSerializer)
+    ClientStudentBatchImportSerializer,
+    ClientStudentCreateSerializer,
+    ClientStudentFilterConditionSerializer,
+    ClientStudentListSerializer,
+    ClientStudentQuickSearchSerializer,
+    ClientStudentRetrieveSerializer,
+    ClientStudentStatisticSerializer,
+    ClientStudentUpdateSerializer,
+)
 from common.utils.drf.modelviewset import ModelViewSet
-from common.utils.drf.permissions import (ManageCompanyAdministratorPermission,
-                                          SuperAdministratorPermission)
+from common.utils.drf.permissions import (
+    ManageCompanyAdministratorPermission,
+    SuperAdministratorPermission,
+)
 from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import CLIENT_STUDENT_EXCEL_MAPPING
 from common.utils.global_constants import AppModule

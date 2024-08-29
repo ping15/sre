@@ -3,12 +3,17 @@ from collections import defaultdict
 from rest_framework.decorators import action
 
 from apps.my_lectures.handles.event import EventHandler
-from apps.platform_management.filters.all_schedules import \
-    AllScheduleFilterClass
-from apps.platform_management.models import (ClientCompany, Event, Instructor,
-                                             ManageCompany)
+from apps.platform_management.filters.all_schedules import AllScheduleFilterClass
+from apps.platform_management.models import (
+    ClientCompany,
+    Event,
+    Instructor,
+    ManageCompany,
+)
 from apps.platform_management.serialiers.all_schedules import (
-    AllScheduleCreateSerializer, AllScheduleListSerializer)
+    AllScheduleCreateSerializer,
+    AllScheduleListSerializer,
+)
 from apps.teaching_space.models import TrainingClass
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission

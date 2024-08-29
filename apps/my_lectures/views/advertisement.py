@@ -6,8 +6,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 
 from apps.my_lectures.models import Advertisement, InstructorEnrolment
-from apps.my_lectures.serializers.advertisement import \
-    AdvertisementAdvertisementRegistrationSerializer
+from apps.my_lectures.serializers.advertisement import (
+    AdvertisementAdvertisementRegistrationSerializer,
+)
 from apps.platform_management.models import Instructor
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.response import Response

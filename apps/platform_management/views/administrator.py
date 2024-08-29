@@ -1,11 +1,13 @@
 from rest_framework.decorators import action
 
-from apps.platform_management.filters.administrator import \
-    AdministratorFilterClass
+from apps.platform_management.filters.administrator import AdministratorFilterClass
 from apps.platform_management.models import Administrator
 from apps.platform_management.serialiers.administrator import (
-    AdministratorBatchImportSerializer, AdministratorCreateSerializer,
-    AdministratorListSerializer, AdministratorUpdateSerializer)
+    AdministratorBatchImportSerializer,
+    AdministratorCreateSerializer,
+    AdministratorListSerializer,
+    AdministratorUpdateSerializer,
+)
 from common.utils import global_constants
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import SuperAdministratorPermission
@@ -18,9 +20,7 @@ class AdministratorModelViewSet(ModelViewSet):
     serializer_class = AdministratorUpdateSerializer
     queryset = Administrator.objects.all()
     enable_batch_import = True
-    batch_import_template_path = (
-        "common/utils/excel_parser/templates/administrator_template.xlsx"
-    )
+    batch_import_template_path = "common/utils/excel_parser/templates/administrator_template.xlsx"
     batch_import_serializer = AdministratorBatchImportSerializer
     batch_import_mapping = ADMINISTRATOR_EXCEL_MAPPING
     filter_class = AdministratorFilterClass

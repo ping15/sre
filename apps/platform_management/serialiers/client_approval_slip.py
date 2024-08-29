@@ -4,8 +4,9 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from apps.platform_management.models import ClientApprovalSlip
-from apps.platform_management.serialiers.client_company import \
-    ClientCompanyCreateSerializer
+from apps.platform_management.serialiers.client_company import (
+    ClientCompanyCreateSerializer,
+)
 from common.utils.drf.serializer_fields import ChoiceField
 
 
