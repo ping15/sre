@@ -250,8 +250,11 @@ class TrainingClassModelViewSet(ModelViewSet):
         now: datetime = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
         is_expired: bool = False
 
-        # 如果报名截止时间大于等于当前时间
-        if advertisement.deadline_datetime <= now:
+        # 如果未选择讲师且如果报名截止时间大于等于当前时间
+        if (
+            not instructor_enrolments.exclude(status=InstructorEnrolment.Status.PENDING).exists()
+            and advertisement.deadline_datetime <= now
+        ):
             # 培训班发布类型为[未发布]
             training_class.publish_type = TrainingClass.PublishType.NONE
             training_class.save()
