@@ -3,7 +3,6 @@ import datetime
 from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
 
 from apps.my_lectures.handles.event import EventHandler
 from apps.my_lectures.models import Advertisement, InstructorEnrolment, InstructorEvent
@@ -24,12 +23,16 @@ from apps.teaching_space.serializers.training_class import (
     TrainingClassSelectInstructorSerializer,
 )
 from common.utils.drf.modelviewset import ModelViewSet
+from common.utils.drf.permissions import (
+    ManageCompanyAdministratorPermission,
+    SuperAdministratorPermission,
+)
 from common.utils.drf.response import Response
 
 
 class TrainingClassModelViewSet(ModelViewSet):
-    # permission_classes = [ManageCompanyAdministratorPermission | SuperAdministratorPermission]
-    permission_classes = [AllowAny]
+    permission_classes = [ManageCompanyAdministratorPermission | SuperAdministratorPermission]
+    # permission_classes = [AllowAny]
     queryset = TrainingClass.objects.all()
     serializer_class = TrainingClassCreateSerializer
     filter_class = TrainingClassFilterClass
@@ -79,7 +82,7 @@ class TrainingClassModelViewSet(ModelViewSet):
 
         # 如果培训班已开课，无法添加该讲师
         if training_class.start_date <= datetime.datetime.now().date():
-            return Response(result=False, err_msg="该培训班已开课，不可添加")
+            return Response(result=False, err_msg="该培训班开课时间小于等于当前时间，不可添加")
 
         # 如果已经有了讲师，不可添加
         if training_class.instructor:
@@ -120,6 +123,7 @@ class TrainingClassModelViewSet(ModelViewSet):
                 initiator=self.request.user.username,
                 training_class=training_class,
                 start_date=start_date,
+                instructor_id=validated_data["instructor_id"],
             )
 
             # 培训班发布类型为[指定讲师]
@@ -210,10 +214,6 @@ class TrainingClassModelViewSet(ModelViewSet):
         if training_class.publish_type != TrainingClass.PublishType.NONE:
             return Response(result=False, err_msg="该培训班不处于未发布状态")
 
-        # 如果已经发布过广告，不可重复发布广告
-        if Advertisement.objects.filter(training_class=training_class).exists():
-            return Response(result=False, err_msg="已发布过广告")
-
         # 如果报名截止时间大于等于当前时间，不可发布广告
         if validated_data["deadline_datetime"] <= now:
             return Response(result=False, err_msg="报名截止时间小于等于当前时间，不可发布广告")
@@ -223,6 +223,10 @@ class TrainingClassModelViewSet(ModelViewSet):
             return Response(result=False, err_msg="开课时间小于等于当前时间，不可发布广告")
 
         with transaction.atomic():
+            # 清除原来的广告
+            if hasattr(training_class, "advertisement") and training_class.advertisement is not None:
+                training_class.advertisement.delete()
+
             # 发布广告
             Advertisement.objects.create(
                 training_class=training_class,
@@ -232,18 +236,19 @@ class TrainingClassModelViewSet(ModelViewSet):
 
             # 培训班发布类型为[发布广告]
             training_class.publish_type = TrainingClass.PublishType.PUBLISH_ADVERTISEMENT
+            training_class.instructor = None
             training_class.save()
 
         return Response()
 
     @action(detail=True, methods=["GET"])
     def advertisement(self, request, *args, **kwargs):
-        """报名状况"""
+        """讲师报名表"""
         # 培训班，广告，报名状况
         training_class: TrainingClass = self.get_object()
 
-        if training_class.publish_type != TrainingClass.PublishType.PUBLISH_ADVERTISEMENT:
-            return Response(result=False, err_msg="该培训班未处于[发布广告]")
+        if not hasattr(training_class, "advertisement") or training_class.advertisement is None:
+            return Response(result=False, err_msg="该培训班无广告")
 
         advertisement: Advertisement = training_class.advertisement
         instructor_enrolments: QuerySet["InstructorEnrolment"] = advertisement.instructor_enrolments.all()
@@ -257,10 +262,11 @@ class TrainingClassModelViewSet(ModelViewSet):
         ):
             # 培训班发布类型为[未发布]
             training_class.publish_type = TrainingClass.PublishType.NONE
+            training_class.instructor = None
             training_class.save()
 
-            # 广告清除
-            training_class.advertisement.delete()
+            # 讲师报名表清除
+            training_class.advertisement.instructor_enrolments.all().delete()
 
             is_expired = True
 
@@ -273,7 +279,7 @@ class TrainingClassModelViewSet(ModelViewSet):
 
     @action(detail=True, methods=["POST"])
     def select_instructor(self, request, *args, **kwargs):
-        """从报名中选择讲师"""
+        """从报名表中选择讲师"""
         validated_data = self.validated_data
 
         # 寻找培训班的广告的报名状况
@@ -292,17 +298,25 @@ class TrainingClassModelViewSet(ModelViewSet):
 
         # 检查 instructor_enrolment_id 是否在 instructor_enrolments 中
         try:
-            selected_enrolment = instructor_enrolments.get(id=validated_data["instructor_enrolment_id"])
+            selected_enrolment: InstructorEnrolment = instructor_enrolments.get(
+                id=validated_data["instructor_enrolment_id"])
         except InstructorEnrolment.DoesNotExist:
             return Response(result=False, err_msg="不存在该报名记录")
 
-        # 更新状态
-        for enrolment in instructor_enrolments:
-            if enrolment.id == selected_enrolment.id:
-                enrolment.status = InstructorEnrolment.Status.ACCEPTED
-            else:
-                enrolment.status = InstructorEnrolment.Status.REJECTED
-            enrolment.save()
+        with transaction.atomic():
+            # 更新状态
+            for enrolment in instructor_enrolments:
+                if enrolment.id == selected_enrolment.id:
+                    enrolment.status = InstructorEnrolment.Status.ACCEPTED
+                else:
+                    enrolment.status = InstructorEnrolment.Status.REJECTED
+                enrolment.save()
+
+            # 指定培训班的讲师
+            training_class.instructor = selected_enrolment.instructor
+
+            # 给选中的讲师安排日程
+            EventHandler.create_event(training_class=training_class, event_type=Event.EventType.CLASS_SCHEDULE.value)
 
         return Response()
 

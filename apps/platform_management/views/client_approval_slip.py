@@ -71,7 +71,10 @@ class ClientApprovalSlipModelViewSet(ModelViewSet):
                     "children": [],
                 },
                 {"id": "submitter", "name": "提单人", "children": []},
-                {"id": "status", "name": "审批状态", "children": []},
+                {"id": "status", "name": "审批状态", "children": [
+                    {"id": choice.value, "name": choice.label}  # noqa
+                    for choice in ClientApprovalSlip.Status
+                ]},
                 {"id": "submission_datetime", "name": "时间", "children": []},
             ]
         )

@@ -265,7 +265,7 @@ class Instructor(models.Model):
 
     @property
     def role(self) -> str:
-        return global_constants.Role.CLIENT_STUDENT.value
+        return global_constants.Role.INSTRUCTOR.value
 
     @property
     def is_active(self) -> bool:
