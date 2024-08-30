@@ -2,7 +2,6 @@ import datetime
 
 from django.db import transaction
 from django.db.models import QuerySet
-from rest_framework.permissions import AllowAny
 
 from apps.my_lectures.filters.instructor_event import InstructorEventFilterClass
 from apps.my_lectures.handles.event import EventHandler
@@ -13,11 +12,12 @@ from apps.my_lectures.serializers.instructor_event import (
 )
 from apps.platform_management.models import Event
 from common.utils.drf.modelviewset import ModelViewSet
+from common.utils.drf.permissions import InstructorPermission
 from common.utils.drf.response import Response
 
 
 class InstructorEventModelViewSet(ModelViewSet):
-    permission_classes = [AllowAny]
+    permission_classes = [InstructorPermission]
     queryset = InstructorEvent.objects.all()
     filter_class = InstructorEventFilterClass
     ACTION_MAP = {
@@ -32,7 +32,7 @@ class InstructorEventModelViewSet(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         # 已经过了截至时间的单据更新为已超时
-        self.get_queryset().filter(deadline_date__lte=datetime.datetime.now().date()).update(
+        self.get_queryset().filter(start_date__lte=datetime.datetime.now().date()).update(
             status=InstructorEvent.Status.TIMEOUT)
 
         return super().list(request, *args, **kwargs)

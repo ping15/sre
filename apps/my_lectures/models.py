@@ -59,7 +59,9 @@ class InstructorEnrolment(models.Model):
     class Status(models.TextChoices):
         ACCEPTED = "accepted", "已聘用"
         PENDING = "pending", "待聘用"
+        NOT_ENROLLED = "not_enrolled", "未报名"
         REJECTED = "rejected", "未聘用"
+        TIMEOUT = "timeout", "已过期"
 
     instructor = models.ForeignKey(
         Instructor,

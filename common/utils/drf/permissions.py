@@ -1,6 +1,7 @@
 from rest_framework.permissions import BasePermission
 
 from apps.platform_management.models import Administrator
+from common.utils import global_constants
 
 
 class SuperAdministratorPermission(BasePermission):
@@ -29,7 +30,7 @@ class InstructorPermission(BasePermission):
     """讲师权限"""
 
     def has_permission(self, request, view):
-        if request.user.is_authenticated and request.user.role == "instructor":
+        if request.user.is_authenticated and request.user.role == global_constants.Role.INSTRUCTOR:
             return True
 
         return False
@@ -39,7 +40,7 @@ class StudentPermission(BasePermission):
     """学员权限"""
 
     def has_permission(self, request, view):
-        if request.user.is_authenticated and request.user.role == "client_student":
+        if request.user.is_authenticated and request.user.role == global_constants.Role.CLIENT_STUDENT:
             return True
 
         return False
