@@ -11,10 +11,6 @@ class ClientApprovalSlipFilterClass(BaseFilterSet):
     affiliated_client_company_name = django_filters.CharFilter(
         "affiliated_client_company_name", lookup_expr="icontains"
     )
-    submitter = django_filters.CharFilter(
-        field_name="submitter", lookup_expr="icontains"
-    )
-    status = django_filters.CharFilter(field_name="status", lookup_expr="icontains")
-    submission_datetime = django_filters.DateTimeFromToRangeFilter(
-        field_name="submission_datetime"
-    )
+    submitter = django_filters.CharFilter("submitter", lookup_expr="icontains")
+    status = django_filters.CharFilter("status", lookup_expr="icontains")
+    submission_datetime = django_filters.DateTimeFromToRangeFilter("submission_datetime")

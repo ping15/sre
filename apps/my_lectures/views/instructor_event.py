@@ -2,13 +2,16 @@ import datetime
 
 from django.db import transaction
 from django.db.models import QuerySet
+from rest_framework.decorators import action
 
 from apps.my_lectures.filters.instructor_event import InstructorEventFilterClass
 from apps.my_lectures.handles.event import EventHandler
 from apps.my_lectures.models import InstructorEvent
 from apps.my_lectures.serializers.instructor_event import (
     InstructorEventListSerializer,
-    InstructorEventUpdateSerializer,
+    InstructorEventRetrieveSerializer,
+    InstructorEventUpdateReviewSerializer,
+    InstructorEventUpdateStatusSerializer,
 )
 from apps.platform_management.models import Event
 from common.utils.drf.modelviewset import ModelViewSet
@@ -22,8 +25,9 @@ class InstructorEventModelViewSet(ModelViewSet):
     filter_class = InstructorEventFilterClass
     ACTION_MAP = {
         "list": InstructorEventListSerializer,
-        "update": InstructorEventUpdateSerializer,
-        "partial_update": InstructorEventUpdateSerializer,
+        "retrieve": InstructorEventRetrieveSerializer,
+        "update_status": InstructorEventUpdateStatusSerializer,
+        "update_review": InstructorEventUpdateReviewSerializer,
     }
 
     def get_queryset(self):
@@ -38,9 +42,21 @@ class InstructorEventModelViewSet(ModelViewSet):
         return super().list(request, *args, **kwargs)
 
     def update(self, request, *args, **kwargs):
+        return Response(result=False)
+
+    @action(detail=True, methods=["POST"])
+    def update_status(self, request, *args, **kwargs):
         validated_data = self.validated_data
 
         instructor_event: InstructorEvent = self.get_object()
+
+        # 非[邀请上课]类型事件不可更新状态
+        if instructor_event.event_type != InstructorEvent.EventType.INVITE_TO_CLASS:
+            return Response(result=False, err_msg="该单据类型不属于[邀请上课]")
+
+        if instructor_event.status == InstructorEvent.Status.TIMEOUT.value:
+            return Response(result=False, err_msg="该单据已过期")
+
         if instructor_event.status != InstructorEvent.Status.PENDING.value:
             return Response(result=False, err_msg="该单据已处理")
 
@@ -56,3 +72,41 @@ class InstructorEventModelViewSet(ModelViewSet):
                     training_class=instructor_event.training_class, event_type=Event.EventType.CLASS_SCHEDULE.value)
 
         return Response()
+
+    @action(detail=True, methods=["POST"])
+    def update_review(self, request, *args, **kwargs):
+        validated_data = self.validated_data
+
+        instructor_event: InstructorEvent = self.get_object()
+
+        # 非[课后复盘]类型事件不可填写课后复盘
+        if instructor_event.event_type != InstructorEvent.EventType.POST_CLASS_REVIEW:
+            return Response(result=False, err_msg="该单据类型不属于[课后复盘]，不可填写课后复盘")
+
+        if instructor_event.status == InstructorEvent.Status.TIMEOUT.value:
+            return Response(result=False, err_msg="该单据已过期")
+
+        if instructor_event.status != InstructorEvent.Status.PENDING.value:
+            return Response(result=False, err_msg="该单据已处理")
+
+        with transaction.atomic():
+            # 填写课后复盘
+            instructor_event.review = validated_data["review"]
+
+            # 更新单据状态
+            instructor_event.status = InstructorEvent.Status.FINISHED
+            instructor_event.save()
+
+        return Response()
+
+    @action(methods=["GET"], detail=False)
+    def filter_condition(self, request, *args, **kwargs):
+        return Response([
+            {"id": "event_name", "name": "事项名", "children": []},
+            {"id": "initiator", "name": "事项发起人", "children": []},
+            {"id": "created_datetime", "name": "发起时间", "children": []},
+            {"id": "status", "name": "事项状态", "children": [
+                {"id": status.value, "name": status.label}
+                for status in InstructorEvent.Status.get_completed_statuses()
+            ]},
+        ])

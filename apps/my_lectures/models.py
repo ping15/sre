@@ -1,3 +1,5 @@
+from typing import List
+
 from django.db import models
 
 from apps.platform_management.models import Instructor
@@ -10,10 +12,29 @@ class InstructorEvent(models.Model):
         PENDING = "pending", "待处理"
         AGREED = "agreed", "已同意"
         REJECTED = "rejected", "已拒绝"
-        REMOVED = "removed", "已被移除"
+        REMOVED = "removed", "已指定其他讲师"
         TIMEOUT = "timeout", "已超时"
+        FINISHED = "finished", "已完成"
+
+        @classmethod
+        def get_pending_statuses(cls) -> List:
+            return [cls.PENDING, cls.TIMEOUT]
+
+        @classmethod
+        def get_completed_statuses(cls) -> List:
+            return [cls.AGREED, cls.REJECTED, cls.REMOVED, cls.FINISHED]
+
+    class EventType(models.TextChoices):
+        INVITE_TO_CLASS = "invite_to_class", "邀请上课"
+        POST_CLASS_REVIEW = "post_class_review", "课后复盘"
 
     event_name = models.CharField("事项名", max_length=255)
+    event_type = models.CharField(
+        "事件类型",
+        max_length=32,
+        choices=EventType.choices,
+        default=EventType.INVITE_TO_CLASS,
+    )
     initiator = models.CharField("发起人", max_length=255)
     status = models.CharField("状态", max_length=50, choices=Status.choices, default=Status.PENDING)
     training_class = models.ForeignKey(
@@ -30,7 +51,7 @@ class InstructorEvent(models.Model):
         null=True,
         blank=True,
     )
-    created_datetime = models.DateField("发起时间", auto_now_add=True)
+    created_datetime = models.DateTimeField("发起时间", auto_now_add=True)
     start_date = models.DateField("开课时间", null=True, blank=True)
     review = models.TextField("课后复盘", default="")
 
