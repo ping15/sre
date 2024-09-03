@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -95,6 +97,10 @@ class TrainingClass(models.Model):
     @property
     def affiliated_manage_company_name(self) -> str:
         return self.affiliated_manage_company.name
+
+    @property
+    def end_date(self) -> datetime.date:
+        return self.start_date + datetime.timedelta(days=1)
 
     def __str__(self):
         return self.name
