@@ -160,6 +160,13 @@ LANGUAGES = (
 
 # AUTH_USER_MODEL = "platform_management.Manager"
 
+# COS配置
+COS_SECRET_ID = os.environ.get("COS_SECRET_ID", "")
+COS_SECRET_KEY = os.environ.get("COS_SECRET_KEY", "")
+COS_REGION = os.environ.get("COS_REGION", "")
+COS_BUCKET = os.environ.get("COS_BUCKET", "")
+
+# DRF配置
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",

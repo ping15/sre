@@ -4,7 +4,7 @@ from rest_framework import routers
 from .views.administrator import AdministratorModelViewSet
 from .views.all_classes import AllClassesModelViewSet
 from .views.all_schedules import AllScheduleModelViewSet
-from .views.attachment import FileDownloadView, FileUploadView
+from .views.attachment import FileUploadDownloadView
 from .views.client_approval_slip import ClientApprovalSlipModelViewSet
 from .views.client_company import ClientCompanyModelViewSet
 from .views.client_student import ClientStudentModelViewSet
@@ -28,9 +28,7 @@ router.register("all_classes", AllClassesModelViewSet, basename="all_classes")
 router.register("all_schedule", AllScheduleModelViewSet, basename="all_schedule")
 
 # 课程模板
-router.register(
-    r"course_template", CourseTemplateModelViewSet, basename="course_template"
-)
+router.register(r"course_template", CourseTemplateModelViewSet, basename="course_template")
 
 # 讲师
 router.register(r"instructor", InstructorModelViewSet, basename="instructor")
@@ -53,6 +51,6 @@ router.register(r"administrator", AdministratorModelViewSet, basename="administr
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("attachment/", FileUploadView.as_view(), name="file-upload"),
-    path("attachment/<int:pk>/", FileDownloadView.as_view(), name="file-download"),
+    path("attachment/", FileUploadDownloadView.as_view(), name="file-upload-download"),
+    # path("attachment/<int:pk>/", FileDownloadView.as_view(), name="file-download"),
 ]
