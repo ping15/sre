@@ -18,6 +18,8 @@ class ClientCompanyListSerializer(serializers.ModelSerializer):
 
 
 class ClientCompanyRetrieveSerializer(serializers.ModelSerializer):
+    payment_method = serializers.CharField(source='get_payment_method_display')
+
     class Meta:
         model = ClientCompany
         fields = "__all__"

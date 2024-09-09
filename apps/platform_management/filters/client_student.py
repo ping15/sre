@@ -10,9 +10,9 @@ class ClientStudentFilterClass(BaseFilterSet):
     affiliated_client_company_name = django_filters.CharFilter(
         "affiliated_client_company_name", lookup_expr="icontains"
     )
-    affiliated_client_company_name__exact = django_filters.CharFilter(
-        "affiliated_client_company_name", lookup_expr="exact"
-    )
+    # affiliated_client_company_name__exact = django_filters.CharFilter(
+    #     "affiliated_client_company_name", lookup_expr="exact"
+    # )
     affiliated_manage_company_name = PropertyFilter(
         "affiliated_manage_company_name", lookup_expr="icontains"
     )
