@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-from apps.platform_management.models import Attachment
+
+class FileUploadSerializer(serializers.Serializer):
+    file = serializers.FileField()
 
 
-class AttachmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Attachment
-        fields = ["file"]
+class FileDownloadSerializer(serializers.ModelSerializer):
+    file_key = serializers.CharField()

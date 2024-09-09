@@ -1,44 +1,51 @@
-# views.py
-from django.http import FileResponse, Http404
-from rest_framework import generics, status
-from rest_framework.parsers import FormParser, MultiPartParser
+import base64
+import binascii
+import uuid
 
-from apps.platform_management.models import Attachment
-from apps.platform_management.serialiers.attachment import AttachmentSerializer
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.http import FileResponse
+from rest_framework import generics
+
+from common.utils.cos import cos_client
 from common.utils.drf.response import Response
 
 
-class FileUploadView(generics.CreateAPIView):
-    queryset = Attachment.objects.all()
-    serializer_class = AttachmentSerializer
-    parser_classes = [MultiPartParser, FormParser]
+class FileUploadDownloadView(generics.GenericAPIView):
+    def get(self, request, *args, **kwargs):
+        """下载文件"""
+        query_params = self.request.query_params
+
+        if "file_key" not in query_params:
+            return Response(result=False, err_msg="未传入file_key")
+
+        try:
+            original_filename = base64.urlsafe_b64decode(query_params["file_key"].split('_', 1)[1].encode()).decode()
+
+        except KeyError:
+            return Response(result=False, err_msg="无法解析出文件名")
+
+        except binascii.Error:
+            return Response(result=False, err_msg="无法解码文件名")
+
+        response: dict = cos_client.download_file(query_params["file_key"])
+        if response.get("error"):
+            return Response(result=False, err_msg=response["error"])
+
+        return FileResponse(response["Body"], filename=original_filename)
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            attachment_instance = serializer.save()
-            return Response(
-                {
-                    "id": attachment_instance.id,
-                    "file_name": attachment_instance.file.name.split("/")[-1],
-                    "url": attachment_instance.file.url,
-                },
-                status=status.HTTP_201_CREATED,
-            )
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        """上传文件"""
+        data = self.request.data
 
+        if "file" not in data:
+            return Response(result=False, err_msg="未传入file")
 
-class FileDownloadView(generics.RetrieveAPIView):
-    queryset = Attachment.objects.all()
+        if not isinstance(data["file"], InMemoryUploadedFile):
+            return Response(result=False, err_msg="传入的file无法识别为文件")
 
-    def get(self, request, *args, **kwargs):
-        try:
-            attachment = self.get_object()
-            return FileResponse(
-                attachment.file,
-                as_attachment=True,
-                filename=attachment.file.name.split("/")[-1],
-            )
-        except Attachment.DoesNotExist:
-            raise Http404
+        file_key = str(uuid.uuid4()) + '_' + base64.urlsafe_b64encode(data["file"].name.encode()).decode()
+        response: dict = cos_client.upload_file_by_fp(data["file"], file_key)
+        if response.get("error"):
+            return Response(result=False, err_msg=response["error"])
+
+        return Response({"file_key": file_key})

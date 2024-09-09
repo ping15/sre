@@ -456,9 +456,9 @@ class Event(models.Model):
         RECURRING_UNAVAILABILITY = "recurring_unavailability", "登记周期性不可用时间规则"
         CANCEL_UNAVAILABILITY = "cancel_unavailability", "取消单日不可用时间"
 
-        @classmethod
-        def rule_types(cls) -> List[str]:
-            return [cls.ONE_TIME_UNAVAILABILITY, cls.RECURRING_UNAVAILABILITY]
+        @classproperty
+        def rule_types(self) -> List:
+            return [self.ONE_TIME_UNAVAILABILITY, self.RECURRING_UNAVAILABILITY]
 
     class FreqType(models.TextChoices):
         WEEKLY = "weekly", "每周"
