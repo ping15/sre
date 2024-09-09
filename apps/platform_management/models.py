@@ -329,13 +329,8 @@ class ClientCompany(models.Model):
 
     @classmethod
     def sync_name(cls, old_name: str, new_name: str):
-        from apps.teaching_space.models import TrainingClass
-
         ClientStudent.objects.filter(affiliated_client_company_name=old_name).update(
             affiliated_client_company_name=new_name
-        )
-        TrainingClass.objects.filter(target_client_company_name=old_name).update(
-            target_client_company_name=new_name
         )
 
     def delete(self, using=None, keep_parents=False):
