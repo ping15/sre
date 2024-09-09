@@ -150,33 +150,36 @@ class ManageCompany(models.Model):
 
     @property
     def client_companies(self) -> QuerySet["ClientCompany"]:
+        """该管理公司下所有客户公司"""
         return ClientCompany.objects.filter(affiliated_manage_company_name=self.name)
 
     @property
     def client_company_names(self) -> List[str]:
+        """该管理公司下所有客户公司名称"""
         return list(self.client_companies.values_list("name", flat=True))
 
     @property
     def students(self) -> QuerySet["ClientStudent"]:
+        """该管理公司下所有客户学员"""
         return ClientStudent.objects.filter(
-            affiliated_client_company_name__in=self.client_companies.values_list(
-                "name", flat=True
-            )
+            affiliated_client_company_name__in=self.client_companies.values_list("name", flat=True)
         )
 
     @classproperty
     def names(self) -> List[str]:
+        """管理公司所有名称"""
         return list(self.objects.values_list("name", flat=True))
 
     @classmethod
     def sync_name(cls, old_name: str, new_name: str):
+        """修改管理公司名称时同步下面客户公司的所属管理公司名称"""
         ClientCompany.objects.filter(affiliated_manage_company_name=old_name).update(
             affiliated_manage_company_name=new_name
         )
 
     def delete(self, using=None, keep_parents=False):
+        """删除管理公司时删除下面所有客户公司"""
         self.client_companies.delete()
-        self.administrators.all().delete()
         super().delete(using, keep_parents)
 
     def __str__(self):
@@ -378,9 +381,7 @@ class ClientStudent(models.Model):
 
     @property
     def affiliated_manage_company(self) -> ManageCompany:
-        return ManageCompany.objects.get(
-            name=self.affiliated_client_company.affiliated_manage_company_name
-        )
+        return ManageCompany.objects.get(name=self.affiliated_client_company.affiliated_manage_company_name)
 
     @property
     def affiliated_manage_company_name(self) -> str:

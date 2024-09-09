@@ -33,7 +33,7 @@ from common.utils.global_constants import AppModule
 
 
 class ClientStudentModelViewSet(ModelViewSet):
-    permission_classes = [SuperAdministratorPermission]
+    permission_classes = [SuperAdministratorPermission | ManageCompanyAdministratorPermission]
     serializer_class = ClientStudentCreateSerializer
     queryset = ClientStudent.objects.all()
     enable_batch_import = True
@@ -53,24 +53,17 @@ class ClientStudentModelViewSet(ModelViewSet):
         "filter_condition": ClientStudentFilterConditionSerializer,
     }
 
-    def list(self, request, *args, **kwargs):
-        # user: Administrator = request.user
-        #
-        # # 非超级管理员只能看到自己所属管理公司下面的客户学员
-        # if user.role in [Administrator.Role.PARTNER_MANAGER, Administrator.Role.COMPANY_MANAGER]:
-        #     self.queryset = self.get_queryset().filter(affiliated_client_company_name__in=[
-        #         user.affiliated_manage_company.client_company_names
-        #     ])
+    def get_queryset(self) -> QuerySet["ClientStudent"]:
+        queryset: QuerySet["ClientStudent"] = super().get_queryset()
+        user: Administrator = self.request.user
 
-        return super().list(request, *args, **kwargs)
+        # 非超级管理员只能看到自己所属管理公司下面的所有学员
+        if user.role != Administrator.Role.SUPER_MANAGER:
+            queryset: QuerySet["ClientStudent"] = user.affiliated_manage_company.students
 
-    @action(
-        methods=["GET"],
-        detail=False,
-        permission_classes=[
-            SuperAdministratorPermission | ManageCompanyAdministratorPermission
-        ],
-    )
+        return queryset
+
+    @action(methods=["GET"], detail=False)
     def quick_search(self, request, *args, **kwargs):
         if request.user.role == Administrator.Role.SUPER_MANAGER.value:
             manage_companies: QuerySet["ManageCompany"] = ManageCompany.objects.all()
@@ -99,18 +92,12 @@ class ClientStudentModelViewSet(ModelViewSet):
         return Response([
             {
                 "id": client_student.id,
-                "name": client_student.name,
+                "name": client_student.username,
             }
             for client_student in self.get_queryset()
         ])
 
-    @action(
-        methods=["GET"],
-        detail=False,
-        permission_classes=[
-            SuperAdministratorPermission | ManageCompanyAdministratorPermission
-        ],
-    )
+    @action(methods=["GET"], detail=False)
     def filter_condition(self, request, *args, **kwargs):
         validated_date = self.validated_data
 
@@ -141,45 +128,27 @@ class ClientStudentModelViewSet(ModelViewSet):
 
         return Response([])
 
-    @action(
-        methods=["GET"],
-        detail=False,
-        permission_classes=[
-            SuperAdministratorPermission | ManageCompanyAdministratorPermission
-        ],
-    )
+    @action(methods=["GET"], detail=False)
     def statistic_client_companies(self, request, *args, **kwargs):
         validated_data = self.validated_data
 
         start_date, end_date = validated_data["start_date"], validated_data["end_date"]
+        client_students: QuerySet["ClientStudent"] = self.filter_queryset(self.get_queryset())
 
-        # 超级管理员能看到所有客户公司的信息
-        # 管理公司管理员只能看到所在管理公司下面所有客户公司的信息
         if request.user.role == Administrator.Role.SUPER_MANAGER.value:
-            client_companies: QuerySet["ClientCompany"] = ClientCompany.objects.all()
+            client_companies: QuerySet["ClientCompany"] = client_students.first().affiliated_manage_company.client_companies
         else:
             client_companies: QuerySet["ClientCompany"] = request.user.affiliated_manage_company.client_companies
 
         return Response(self._handle_statistic(client_companies, start_date, end_date))
 
-    @action(
-        methods=["GET"],
-        detail=False,
-        permission_classes=[
-            SuperAdministratorPermission | ManageCompanyAdministratorPermission
-        ],
-    )
+    @action(methods=["GET"], detail=False)
     def statistic_client_students(self, request, *args, **kwargs):
         validated_data = self.validated_data
 
         start_date, end_date = validated_data["start_date"], validated_data["end_date"]
 
-        # 超级管理员能看到所有客户公司的信息
-        # 管理公司管理员只能看到所在管理公司下面所有客户公司的信息
-        if request.user.role == Administrator.Role.SUPER_MANAGER.value:
-            client_students: QuerySet["ClientStudent"] = ClientStudent.objects.all()
-        else:
-            client_students: QuerySet["ClientStudent"] = request.user.affiliated_manage_company.students
+        client_students: QuerySet["ClientStudent"] = self.filter_queryset(self.get_queryset())
 
         return Response(self._handle_statistic(client_students, start_date, end_date))
 
