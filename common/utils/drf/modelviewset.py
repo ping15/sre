@@ -2,17 +2,19 @@ import os
 from typing import Any, Dict, List
 
 from django.http import FileResponse, Http404
+from qcloud_cos.streambody import StreamBody
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet as DRFModelViewSet
 
+from common.utils.cos import cos_client
 from common.utils.drf.filters import BaseFilterSet
 from common.utils.drf.response import Response
 from common.utils.excel_parser.parser import excel_to_list
 
 
-class FileSerializer(serializers.Serializer):
-    file_path = serializers.CharField()
+class BatchImportSerializer(serializers.Serializer):
+    file_key = serializers.CharField()
 
 
 class SimpleQuerySerializer(serializers.Serializer):
@@ -40,7 +42,7 @@ class ModelViewSet(DRFModelViewSet):
         if not cls.enable_batch_import and hasattr(cls, "batch_import"):
             cls.batch_import = cls.batch_import_template = None
         else:
-            cls.ACTION_MAP["batch_import"] = FileSerializer
+            cls.ACTION_MAP["batch_import"] = BatchImportSerializer
             cls.batch_import_serializer = cls.batch_import_serializer or cls.ACTION_MAP.get("create")
 
         cls.ACTION_MAP["simple_query"] = SimpleQuerySerializer
@@ -101,8 +103,16 @@ class ModelViewSet(DRFModelViewSet):
         """批量导入"""
         validated_data = self.validated_data
 
+        # 从cos中下载文件
+        response: dict = cos_client.download_file(validated_data["file_key"])
+        if response.get("error"):
+            return Response(result=False, err_msg=response["error"])
+
         # 解析excel
-        datas: List[Dict[str, str]] = excel_to_list(validated_data["file_path"], self.batch_import_mapping)
+        stream_body: StreamBody = response["Body"]
+        # datas: List[Dict[str, str]] = excel_to_list(stream_body._rt.content, self.batch_import_mapping)
+        datas: List[Dict[str, str]] = excel_to_list(stream_body.read(None), self.batch_import_mapping)
+
         create_serializer = self.batch_import_serializer(data=datas, many=True)
 
         if not create_serializer.is_valid():

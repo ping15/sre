@@ -1,22 +1,28 @@
 from typing import Any, Dict, List
-from urllib.parse import unquote
 
 import pandas as pd
 
 
-def excel_to_list(
-    file_path: str, mapping: Dict[str, Dict[str, str]]
-) -> List[Dict[str, str]]:
-    df = pd.read_excel(open(unquote(file_path)[1:], "rb"))
+def excel_to_list(contents: bytes, mapping: Dict[str, Dict[str, str]]) -> List[Dict[str, str]]:
+    df = pd.read_excel(contents)
+
+    # 字段名 -> 字段类型
     field_name__field_type: Dict[str, str] = {
         column_mapping["value"]: column_mapping["type"]
         for excel_column, column_mapping in mapping.items()
     }
+
+    # excel表头 -> 字段名
     excel_column__field_name: Dict[str, str] = {
         column: column_mapping["value"] for column, column_mapping in mapping.items()
     }
+
+    # 将df中excel表头进行映射
     df = df.rename(columns=excel_column__field_name)
+
     datas: List[Dict[str, str]] = df.to_dict(orient="records")
+
+    # 类型转换，df拿到的数据都为str
     datas = [_convert_data(data, field_name__field_type) for data in datas]
     return datas
 
