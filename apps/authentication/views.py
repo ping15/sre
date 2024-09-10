@@ -86,10 +86,7 @@ class AuthenticationViewSet(GenericViewSet):
 
     @property
     def validated_data(self):
-        if self.request.method == "GET":
-            data = self.request.query_params
-        else:
-            data = self.request.data
+        data = self.request.query_params if self.request.method == "GET" else self.request.data
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         return serializer.validated_data

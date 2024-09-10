@@ -133,12 +133,20 @@ class ClientStudentModelViewSet(ModelViewSet):
         validated_data = self.validated_data
 
         start_date, end_date = validated_data["start_date"], validated_data["end_date"]
-        client_students: QuerySet["ClientStudent"] = self.filter_queryset(self.get_queryset())
+        client_company_id = request.query_params.get("affiliated_client_company")
 
-        if request.user.role == Administrator.Role.SUPER_MANAGER.value:
-            client_companies: QuerySet["ClientCompany"] = client_students.first().affiliated_manage_company.client_companies
-        else:
-            client_companies: QuerySet["ClientCompany"] = request.user.affiliated_manage_company.client_companies
+        client_companies: QuerySet["ClientCompany"] = request.user.affiliated_manage_company.client_companies
+        if client_company_id:
+            try:
+                # 查找该客户公司所属的管理公司下面所有客户公司
+                client_company: ClientCompany = ClientCompany.objects.get(id=int(client_company_id))
+                client_companies = client_company.affiliated_manage_company.client_companies
+
+            except (ValueError, KeyError):
+                return Response(result=False, err_msg="无效的客户公司ID")
+
+            except ClientCompany.DoesNotExist:
+                return Response(result=False, err_msg="查不到该客户公司")
 
         return Response(self._handle_statistic(client_companies, start_date, end_date))
 
