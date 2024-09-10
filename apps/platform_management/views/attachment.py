@@ -4,6 +4,7 @@ import uuid
 
 from django.http import FileResponse
 from rest_framework import generics
+from rest_framework.permissions import AllowAny
 
 from apps.platform_management.serialiers.attachment import (
     FileDeleteSerializer,
@@ -15,6 +16,8 @@ from common.utils.drf.response import Response
 
 
 class FileUploadDownloadView(generics.GenericAPIView):
+    permission_classes = [AllowAny]
+
     def get_validated_data(self, serializer_class):
         data = self.request.query_params if self.request.method == "GET" else self.request.data
         serializer = serializer_class(data=data)
@@ -38,7 +41,10 @@ class FileUploadDownloadView(generics.GenericAPIView):
         if response.get("error"):
             return Response(result=False, err_msg=response["error"])
 
-        return FileResponse(response["Body"], filename=original_filename)
+        return FileResponse(
+            response["Body"],
+            filename=original_filename,
+        )
 
     def post(self, request, *args, **kwargs):
         """上传文件"""
@@ -52,6 +58,7 @@ class FileUploadDownloadView(generics.GenericAPIView):
         return Response({
             "file_key": file_key,
             "file_name": validated_data["file"].name,
+            "url": f"/api/platform_management/attachment/?file_key={file_key}",
         })
 
     def delete(self, request, *args, **kwargs):
