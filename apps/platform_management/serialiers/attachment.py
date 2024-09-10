@@ -5,5 +5,9 @@ class FileUploadSerializer(serializers.Serializer):
     file = serializers.FileField()
 
 
-class FileDownloadSerializer(serializers.ModelSerializer):
+class FileDownloadSerializer(serializers.Serializer):
+    file_key = serializers.CharField()
+
+
+class FileDeleteSerializer(serializers.Serializer):
     file_key = serializers.CharField()
