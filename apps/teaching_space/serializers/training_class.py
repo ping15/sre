@@ -31,6 +31,7 @@ class TrainingClassRetrieveSerializer(serializers.ModelSerializer):
     course = CourseTemplateCreateSerializer()
     certification_body = serializers.JSONField()
     name = serializers.ReadOnlyField()
+    end_date = serializers.ReadOnlyField()
     instructor_count = serializers.SerializerMethodField(method_name="statistic_instructor_count")
 
     def statistic_instructor_count(self, obj: TrainingClass):

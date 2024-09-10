@@ -118,7 +118,10 @@ class ClientStudentModelViewSet(ModelViewSet):
                     {"id": "username", "name": "学员名称", "children": []},
                     {"id": "sex", "name": "性别", "children": []},
                     {"id": "id_number", "name": "身份证", "children": []},
-                    {"id": "education", "name": "学历", "children": []},
+                    {"id": "education", "name": "学历", "children": [
+                        {"id": choice.value, "name": choice.label}  # noqa
+                        for choice in ClientStudent.Education
+                    ]},
                     {"id": "phone", "name": "电话", "children": []},
                     {"id": "email", "name": "邮箱", "children": []},
                     {"id": "department", "name": "部门", "children": []},
