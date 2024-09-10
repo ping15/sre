@@ -48,11 +48,13 @@ class TrainingClassModelViewSet(ModelViewSet):
 
     @action(detail=True, methods=["GET"])
     def students(self, request, *args, **kwargs):
+        """客户学员"""
         training_class: TrainingClass = self.get_object()
         return Response(ClientStudentListSerializer(training_class.target_client_company.students, many=True).data)
 
     @action(detail=True, methods=["GET"])
     def instructor_event(self, request, *args, **kwargs):
+        """讲师事项"""
         training_class: TrainingClass = self.get_object()
 
         if training_class.publish_type != TrainingClass.PublishType.DESIGNATE_INSTRUCTOR:
