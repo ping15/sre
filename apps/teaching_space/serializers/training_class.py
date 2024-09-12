@@ -20,6 +20,7 @@ class TrainingClassSerializer(serializers.ModelSerializer):
 class TrainingClassListSerializer(serializers.ModelSerializer):
     name = serializers.ReadOnlyField()
     instructor_name = serializers.ReadOnlyField()
+    student_count = serializers.ReadOnlyField()
 
     class Meta:
         model = TrainingClass
