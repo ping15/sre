@@ -38,7 +38,6 @@ class TrainingClass(models.Model):
     session_number = models.CharField(_("课程期数"), max_length=32)
     status = models.CharField(_("状态"), max_length=16, choices=Status.choices)
     class_mode = models.CharField(_("上课模式"), choices=ClassMode.choices, max_length=16)
-    student_count = models.IntegerField(_("学员数量"), default=0)
     start_date = models.DateField(_("开课时间"))
     assessment_method = models.CharField(
         _("考核方式"),
@@ -101,6 +100,10 @@ class TrainingClass(models.Model):
     @property
     def end_date(self) -> datetime.date:
         return self.start_date + datetime.timedelta(days=1)
+
+    @property
+    def student_count(self) -> int:
+        return self.target_client_company.student_count
 
     def __str__(self):
         return self.name

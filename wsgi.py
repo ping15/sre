@@ -13,7 +13,9 @@ specific language governing permissions and limitations under the License.
 
 import os
 
-from blueapps.core.wsgi import get_wsgi_application
+from django.core.wsgi import get_wsgi_application
+
+# from blueapps.core.wsgi import get_wsgi_application
 
 """
 WSGI config for project.

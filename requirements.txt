@@ -40,3 +40,4 @@ pre-commit==3.5.0
 cryptography==3.3.2
 django-redis==5.4.0
 cos-python-sdk-v5==1.9.31
+colorama==0.4.6

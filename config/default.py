@@ -10,16 +10,19 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import os
 
-from blueapps.conf.default_settings import *  # noqa
-from blueapps.conf.log import get_logging_config_dict
+# from blueapps.conf.default_settings import *  # noqa
+# from blueapps.conf.log import get_logging_config_dict
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # 这里是默认的 INSTALLED_APPS，大部分情况下，不需要改动
 # 如果你已经了解每个默认 APP 的作用，确实需要去掉某些 APP，请去掉下面的注释，然后修改
 INSTALLED_APPS = (
-    "bkoauth",
+    # "bkoauth",
     # 框架自定义命令
-    "blueapps.contrib.bk_commands",
+    # "blueapps.contrib.bk_commands",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -28,12 +31,14 @@ INSTALLED_APPS = (
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # account app
-    "blueapps.account",
+    # "blueapps.account",
     "django_extensions",
     "drf_file_upload",
     "django_filters",
     "drf_yasg",
     "rest_framework",
+    "django_celery_beat",
+
     "apps.platform_management",
     "apps.teaching_space",
     "apps.authentication",
@@ -60,7 +65,7 @@ MIDDLEWARE = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "django.middleware.security.SecurityMiddleware",
     # 蓝鲸静态资源服务
-    "whitenoise.middleware.WhiteNoiseMiddleware",
+    # "whitenoise.middleware.WhiteNoiseMiddleware",
     # Auth middleware
     # "blueapps.account.middlewares.RioLoginRequiredMiddleware",
     # "blueapps.account.middlewares.WeixinLoginRequiredMiddleware",
@@ -126,7 +131,39 @@ CELERY_IMPORTS = ()
 LOG_LEVEL = "INFO"
 
 # load logging settings
-LOGGING = get_logging_config_dict(locals())
+# LOGGING = get_logging_config_dict(locals())
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'level': 'DEBUG',
+#             'class': 'logging.StreamHandler',
+#         },
+#         'file': {
+#             'level': 'DEBUG',
+#             'class': 'logging.FileHandler',
+#             'filename': os.path.join(BASE_DIR, 'debug.log'),
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['console', 'file'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#         'celery': {
+#             'handlers': ['console', 'file'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#         'apps.platform_management': {
+#             'handlers': ['console', 'file'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#     },
+# }
 
 # 初始化管理员列表，列表中的人员将拥有预发布环境和正式环境的管理员权限
 # 注意：请在首次提测和上线前修改，之后的修改将不会生效
@@ -158,6 +195,10 @@ LANGUAGES = (
     ("zh-hans", "简体中文"),
 )
 
+SECRET_KEY = "django-insecure-35imlrk$%wnuqejyqayeh1#=))b+9ovtqoqu*zhtr0@4=)4&t7"
+
+ROOT_URLCONF = "urls"
+
 # AUTH_USER_MODEL = "platform_management.Manager"
 
 # COS配置
@@ -165,6 +206,15 @@ COS_SECRET_ID = os.environ.get("COS_SECRET_ID", "")
 COS_SECRET_KEY = os.environ.get("COS_SECRET_KEY", "")
 COS_REGION = os.environ.get("COS_REGION", "")
 COS_BUCKET = os.environ.get("COS_BUCKET", "")
+
+# Celery配置
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+DJANGO_CELERY_BEAT_TZ_AWARE = False
 
 # DRF配置
 REST_FRAMEWORK = {
@@ -185,35 +235,35 @@ REST_FRAMEWORK = {
 以下为框架代码 请勿修改
 """
 # celery settings
-if IS_USE_CELERY:
-    INSTALLED_APPS = locals().get("INSTALLED_APPS", [])
-    INSTALLED_APPS += ("django_celery_beat", "django_celery_results")
-    CELERY_ENABLE_UTC = False
-    CELERYBEAT_SCHEDULER = "django_celery_beat.schedulers.DatabaseScheduler"
-
-# remove disabled apps
-if locals().get("DISABLED_APPS"):
-    INSTALLED_APPS = locals().get("INSTALLED_APPS", [])
-    DISABLED_APPS = locals().get("DISABLED_APPS", [])
-
-    INSTALLED_APPS = [_app for _app in INSTALLED_APPS if _app not in DISABLED_APPS]
-
-    _keys = (
-        "AUTHENTICATION_BACKENDS",
-        "DATABASE_ROUTERS",
-        "FILE_UPLOAD_HANDLERS",
-        "MIDDLEWARE",
-        "PASSWORD_HASHERS",
-        "TEMPLATE_LOADERS",
-        "STATICFILES_FINDERS",
-        "TEMPLATE_CONTEXT_PROCESSORS",
-    )
-
-    import itertools
-
-    for _app, _key in itertools.product(DISABLED_APPS, _keys):
-        if locals().get(_key) is None:
-            continue
-        locals()[_key] = tuple(
-            [_item for _item in locals()[_key] if not _item.startswith(_app + ".")]
-        )
+# if IS_USE_CELERY:
+#     INSTALLED_APPS = locals().get("INSTALLED_APPS", [])
+#     INSTALLED_APPS += ("django_celery_beat", "django_celery_results")
+#     CELERY_ENABLE_UTC = False
+#     CELERYBEAT_SCHEDULER = "django_celery_beat.schedulers.DatabaseScheduler"
+#
+# # remove disabled apps
+# if locals().get("DISABLED_APPS"):
+#     INSTALLED_APPS = locals().get("INSTALLED_APPS", [])
+#     DISABLED_APPS = locals().get("DISABLED_APPS", [])
+#
+#     INSTALLED_APPS = [_app for _app in INSTALLED_APPS if _app not in DISABLED_APPS]
+#
+#     _keys = (
+#         "AUTHENTICATION_BACKENDS",
+#         "DATABASE_ROUTERS",
+#         "FILE_UPLOAD_HANDLERS",
+#         "MIDDLEWARE",
+#         "PASSWORD_HASHERS",
+#         "TEMPLATE_LOADERS",
+#         "STATICFILES_FINDERS",
+#         "TEMPLATE_CONTEXT_PROCESSORS",
+#     )
+#
+#     import itertools
+#
+#     for _app, _key in itertools.product(DISABLED_APPS, _keys):
+#         if locals().get(_key) is None:
+#             continue
+#         locals()[_key] = tuple(
+#             [_item for _item in locals()[_key] if not _item.startswith(_app + ".")]
+#         )
