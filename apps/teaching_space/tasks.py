@@ -8,7 +8,7 @@ from django.db.models import QuerySet
 from apps.my_lectures.models import InstructorEvent
 from apps.teaching_space.models import TrainingClass
 from celery_app import app
-from common.utils import colorize
+from common.utils import colorize, global_constants
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ def finish_training_class(func):
         # 开课中
         status=TrainingClass.Status.IN_PROGRESS,
         # 时间到达结课时间(开课时间 + 2天)
-        start_date__lte=now_date - datetime.timedelta(days=2),
+        start_date__lte=now_date - datetime.timedelta(days=global_constants.CLASS_DAYS),
     )
 
     update_count: int = training_classes_to_update.count()
