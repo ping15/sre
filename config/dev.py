@@ -24,6 +24,8 @@ from config.default import FRONTEND_BACKEND_SEPARATION
 # 本地开发环境
 RUN_MODE = "DEVELOP"
 
+ALLOWED_HOSTS = ["*"]
+
 # 自定义本地环境日志级别
 # from blueapps.conf.log import set_log_level # noqa
 # LOG_LEVEL = "DEBUG"
