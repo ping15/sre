@@ -123,7 +123,7 @@ class TrainingClassModelViewSet(ModelViewSet):
                 event_name=f"[{training_class.affiliated_manage_company_name}]邀请你为"
                            f"[{training_class.target_client_company_name}]上课",
                 event_type=InstructorEvent.EventType.INVITE_TO_CLASS,
-                initiator=self.request.user.username,
+                initiator=training_class.creator,
                 training_class=training_class,
                 start_date=start_date,
                 instructor_id=validated_data["instructor_id"],

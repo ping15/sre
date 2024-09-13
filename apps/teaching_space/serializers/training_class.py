@@ -55,6 +55,10 @@ class TrainingClassCreateSerializer(serializers.ModelSerializer, BasicSerializer
     assessment_method = ChoiceField(choices=CourseTemplate.AssessmentMethod.choices)
     certification_body = serializers.ListSerializer(child=ChoiceField(choices=CourseTemplate.CertificationBody.choices))
 
+    def create(self, validated_data):
+        validated_data["creator"] = self.context["request"].user.username
+        return super().create(validated_data)
+
     class Meta:
         model = TrainingClass
         fields = "__all__"
@@ -63,10 +67,6 @@ class TrainingClassCreateSerializer(serializers.ModelSerializer, BasicSerializer
 class TrainingClassDesignateInstructorSerializer(serializers.Serializer):
     instructor_id = serializers.IntegerField()
     deadline_date = serializers.DateField(required=False, allow_null=True)
-
-
-# class TrainingClassRemoveInstructorSerializer(serializers.Serializer):
-#     pass
 
 
 class TrainingClassPublishAdvertisementSerializer(serializers.Serializer):
