@@ -317,6 +317,7 @@ class TrainingClassModelViewSet(ModelViewSet):
 
             # 指定培训班的讲师
             training_class.instructor = selected_enrolment.instructor
+            training_class.save()
 
             # 给选中的讲师安排日程
             EventHandler.create_event(training_class=training_class, event_type=Event.EventType.CLASS_SCHEDULE.value)

@@ -22,6 +22,8 @@ from config.default import *  # noqa
 # 正式环境
 RUN_MODE = "PRODUCT"
 
+ALLOWED_HOSTS = ["*"]
+
 # 只对正式环境日志级别进行配置，可以在这里修改
 # from blueapps.conf.log import set_log_level # noqa
 # LOG_LEVEL = "ERROR"
