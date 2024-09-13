@@ -15,6 +15,10 @@ class Role(models.TextChoices):
     CLIENT_STUDENT = "client_student", "客户学员"
 
 
+# 管理员提示语
 ROLE_TOOLTIPS = """平台管理员：有系统全局的权限
 鸿雪公司管理员：有鸿雪公司对应授课空间的权限（可管理对应的客户授课）
 合作伙伴管理员：有合作伙伴公司对应授课空间的权限（可管理对应的客户授课）"""
+
+# 上课天数
+CLASS_DAYS = 2
