@@ -482,7 +482,7 @@ class Event(models.Model):
     )
     training_class = models.OneToOneField(
         TrainingClass,
-        related_name="events",
+        related_name="event",
         on_delete=models.CASCADE,
         verbose_name=_("培训班"),
         null=True,

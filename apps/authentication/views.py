@@ -79,8 +79,8 @@ class AuthenticationViewSet(GenericViewSet):
             {
                 "role": request.user.role,
                 "username": request.user.username,
-                # "role": "test3",
-                # "username": "super_manager",
+                "manage_company_id": request.user.affiliated_manage_company_id
+                if isinstance(request.user, Administrator) else None,
             }
         )
 

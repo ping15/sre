@@ -68,6 +68,7 @@ class TrainingClass(models.Model):
     review = models.TextField(_("课后复盘"), default="")
 
     publish_type = models.CharField("发布方式", max_length=24, choices=PublishType.choices, default=PublishType.NONE)
+    creator = models.CharField("创建人", max_length=32, default="")
 
     @property
     def course_name(self) -> CourseTemplate:
