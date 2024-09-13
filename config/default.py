@@ -208,8 +208,10 @@ COS_REGION = os.environ.get("COS_REGION", "")
 COS_BUCKET = os.environ.get("COS_BUCKET", "")
 
 # Celery配置
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = (f"redis://{os.environ.get('REDIS_HOST', 'localhost')}:"
+                     f"{os.environ.get('REDIS_PORT', '6379')}/{os.environ.get('REDIS_DB_INDEX', '0')}")
+CELERY_RESULT_BACKEND = (f"redis://{os.environ.get('REDIS_HOST', 'localhost')}:"
+                         f"{os.environ.get('REDIS_PORT', '6379')}/{os.environ.get('REDIS_DB_INDEX', '0')}")
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
