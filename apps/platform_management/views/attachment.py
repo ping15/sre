@@ -11,6 +11,7 @@ from apps.platform_management.serialiers.attachment import (
     FileDownloadSerializer,
     FileUploadSerializer,
 )
+from common.utils import global_constants
 from common.utils.cos import cos_client
 from common.utils.drf.response import Response
 
@@ -58,7 +59,7 @@ class FileUploadDownloadView(generics.GenericAPIView):
         return Response({
             "file_key": file_key,
             "file_name": validated_data["file"].name,
-            "url": f"/api/platform_management/attachment/?file_key={file_key}",
+            "url": f"{global_constants.DOWNLOAD_URL}?file_key={file_key}",
         })
 
     def delete(self, request, *args, **kwargs):

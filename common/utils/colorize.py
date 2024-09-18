@@ -22,7 +22,7 @@ def bold_and_underline(text):
     return result
 
 
-def task_decorator(func):
+def colorize_func(func):
     """
     开始: 绿色
     执行过程: 蓝色
@@ -32,17 +32,17 @@ def task_decorator(func):
     def wrapper(*args, **kwargs):
         # 开始
         start_time = datetime.datetime.now()
-        print(Fore.GREEN + f"Task {bold_and_underline(func.__name__)}{Fore.GREEN} started at {start_time}")
+        logger.info(Fore.GREEN + f"Task {bold_and_underline(func.__name__)}{Fore.GREEN} started at {start_time}")
 
         # 执行过程
-        print(Fore.CYAN)
+        logger.info(Fore.CYAN)
         result = func(*args, **kwargs)
 
         # 结束
         end_time = datetime.datetime.now()
-        print(Fore.YELLOW + f"Task {bold_and_underline(func.__name__)}{Fore.YELLOW} "
-                            f"finished at {end_time}, Duration: {end_time - start_time}")
-        print(Fore.WHITE)
+        logger.info(Fore.YELLOW + f"Task {bold_and_underline(func.__name__)}{Fore.YELLOW} "
+                                  f"finished at {end_time}, Duration: {end_time - start_time}")
+        logger.info(Fore.WHITE)
 
         return result
 
