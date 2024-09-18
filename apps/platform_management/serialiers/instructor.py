@@ -21,6 +21,8 @@ class InstructorListSerializer(serializers.ModelSerializer):
             "satisfaction_score",
             "is_partnered",
             "introduction",
+            "city",
+            "id_photo",
         ]
 
 
