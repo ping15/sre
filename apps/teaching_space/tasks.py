@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 
 
 @app.task(bind=True)
-@colorize.task_decorator
+@colorize.colorize_func
 def start_training_class(func):
-    """开课"""
+    """开课检测"""
     now_date: datetime.date = datetime.datetime.now().date()
 
     # 寻找 [状态在<发布广告>或<指定讲师>] + [有课程排期] + [筹备中] + [时间到达开课时间] 的培训班
@@ -24,7 +24,7 @@ def start_training_class(func):
         # 筹备中
         status=TrainingClass.Status.PREPARING,
         # 时间到达开课时间
-        start_date__lte=now_date,
+        start_date=now_date,
         # 状态在<发布广告>或<指定讲师>
         publish_type__in=[
             TrainingClass.PublishType.DESIGNATE_INSTRUCTOR, TrainingClass.PublishType.PUBLISH_ADVERTISEMENT
@@ -42,9 +42,9 @@ def start_training_class(func):
 
 
 @app.task(bind=True)
-@colorize.task_decorator
+@colorize.colorize_func
 def finish_training_class(func):
-    """结课"""
+    """结课检测"""
     now_date: datetime.date = datetime.datetime.now().date()
 
     # 寻找 [开课中] + [时间到达结课时间(开课时间 + 2天)] 的培训班

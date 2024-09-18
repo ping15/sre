@@ -35,9 +35,12 @@ class InstructorEventModelViewSet(ModelViewSet):
         return queryset.filter(instructor=self.request.user)
 
     def list(self, request, *args, **kwargs):
-        # 已经过了截至时间的单据更新为已超时
-        self.get_queryset().filter(start_date__lte=datetime.datetime.now().date()).update(
-            status=InstructorEvent.Status.TIMEOUT)
+        # 已经过了截至时间且未处理的单据更新为已超时
+        self.get_queryset().filter(
+            start_date__lte=datetime.datetime.now().date(), status=InstructorEvent.Status.PENDING
+        ).update(
+            status=InstructorEvent.Status.TIMEOUT
+        )
 
         return super().list(request, *args, **kwargs)
 

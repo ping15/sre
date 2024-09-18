@@ -22,3 +22,6 @@ ROLE_TOOLTIPS = """平台管理员：有系统全局的权限
 
 # 上课天数
 CLASS_DAYS = 2
+
+# 下载文件URL
+DOWNLOAD_URL = "/api/platform_management/attachment/"
