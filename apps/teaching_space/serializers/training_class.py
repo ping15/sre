@@ -2,6 +2,9 @@ from rest_framework import serializers
 
 from apps.my_lectures.models import InstructorEnrolment
 from apps.platform_management.models import CourseTemplate
+from apps.platform_management.serialiers.client_company import (
+    ClientCompanyListSerializer,
+)
 from apps.platform_management.serialiers.course_template import (
     CourseTemplateCreateSerializer,
 )
@@ -30,6 +33,7 @@ class TrainingClassListSerializer(serializers.ModelSerializer):
 class TrainingClassRetrieveSerializer(serializers.ModelSerializer):
     instructor = InstructorListSerializer()
     course = CourseTemplateCreateSerializer()
+    target_client_company = ClientCompanyListSerializer()
     certification_body = serializers.JSONField()
     name = serializers.ReadOnlyField()
     end_date = serializers.ReadOnlyField()
