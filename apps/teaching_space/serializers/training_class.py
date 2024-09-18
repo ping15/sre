@@ -53,7 +53,7 @@ class TrainingClassRetrieveSerializer(serializers.ModelSerializer):
 
 
 class TrainingClassCreateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
-    status = ChoiceField(choices=TrainingClass.Status.choices)
+    course_status = ChoiceField(choices=CourseTemplate.Status.choices)
     class_mode = ChoiceField(choices=TrainingClass.ClassMode.choices)
     assessment_method = ChoiceField(choices=CourseTemplate.AssessmentMethod.choices)
 
@@ -87,3 +87,9 @@ class TrainingClassAdvertisementSerializer(serializers.ModelSerializer):
 
 class TrainingClassSelectInstructorSerializer(serializers.Serializer):
     instructor_enrolment_id = serializers.IntegerField()
+
+
+class TrainingClassUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TrainingClass
+        exclude = ["review", "creator", "instructor"]

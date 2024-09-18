@@ -36,8 +36,19 @@ class TrainingClass(models.Model):
         null=True,
     )
     session_number = models.CharField(_("课程期数"), max_length=32)
-    status = models.CharField(_("状态"), max_length=16, choices=Status.choices)
-    class_mode = models.CharField(_("上课模式"), choices=ClassMode.choices, max_length=16)
+    status = models.CharField(_("状态"), max_length=16, choices=Status.choices, default=Status.PREPARING)
+    course_status = models.CharField(
+        _("状态"),
+        choices=CourseTemplate.Status.choices,
+        max_length=32,
+        default=CourseTemplate.Status.PREPARATION,
+    )
+    class_mode = models.CharField(
+        _("上课模式"),
+        choices=ClassMode.choices,
+        max_length=16,
+        default=ClassMode.ONLINE
+    )
     start_date = models.DateField(_("开课时间"))
     assessment_method = models.CharField(
         _("考核方式"),

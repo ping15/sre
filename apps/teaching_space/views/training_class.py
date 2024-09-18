@@ -21,6 +21,7 @@ from apps.teaching_space.serializers.training_class import (
     TrainingClassPublishAdvertisementSerializer,
     TrainingClassRetrieveSerializer,
     TrainingClassSelectInstructorSerializer,
+    TrainingClassUpdateSerializer,
 )
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import (
@@ -40,6 +41,7 @@ class TrainingClassModelViewSet(ModelViewSet):
         "list": TrainingClassListSerializer,
         "create": TrainingClassCreateSerializer,
         "retrieve": TrainingClassRetrieveSerializer,
+        "update": TrainingClassUpdateSerializer,
         "designate_instructor": TrainingClassDesignateInstructorSerializer,
         "publish_advertisement": TrainingClassPublishAdvertisementSerializer,
         "advertisement": TrainingClassAdvertisementSerializer,
