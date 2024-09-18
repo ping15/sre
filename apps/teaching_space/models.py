@@ -44,11 +44,7 @@ class TrainingClass(models.Model):
         choices=CourseTemplate.AssessmentMethod.choices,
         max_length=16,
     )
-    certification_body = models.JSONField(
-        _("认证机构"),
-        choices=CourseTemplate.CertificationBody.choices,
-        default=list,
-    )
+    certification = models.CharField(_("认证证书"), max_length=32, default="")
     location = models.CharField(_("开课地点"), max_length=32)
     target_client_company = models.ForeignKey(
         ClientCompany,
