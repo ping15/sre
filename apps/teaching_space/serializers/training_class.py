@@ -34,7 +34,6 @@ class TrainingClassRetrieveSerializer(serializers.ModelSerializer):
     instructor = InstructorListSerializer()
     course = CourseTemplateCreateSerializer()
     target_client_company = ClientCompanyListSerializer()
-    certification_body = serializers.JSONField()
     name = serializers.ReadOnlyField()
     end_date = serializers.ReadOnlyField()
     instructor_count = serializers.SerializerMethodField(method_name="statistic_instructor_count")
@@ -57,7 +56,6 @@ class TrainingClassCreateSerializer(serializers.ModelSerializer, BasicSerializer
     status = ChoiceField(choices=TrainingClass.Status.choices)
     class_mode = ChoiceField(choices=TrainingClass.ClassMode.choices)
     assessment_method = ChoiceField(choices=CourseTemplate.AssessmentMethod.choices)
-    certification_body = serializers.ListSerializer(child=ChoiceField(choices=CourseTemplate.CertificationBody.choices))
 
     def create(self, validated_data):
         validated_data["creator"] = self.context["request"].user.username
