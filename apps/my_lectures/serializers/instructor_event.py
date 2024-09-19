@@ -24,7 +24,10 @@ class InstructorEventRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = InstructorEvent
-        fields = ["id", "event_name", "event_type", "initiator", "status", "created_datetime", "training_class"]
+        fields = [
+            "id", "event_name", "event_type", "initiator", "status",
+            "created_datetime", "training_class", "review"
+        ]
 
 
 class InstructorEventUpdateStatusSerializer(serializers.Serializer):

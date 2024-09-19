@@ -25,3 +25,14 @@ CLASS_DAYS = 2
 
 # 下载文件URL
 DOWNLOAD_URL = "/api/platform_management/attachment/"
+
+# 课后复盘初始模板
+REVIEW_TEMPLATE = """<h2>进展好的方面</h2>
+
+<h2>进展的不太顺利的方面</h2>
+
+<h2>学员总体情况 （基础、接受度、与工作相关度等）</h2>
+
+<h2>课堂氛围（提问和讨论等）</h2>
+
+<h2>关于教材（是否识别到需要优化和勘误的地方）</h2>"""

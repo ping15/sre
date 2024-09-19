@@ -4,6 +4,7 @@ from django.db import models
 
 from apps.platform_management.models import Instructor
 from apps.teaching_space.models import TrainingClass
+from common.utils import global_constants
 
 
 class InstructorEvent(models.Model):
@@ -53,7 +54,7 @@ class InstructorEvent(models.Model):
     )
     created_datetime = models.DateTimeField("发起时间", auto_now_add=True)
     start_date = models.DateField("开课时间", null=True, blank=True)
-    review = models.TextField("课后复盘", default="")
+    review = models.TextField("课后复盘", default=global_constants.REVIEW_TEMPLATE)
 
 
 class Advertisement(models.Model):
