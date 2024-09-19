@@ -79,6 +79,7 @@ class TrainingClassModelViewSet(ModelViewSet):
     def designate_instructor(self, request, *args, **kwargs):
         """指定讲师"""
         validated_data = self.validated_data
+
         training_class: TrainingClass = self.get_object()
 
         if training_class.publish_type != TrainingClass.PublishType.NONE:
@@ -93,7 +94,7 @@ class TrainingClassModelViewSet(ModelViewSet):
             return Response(result=False, err_msg="该培训班已制定了讲师")
 
         try:
-            start_date: datetime.date = validated_data.get("start_date", training_class.start_date)
+            start_date: datetime.date = validated_data.get("deadline_date", training_class.start_date)
 
             # 讲师无法同时在一天内给多个客户公司上课
             # 如果该讲师已经在这个时间段存在日程，不允许邀请
