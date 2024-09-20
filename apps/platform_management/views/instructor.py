@@ -131,7 +131,10 @@ class InstructorModelViewSet(ModelViewSet):
             return Response([
                 {"id": "username", "name": "讲师名称", "children": []},
                 {"id": "satisfaction_score", "name": "讲师评分", "children": []},
-                {"id": "city", "name": "城市", "children": []},
+                {"id": "city", "name": "城市", "children": [
+                    {"id": "", "name": instructor.city}
+                    for instructor in Instructor.objects.all()
+                ]},
                 {"id": "availability_date", "name": "讲师可预约时间", "children": []},
             ])
 
