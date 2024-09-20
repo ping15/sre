@@ -71,5 +71,5 @@ class InstructorReviewSerializer(serializers.ModelSerializer):
     pass
 
 
-class InstructorFilterConditionSerializer:
-    module = ChoiceField(choices=AppModule.choices)
+class InstructorFilterConditionSerializer(serializers.Serializer):
+    module = ChoiceField(choices=AppModule.choices, default=AppModule.PLATFORM_MANAGEMENT)
