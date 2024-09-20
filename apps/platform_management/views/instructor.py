@@ -1,6 +1,6 @@
 import datetime
 from datetime import timedelta
-from typing import Dict, List
+from typing import Dict, List, Set
 
 from django.db.models import QuerySet
 from rest_framework.decorators import action
@@ -121,6 +121,8 @@ class InstructorModelViewSet(ModelViewSet):
     def filter_condition(self, request, *args, **kwargs):
         validated_data = self.validated_data
 
+        cities: Set[str] = {instructor.city for instructor in Instructor.objects.all()}
+
         if validated_data["module"] == AppModule.PLATFORM_MANAGEMENT.value:
             return Response([
                 {"id": "username", "name": "讲师名称", "children": []},
@@ -131,10 +133,7 @@ class InstructorModelViewSet(ModelViewSet):
             return Response([
                 {"id": "username", "name": "讲师名称", "children": []},
                 {"id": "satisfaction_score", "name": "讲师评分", "children": []},
-                {"id": "city", "name": "城市", "children": [
-                    {"id": "", "name": instructor.city}
-                    for instructor in Instructor.objects.all()
-                ]},
+                {"id": "city", "name": "城市", "children": cities},
                 {"id": "availability_date", "name": "讲师可预约时间", "children": []},
             ])
 

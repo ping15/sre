@@ -9,6 +9,7 @@ from apps.platform_management.models import (
     Instructor,
     ManageCompany,
 )
+from common.utils import global_constants
 
 
 class TrainingClass(models.Model):
@@ -81,10 +82,12 @@ class TrainingClass(models.Model):
 
     @property
     def course_name(self) -> CourseTemplate:
+        """课程名称"""
         return CourseTemplate.objects.get(name=self.course.name)
 
     @property
     def name(self) -> str:
+        """培训班名称"""
         return f"{self.course.name}-{self.session_number}"
 
     @property
@@ -93,27 +96,46 @@ class TrainingClass(models.Model):
 
     @property
     def num_lessons(self) -> int:
+        """课时数量"""
         return self.course.num_lessons
 
     @property
     def instructor_name(self) -> str:
+        """讲师名称"""
         return self.instructor.username if self.instructor else ""
 
     @property
     def affiliated_manage_company(self) -> ManageCompany:
+        """管理公司"""
         return self.target_client_company.affiliated_manage_company
 
     @property
     def affiliated_manage_company_name(self) -> str:
+        """管理公司名称"""
         return self.affiliated_manage_company.name
 
     @property
     def end_date(self) -> datetime.date:
-        return self.start_date + datetime.timedelta(days=1)
+        """结课时间"""
+        return self.start_date + datetime.timedelta(days=global_constants.CLASS_DAYS)
 
     @property
     def student_count(self) -> int:
+        """学员数量"""
         return self.target_client_company.student_count
+
+    @property
+    def instructor_count(self) -> int:
+        """讲师数量"""
+        from apps.my_lectures.models import InstructorEnrolment
+
+        if self.publish_type == TrainingClass.PublishType.PUBLISH_ADVERTISEMENT:
+            return InstructorEnrolment.objects.filter(advertisement__training_class=self).count()
+
+        if self.publish_type == TrainingClass.PublishType.DESIGNATE_INSTRUCTOR:
+            return 1
+
+        return 0
 
     def __str__(self):
         return self.name

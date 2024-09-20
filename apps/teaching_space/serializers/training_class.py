@@ -36,16 +36,8 @@ class TrainingClassRetrieveSerializer(serializers.ModelSerializer):
     target_client_company = ClientCompanyListSerializer()
     name = serializers.ReadOnlyField()
     end_date = serializers.ReadOnlyField()
-    instructor_count = serializers.SerializerMethodField(method_name="statistic_instructor_count")
-
-    def statistic_instructor_count(self, obj: TrainingClass):
-        if obj.publish_type == TrainingClass.PublishType.PUBLISH_ADVERTISEMENT:
-            return InstructorEnrolment.objects.filter(advertisement__training_class=obj).count()
-
-        if obj.publish_type == TrainingClass.PublishType.DESIGNATE_INSTRUCTOR:
-            return 1
-
-        return 0
+    student_count = serializers.ReadOnlyField()
+    instructor_count = serializers.ReadOnlyField()
 
     class Meta:
         model = TrainingClass
@@ -78,7 +70,6 @@ class TrainingClassPublishAdvertisementSerializer(serializers.Serializer):
 
 class TrainingClassAdvertisementSerializer(serializers.ModelSerializer):
     instructor = InstructorListSerializer()
-    # advertisement = AdvertisementListSerializer()
 
     class Meta:
         model = InstructorEnrolment
