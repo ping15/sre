@@ -45,6 +45,6 @@ class CourseTemplateModelViewSet(ModelViewSet):
             }
             for course_template in self.get_queryset().filter(
                 Q(status=CourseTemplate.Status.IN_PROGRESS.value) | Q(
-                    status=CourseTemplate.Status.PREPARATION.value, teaching_count__lt=5)
+                    status=CourseTemplate.Status.PREPARATION.value)
             )
         ])
