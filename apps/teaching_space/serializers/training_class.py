@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.my_lectures.models import InstructorEnrolment
+from apps.my_lectures.models import InstructorEnrolment, InstructorEvent
 from apps.platform_management.models import CourseTemplate
 from apps.platform_management.serialiers.client_company import (
     ClientCompanyListSerializer,
@@ -93,3 +93,12 @@ class TrainingClassUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = TrainingClass
         exclude = ["review", "creator", "instructor"]
+
+
+class TrainingClassInstructorEventSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(label="讲师单据状态")
+    instructor = InstructorListSerializer(label="讲师信息")
+
+    class Meta:
+        model = InstructorEvent
+        fields = ["status", "instructor"]
