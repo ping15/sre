@@ -6,7 +6,6 @@ from rest_framework.decorators import action
 
 from apps.my_lectures.handles.event import EventHandler
 from apps.my_lectures.models import Advertisement, InstructorEnrolment, InstructorEvent
-from apps.my_lectures.serializers.instructor_event import InstructorEventListSerializer
 from apps.platform_management.models import CourseTemplate, Event
 from apps.platform_management.serialiers.client_student import (
     ClientStudentListSerializer,
@@ -17,6 +16,7 @@ from apps.teaching_space.serializers.training_class import (
     TrainingClassAdvertisementSerializer,
     TrainingClassCreateSerializer,
     TrainingClassDesignateInstructorSerializer,
+    TrainingClassInstructorEventSerializer,
     TrainingClassListSerializer,
     TrainingClassPublishAdvertisementSerializer,
     TrainingClassRetrieveSerializer,
@@ -46,6 +46,7 @@ class TrainingClassModelViewSet(ModelViewSet):
         "publish_advertisement": TrainingClassPublishAdvertisementSerializer,
         "advertisement": TrainingClassAdvertisementSerializer,
         "select_instructor": TrainingClassSelectInstructorSerializer,
+        "instructor_event": TrainingClassInstructorEventSerializer,
     }
 
     @action(detail=True, methods=["GET"])
@@ -73,7 +74,8 @@ class TrainingClassModelViewSet(ModelViewSet):
             instructor_event.status = InstructorEvent.Status.TIMEOUT
             instructor_event.save()
 
-        return Response(InstructorEventListSerializer(instructor_event).data)
+        # return Response(InstructorEventListSerializer(instructor_event).data)
+        return Response(self.get_serializer(instructor_event).data)
 
     @action(detail=True, methods=["POST"])
     def designate_instructor(self, request, *args, **kwargs):
