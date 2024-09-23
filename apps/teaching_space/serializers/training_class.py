@@ -92,3 +92,7 @@ class TrainingClassInstructorEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = InstructorEvent
         fields = ["status", "instructor"]
+
+
+class TrainingClassAnalyzeScoreSerializer(serializers.Serializer):
+    file_key = serializers.CharField(label="评分数据cos key")
