@@ -29,3 +29,8 @@ CLIENT_STUDENT_EXCEL_MAPPING = {
     "部门": {"type": str, "value": "department"},
     "职位": {"type": str, "value": "position"},
 }
+
+TRAINING_CLASS_SCORE_EXCEL_MAPPING = {
+    "序号": {"type": int, "value": "id"},
+    "讲师分数": {"type": float, "value": "score"},
+}
