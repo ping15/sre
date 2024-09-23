@@ -458,11 +458,20 @@ class Event(models.Model):
         CANCEL_UNAVAILABILITY = "cancel_unavailability", "取消单日不可用时间"
 
         @classproperty
+        def create_choices(cls):
+            empty = [(None, cls.__empty__)] if hasattr(cls, '__empty__') else []
+            return empty + [
+                (member.value, member.label) # noqa
+                for member in cls if member in [cls.ONE_TIME_UNAVAILABILITY, cls.RECURRING_UNAVAILABILITY]
+            ]
+
+        @classproperty
         def rule_types(self) -> List:
             return [self.ONE_TIME_UNAVAILABILITY, self.RECURRING_UNAVAILABILITY]
 
     class FreqType(models.TextChoices):
         WEEKLY = "weekly", "每周"
+        BIWEEKLY = "biweekly", "每两周"
         MONTHLY = "monthly", "每月"
 
     event_type = models.CharField(_("事件类型"), max_length=50, choices=EventType.choices)

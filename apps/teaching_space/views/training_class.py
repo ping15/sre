@@ -33,7 +33,6 @@ from common.utils.drf.response import Response
 
 class TrainingClassModelViewSet(ModelViewSet):
     permission_classes = [ManageCompanyAdministratorPermission | SuperAdministratorPermission]
-    # permission_classes = [AllowAny]
     queryset = TrainingClass.objects.all()
     serializer_class = TrainingClassCreateSerializer
     filter_class = TrainingClassFilterClass

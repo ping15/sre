@@ -45,7 +45,6 @@ class TrainingClassRetrieveSerializer(serializers.ModelSerializer):
 
 
 class TrainingClassCreateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
-    course_status = ChoiceField(choices=CourseTemplate.Status.choices)
     class_mode = ChoiceField(choices=TrainingClass.ClassMode.choices)
     assessment_method = ChoiceField(choices=CourseTemplate.AssessmentMethod.choices)
 
