@@ -2,7 +2,6 @@ import os
 from typing import Any, Dict, List
 
 from django.http import FileResponse, Http404
-from qcloud_cos.streambody import StreamBody
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet as DRFModelViewSet
@@ -98,9 +97,7 @@ class ModelViewSet(DRFModelViewSet):
             return Response(result=False, err_msg=response["error"])
 
         # 解析excel
-        stream_body: StreamBody = response["Body"]
-        # datas: List[Dict[str, str]] = excel_to_list(stream_body._rt.content, self.batch_import_mapping)
-        datas: List[Dict[str, str]] = excel_to_list(stream_body.read(None), self.batch_import_mapping)
+        datas: List[Dict[str, str]] = excel_to_list(response["Body"].read(None), self.batch_import_mapping)
 
         create_serializer = self.batch_import_serializer(data=datas, many=True)
 

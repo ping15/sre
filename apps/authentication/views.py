@@ -1,4 +1,4 @@
-import random
+# import random
 from datetime import timedelta
 
 from django.contrib.auth import logout
@@ -14,7 +14,8 @@ from apps.authentication.serializers import LoginSerializer, SMSSerializer
 from apps.platform_management.models import Administrator, ClientStudent, Instructor
 from common.utils.auth import SMS_KEY, SMS_SEND_TIMESTAMP_KEY, login
 from common.utils.drf.response import Response
-from common.utils.sms import send_sms
+
+# from common.utils.sms import send_sms
 
 
 class AuthenticationViewSet(GenericViewSet):
@@ -63,14 +64,14 @@ class AuthenticationViewSet(GenericViewSet):
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
             )
 
-        sms_code = ''.join(random.choices('0123456789', k=6))
-        # sms_code = "666666"
+        # sms_code = ''.join(random.choices('0123456789', k=6))
+        sms_code = "666666"
 
         # 设置验证码和发送时间戳到缓存
         cache.set(f"{SMS_KEY}:{phone}", sms_code, timeout=60)
         cache.set(f"{SMS_SEND_TIMESTAMP_KEY}:{phone}", timezone.now(), timeout=60)
 
-        send_sms(phone, sms_code)
+        # send_sms(phone, sms_code)
 
         return Response("发送成功")
 

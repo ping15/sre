@@ -1,12 +1,16 @@
 import datetime
+import math
+import os
+from typing import Any, Dict, List
 
 from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
+from django.http import FileResponse
 from rest_framework.decorators import action
 
 from apps.my_lectures.handles.event import EventHandler
 from apps.my_lectures.models import Advertisement, InstructorEnrolment, InstructorEvent
-from apps.platform_management.models import CourseTemplate, Event
+from apps.platform_management.models import CourseTemplate, Event, Instructor
 from apps.platform_management.serialiers.client_student import (
     ClientStudentListSerializer,
 )
@@ -14,6 +18,7 @@ from apps.teaching_space.filters.training_class import TrainingClassFilterClass
 from apps.teaching_space.models import TrainingClass
 from apps.teaching_space.serializers.training_class import (
     TrainingClassAdvertisementSerializer,
+    TrainingClassAnalyzeScoreSerializer,
     TrainingClassCreateSerializer,
     TrainingClassDesignateInstructorSerializer,
     TrainingClassInstructorEventSerializer,
@@ -23,12 +28,16 @@ from apps.teaching_space.serializers.training_class import (
     TrainingClassSelectInstructorSerializer,
     TrainingClassUpdateSerializer,
 )
+from common.utils import global_constants
+from common.utils.cos import cos_client
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import (
     ManageCompanyAdministratorPermission,
     SuperAdministratorPermission,
 )
 from common.utils.drf.response import Response
+from common.utils.excel_parser.mapping import TRAINING_CLASS_SCORE_EXCEL_MAPPING
+from common.utils.excel_parser.parser import excel_to_list
 
 
 class TrainingClassModelViewSet(ModelViewSet):
@@ -46,6 +55,7 @@ class TrainingClassModelViewSet(ModelViewSet):
         "advertisement": TrainingClassAdvertisementSerializer,
         "select_instructor": TrainingClassSelectInstructorSerializer,
         "instructor_event": TrainingClassInstructorEventSerializer,
+        "analyze_score": TrainingClassAnalyzeScoreSerializer,
     }
 
     @action(detail=True, methods=["GET"])
@@ -343,3 +353,52 @@ class TrainingClassModelViewSet(ModelViewSet):
             "publish_type": self.transform_choices(TrainingClass.PublishType.choices),
             "assessment_method": self.transform_choices(CourseTemplate.AssessmentMethod.choices),
         })
+
+    @action(methods=["GET"], detail=False)
+    def score_template(self, request, *args, **kwargs):
+        return FileResponse(
+            open(global_constants.TRAINING_CLASS_SCORE_TEMPLATE_PATH, "rb"),
+            as_attachment=True,
+            filename=os.path.basename(global_constants.TRAINING_CLASS_SCORE_TEMPLATE_PATH),
+        )
+
+    @action(methods=["POST"], detail=True)
+    def analyze_score(self, request, *args, **kwargs):
+        training_class: TrainingClass = self.get_object()
+
+        # # 如果说培训班有排期，且今天过了接口时间，且培训班处于[开课中]
+        # if not InstructorEvent.objects.filter(training_class=training_class).exists():
+        #     return Response(result=False, err_msg="该培训班没有排期")
+        #
+        # if training_class.start_date != TrainingClass.Status.IN_PROGRESS:
+        #     return Response(result=False, err_msg="该培训班未处于[开课中]")
+        #
+        # if datetime.datetime.now().date() < training_class.end_date:
+        #     return Response(result=False, err_msg="该培训班未到达结课时间")
+
+        # 处理excel讲师评分数据
+        response: dict = cos_client.download_file(self.validated_data["file_key"])
+        if response.get("error"):
+            return Response(result=False, err_msg=response["error"])
+
+        datas: List[Dict[str, Any]] = excel_to_list(response["Body"].read(None), TRAINING_CLASS_SCORE_EXCEL_MAPPING)
+
+        with transaction.atomic():
+            # 统计讲师平均分
+            scores: List[float] = [float(data_dict["score"]) for data_dict in datas]
+            average_score: float = sum(scores) / len(scores)
+
+            # 如果讲师未评过分，即0.0分，则直接赋值
+            # 否则平均之前的分数
+            instructor: Instructor = training_class.instructor
+            if math.ceil(instructor.satisfaction_score) > 0:
+                average_score = (instructor.satisfaction_score + average_score) / 2.0
+
+            instructor.satisfaction_score = round(average_score, 1)
+            instructor.save()
+
+            # 培训班状态流转为已结课
+            training_class.status = TrainingClass.Status.COMPLETED
+            training_class.save(0)
+
+        return Response()
