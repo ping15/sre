@@ -11,7 +11,7 @@ from common.utils.global_constants import AppModule
 
 
 class ClientStudentListSerializer(serializers.ModelSerializer):
-    education = ChoiceField(choices=ClientStudent.Education.choices)
+    education = ChoiceField(label="学历", choices=ClientStudent.Education.choices)
 
     class Meta:
         model = ClientStudent
@@ -23,7 +23,7 @@ class ClientStudentCreateSerializer(
     PhoneCreateSerializerValidator,
     BasicSerializerValidator,
 ):
-    education = ChoiceField(choices=ClientStudent.Education.choices)
+    education = ChoiceField(label="学历", choices=ClientStudent.Education.choices)
 
     class Meta:
         model = ClientStudent
@@ -31,7 +31,7 @@ class ClientStudentCreateSerializer(
 
 
 class ClientStudentUpdateSerializer(serializers.ModelSerializer, BasicSerializerValidator,):
-    education = ChoiceField(choices=ClientStudent.Education.choices)
+    education = ChoiceField(label="学历", choices=ClientStudent.Education.choices)
 
     def save(self, **kwargs):
         if not self.initial_data["phone"] == self.instance.phone:
@@ -51,10 +51,10 @@ class ClientStudentRetrieveSerializer(serializers.ModelSerializer):
 
 class ClientStudentQuickSearchSerializer(serializers.Serializer):
     class ClientCompanySerializer(serializers.Serializer):
-        affiliated_client_company_name = serializers.CharField(source="name")
+        affiliated_client_company_name = serializers.CharField(label="客户公司名字", source="name")
 
-    manage_company_name = serializers.CharField(source="name")
-    children = ClientCompanySerializer(source="client_companies", many=True)
+    manage_company_name = serializers.CharField(label="管理公司名字", source="name")
+    children = ClientCompanySerializer(label="客户公司列表", source="client_companies", many=True)
 
 
 class ClientStudentBatchImportSerializer(
@@ -62,15 +62,7 @@ class ClientStudentBatchImportSerializer(
     PhoneCreateSerializerValidator,
     BasicSerializerValidator
 ):
-    education = ChoiceField(choices=ClientStudent.Education.choices)
-
-    # def to_internal_value(self, data):
-    #     data["education"] = reverse_dict(dict(ClientStudent.Education.choices)).get(data["education"])
-    #     return data
-
-    # def to_representation(self, instance):
-    #     instance.education = ClientStudent.Education.choices.get(instance.education)
-    #     return super().to_representation(instance)
+    education = ChoiceField(label="学历", choices=ClientStudent.Education.choices)
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
@@ -88,4 +80,4 @@ class ClientStudentStatisticSerializer(serializers.Serializer):
 
 
 class ClientStudentFilterConditionSerializer(serializers.Serializer):
-    module = ChoiceField(choices=AppModule.choices, default=AppModule.PLATFORM_MANAGEMENT.value)
+    module = ChoiceField(label="模块", choices=AppModule.choices, default=AppModule.PLATFORM_MANAGEMENT.value)

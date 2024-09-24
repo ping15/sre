@@ -10,7 +10,9 @@ from common.utils.tools import reverse_dict
 
 
 class AdministratorListSerializer(serializers.ModelSerializer):
-    affiliated_manage_company_name = serializers.CharField(source="affiliated_manage_company.name", read_only=True)
+    affiliated_manage_company_name = serializers.CharField(
+        label="管理公司名字", source="affiliated_manage_company.name", read_only=True
+    )
 
     class Meta:
         model = Administrator
@@ -26,7 +28,7 @@ class AdministratorListSerializer(serializers.ModelSerializer):
 
 
 class AdministratorCreateSerializer(serializers.ModelSerializer, PhoneCreateSerializerValidator):
-    role = ChoiceField(choices=Administrator.Role.choices)
+    role = ChoiceField(label="管理员角色", choices=Administrator.Role.choices)
 
     class Meta:
         model = Administrator
@@ -34,7 +36,7 @@ class AdministratorCreateSerializer(serializers.ModelSerializer, PhoneCreateSeri
 
 
 class AdministratorUpdateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
-    role = ChoiceField(choices=Administrator.Role.choices)
+    role = ChoiceField(label="管理员角色", choices=Administrator.Role.choices)
 
     def save(self, **kwargs):
         if not self.initial_data["phone"] == self.instance.phone:
@@ -50,14 +52,13 @@ class AdministratorBatchImportSerializer(serializers.ModelSerializer, PhoneCreat
     def to_internal_value(self, data):
         data["role"] = reverse_dict(dict(Administrator.Role.choices)).get(data["role"])
 
+        # 根据管理公司名字找到对应公司id
         try:
             data["affiliated_manage_company"] = ManageCompany.objects.get(
                 name=data["affiliated_manage_company_name"]).id
         except ManageCompany.DoesNotExist:
-            raise serializers.ValidationError(
-                f"该管理公司不存在: {data['affiliated_manage_company_name']}"
-            )
-        # return super().to_internal_value(data)
+            raise serializers.ValidationError(f"该管理公司不存在: {data['affiliated_manage_company_name']}")
+
         return data
 
     class Meta:

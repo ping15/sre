@@ -3,23 +3,19 @@ from rest_framework import serializers
 from apps.platform_management.models import CourseTemplate
 from common.utils.drf.serializer_fields import ChoiceField
 
-# class CourseTemplateSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = CourseTemplate
-#         fields = "__all__"
-
 
 class CourseTemplateCreateSerializer(serializers.ModelSerializer):
-    level = ChoiceField(choices=CourseTemplate.Level.choices)
-    status = ChoiceField(choices=CourseTemplate.Status.choices)
-    assessment_method = ChoiceField(choices=CourseTemplate.AssessmentMethod.choices)
-    exam_type = serializers.ListSerializer(child=ChoiceField(choices=CourseTemplate.ExamType.choices))
-    exam_duration = ChoiceField(choices=CourseTemplate.ExamDuration.choices)
-    exam_language = ChoiceField(choices=CourseTemplate.ExamLanguage.choices)
-    certification_body = serializers.ListSerializer(child=ChoiceField(choices=CourseTemplate.CertificationBody.choices))
-    target_students = serializers.CharField(default="", allow_null=True, allow_blank=True)
-    learning_objectives = serializers.CharField(default="", allow_null=True, allow_blank=True)
-    learning_benefits = serializers.CharField(default="", allow_null=True, allow_blank=True)
+    level = ChoiceField(label="级别", choices=CourseTemplate.Level.choices)
+    status = ChoiceField(label="课程状态", choices=CourseTemplate.Status.choices)
+    assessment_method = ChoiceField(label="考核方式", choices=CourseTemplate.AssessmentMethod.choices)
+    exam_type = serializers.ListSerializer(label="考试题型", child=ChoiceField(choices=CourseTemplate.ExamType.choices))
+    exam_duration = ChoiceField(label="考试时长", choices=CourseTemplate.ExamDuration.choices)
+    exam_language = ChoiceField(label="考试语言", choices=CourseTemplate.ExamLanguage.choices)
+    certification_body = serializers.ListSerializer(
+        label="认证机构", child=ChoiceField(choices=CourseTemplate.CertificationBody.choices))
+    target_students = serializers.CharField(label="目标学员", default="", allow_null=True, allow_blank=True)
+    learning_objectives = serializers.CharField(label="学习目标", default="", allow_null=True, allow_blank=True)
+    learning_benefits = serializers.CharField(label="学习收益", default="", allow_null=True, allow_blank=True)
 
     class Meta:
         model = CourseTemplate
@@ -27,7 +23,7 @@ class CourseTemplateCreateSerializer(serializers.ModelSerializer):
 
 
 class CourseTemplateListSerializer(serializers.ModelSerializer):
-    course_module_count = serializers.ReadOnlyField()
+    course_module_count = serializers.ReadOnlyField(label="课程模块数量")
 
     class Meta:
         model = CourseTemplate

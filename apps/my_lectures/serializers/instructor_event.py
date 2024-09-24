@@ -31,8 +31,8 @@ class InstructorEventRetrieveSerializer(serializers.ModelSerializer):
 
 
 class InstructorEventUpdateStatusSerializer(serializers.Serializer):
-    status = ChoiceField(choices=InstructorEvent.Status.choices)
+    status = ChoiceField(label="讲师事项状态", choices=InstructorEvent.Status.choices)
 
 
 class InstructorEventUpdateReviewSerializer(serializers.Serializer):
-    review = serializers.CharField()
+    review = serializers.CharField(label="课后复盘内容")

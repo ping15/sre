@@ -26,11 +26,7 @@ class InstructorListSerializer(serializers.ModelSerializer):
         ]
 
 
-class InstructorCreateSerializer(
-    serializers.ModelSerializer,
-    PhoneCreateSerializerValidator,
-    BasicSerializerValidator,
-):
+class InstructorCreateSerializer(serializers.ModelSerializer, PhoneCreateSerializerValidator, BasicSerializerValidator):
     class Meta:
         model = Instructor
         fields = "__all__"
@@ -57,8 +53,8 @@ class InstructorPartialUpdateSerializer(serializers.ModelSerializer):
 
 
 class InstructorCalendarSerializer(serializers.Serializer):
-    start_date = serializers.DateField()
-    end_date = serializers.DateField()
+    start_date = serializers.DateField(label="开始时间")
+    end_date = serializers.DateField(label="结束时间")
 
 
 class InstructorRetrieveSerializer(serializers.ModelSerializer):
@@ -72,4 +68,4 @@ class InstructorReviewSerializer(serializers.ModelSerializer):
 
 
 class InstructorFilterConditionSerializer(serializers.Serializer):
-    module = ChoiceField(choices=AppModule.choices, default=AppModule.PLATFORM_MANAGEMENT)
+    module = ChoiceField(label="模块", choices=AppModule.choices, default=AppModule.PLATFORM_MANAGEMENT)

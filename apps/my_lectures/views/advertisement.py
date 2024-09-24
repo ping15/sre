@@ -1,5 +1,4 @@
 import datetime
-from datetime import timedelta
 from typing import Any, Dict
 
 from django.db import transaction
@@ -9,6 +8,7 @@ from rest_framework.decorators import action
 from apps.my_lectures.filters.advertisement import AdvertisementFilterClass
 from apps.my_lectures.models import Advertisement, InstructorEnrolment
 from apps.my_lectures.serializers.advertisement import (
+    AdvertisementAdvertisementCancelSerializer,
     AdvertisementAdvertisementRegistrationSerializer,
 )
 from apps.platform_management.models import CourseTemplate, Instructor
@@ -24,6 +24,7 @@ class AdvertisementViewSet(ModelViewSet):
     filter_class = AdvertisementFilterClass
     ACTION_MAP = {
         "advertisement_registration": AdvertisementAdvertisementRegistrationSerializer,
+        "advertisement_cancel": AdvertisementAdvertisementCancelSerializer,
     }
 
     def get_queryset(self):
@@ -68,18 +69,27 @@ class AdvertisementViewSet(ModelViewSet):
             # 添加广告信息和状态到返回数据中
             advertisement_info["datas"].append({
                 "id": ad.id,
+                # 上课地点
                 "location": ad.location,
                 "training_class": {
                     "course": {
+                        # 课程名
                         "name": training_class.course.name,
+                        # 课程级别
                         "level": training_class.course.level,
                     },
+                    # 培训班开课时间
                     "start_date": training_class.start_date,
-                    "end_date": training_class.start_date + timedelta(days=1),
+                    # 培训班结课时间
+                    "end_date": training_class.end_date,
+                    # 目标客户公司
                     "target_client_company_name": training_class.target_client_company_name,
                 },
+                # 截至时间
                 "deadline_datetime": ad.deadline_datetime,
+                # 广告状态
                 "status": status,
+                # 报名人数
                 "enrolment_count": ad.enrolment_count,
             })
 
@@ -115,6 +125,22 @@ class AdvertisementViewSet(ModelViewSet):
 
         return Response()
 
+    @action(methods=["POST"], detail=False)
+    def advertisement_cancel(self, request, *args, **kwargs):
+        """取消报名"""
+        validated_data = self.validated_data
+
+        deleted, _ = InstructorEnrolment.objects.filter(
+            instructor=self.request.user,
+            advertisement_id=validated_data["advertisement_id"],
+            status=InstructorEnrolment.Status.PENDING,
+        ).delete()
+
+        if not deleted:
+            return Response(result=False, err_msg="找不到该报名记录")
+
+        return Response()
+
     @action(methods=["GET"], detail=False)
     def filter_condition(self, request, *args, **kwargs):
         """筛选条件"""
@@ -125,5 +151,4 @@ class AdvertisementViewSet(ModelViewSet):
                 {"id": level.value, "name": level.label} # noqa
                 for level in CourseTemplate.Level
             ]},
-            # {"id": "deadline_datetime", "name": "报名截至时间", "children": []},
         ])

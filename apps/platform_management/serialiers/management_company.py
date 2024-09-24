@@ -5,8 +5,8 @@ from common.utils.drf.serializer_fields import ChoiceField
 
 
 class ManagementCompanyListSerializer(serializers.ModelSerializer):
-    type = serializers.SerializerMethodField()
-    type_id = serializers.SerializerMethodField()
+    type = serializers.SerializerMethodField(label="公司类型")
+    type_id = serializers.SerializerMethodField(label="公司类型id")
 
     def get_type(self, obj):
         return obj.Type[obj.type.upper()].label
@@ -20,9 +20,7 @@ class ManagementCompanyListSerializer(serializers.ModelSerializer):
 
 
 class ManagementCompanyCreateSerializer(serializers.ModelSerializer):
-    type = ChoiceField(
-        choices=ManageCompany.Type.choices, default=ManageCompany.Type.PARTNER.value
-    )
+    type = ChoiceField(label="公司类型", choices=ManageCompany.Type.choices, default=ManageCompany.Type.PARTNER.value)
 
     class Meta:
         model = ManageCompany
