@@ -20,7 +20,7 @@ class AdministratorModelViewSet(ModelViewSet):
     serializer_class = AdministratorUpdateSerializer
     queryset = Administrator.objects.all()
     enable_batch_import = True
-    batch_import_template_path = "common/utils/excel_parser/templates/administrator_template.xlsx"
+    batch_import_template_path = "common/utils/excel_parser/templates/管理员批量导入模板.xlsx"
     batch_import_serializer = AdministratorBatchImportSerializer
     batch_import_mapping = ADMINISTRATOR_EXCEL_MAPPING
     filter_class = AdministratorFilterClass

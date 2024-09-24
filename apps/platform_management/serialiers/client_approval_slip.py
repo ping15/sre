@@ -17,7 +17,7 @@ class ClientApprovalSlipListSerializer(serializers.ModelSerializer):
 
 
 class ClientApprovalSlipCreateSerializer(serializers.ModelSerializer):
-    submission_info = ClientCompanyCreateSerializer()
+    submission_info = ClientCompanyCreateSerializer(label="客户公司申请信息")
     status = ChoiceField(
         choices=ClientApprovalSlip.Status.choices,
         default=ClientApprovalSlip.Status.PENDING.value,

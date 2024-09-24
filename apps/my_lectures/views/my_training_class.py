@@ -1,5 +1,4 @@
 from rest_framework.decorators import action
-from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from apps.my_lectures.serializers.my_training_class import (
     MyTrainingClassListSerializer,
@@ -7,23 +6,20 @@ from apps.my_lectures.serializers.my_training_class import (
 )
 from apps.platform_management.filters.all_classes import AllClassesFilterClass
 from apps.teaching_space.models import TrainingClass
+from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import InstructorPermission
 from common.utils.drf.response import Response
 
 
-class MyTrainingClassViewSet(ReadOnlyModelViewSet):
+class MyTrainingClassViewSet(ModelViewSet):
     permission_classes = [InstructorPermission]
     queryset = TrainingClass.objects.all()
     filter_class = AllClassesFilterClass
-
-    def get_serializer_class(self):
-        return {
-            "list": MyTrainingClassListSerializer,
-            "retrieve": MyTrainingClassRetrieveSerializer,
-        }.get(self.action, MyTrainingClassListSerializer) # noqa
-
-    def retrieve(self, request, *args, **kwargs):
-        return Response(super().retrieve(request, *args, **kwargs).data)
+    http_method_names = ["get"]
+    ACTION_MAP = {
+        "list": MyTrainingClassListSerializer,
+        "retrieve": MyTrainingClassRetrieveSerializer,
+    }
 
     @action(methods=["GET"], detail=False)
     def filter_condition(self, request, *args, **kwargs):

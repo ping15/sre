@@ -366,15 +366,17 @@ class TrainingClassModelViewSet(ModelViewSet):
     def analyze_score(self, request, *args, **kwargs):
         training_class: TrainingClass = self.get_object()
 
-        # # 如果说培训班有排期，且今天过了接口时间，且培训班处于[开课中]
-        # if not InstructorEvent.objects.filter(training_class=training_class).exists():
-        #     return Response(result=False, err_msg="该培训班没有排期")
-        #
-        # if training_class.start_date != TrainingClass.Status.IN_PROGRESS:
-        #     return Response(result=False, err_msg="该培训班未处于[开课中]")
-        #
-        # if datetime.datetime.now().date() < training_class.end_date:
-        #     return Response(result=False, err_msg="该培训班未到达结课时间")
+        # 如果培训班没有排期，直接返回
+        if not InstructorEvent.objects.filter(training_class=training_class).exists():
+            return Response(result=False, err_msg="该培训班没有排期")
+
+        # 如果该培训班未处于[开课中]，直接返回
+        if training_class.start_date != TrainingClass.Status.IN_PROGRESS:
+            return Response(result=False, err_msg="该培训班未处于[开课中]")
+
+        # 如果该培训班未到达结课时间，直接返回
+        if datetime.datetime.now().date() < training_class.end_date:
+            return Response(result=False, err_msg="该培训班未到达结课时间")
 
         # 处理excel讲师评分数据
         response: dict = cos_client.download_file(self.validated_data["file_key"])
@@ -399,6 +401,6 @@ class TrainingClassModelViewSet(ModelViewSet):
 
             # 培训班状态流转为已结课
             training_class.status = TrainingClass.Status.COMPLETED
-            training_class.save(0)
+            training_class.save()
 
         return Response()

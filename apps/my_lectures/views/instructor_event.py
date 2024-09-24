@@ -23,6 +23,7 @@ class InstructorEventModelViewSet(ModelViewSet):
     permission_classes = [InstructorPermission]
     queryset = InstructorEvent.objects.all()
     filter_class = InstructorEventFilterClass
+    http_method_names = ["get", "post"]
     ACTION_MAP = {
         "list": InstructorEventListSerializer,
         "retrieve": InstructorEventRetrieveSerializer,
@@ -46,7 +47,7 @@ class InstructorEventModelViewSet(ModelViewSet):
 
         return super().list(request, *args, **kwargs)
 
-    def update(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         return Response(result=False)
 
     @action(detail=True, methods=["POST"])

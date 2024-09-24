@@ -34,7 +34,7 @@ class InstructorModelViewSet(ModelViewSet):
     serializer_class = InstructorCreateSerializer
     queryset = Instructor.objects.all()
     enable_batch_import = True
-    batch_import_template_path = "common/utils/excel_parser/templates/instructor_template.xlsx"
+    batch_import_template_path = "common/utils/excel_parser/templates/讲师批量导入模板.xlsx"
     batch_import_mapping = INSTRUCTOR_EXCEL_MAPPING
     filter_class = InstructorFilterClass
     ACTION_MAP = {
