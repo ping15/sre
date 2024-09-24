@@ -2,7 +2,7 @@ import datetime
 from typing import Any, Dict
 
 from django.db import transaction
-from django.db.models import QuerySet
+from django.db.models import F, QuerySet
 from rest_framework.decorators import action
 
 from apps.my_lectures.filters.advertisement import AdvertisementFilterClass
@@ -130,14 +130,18 @@ class AdvertisementViewSet(ModelViewSet):
         """取消报名"""
         validated_data = self.validated_data
 
-        deleted, _ = InstructorEnrolment.objects.filter(
-            instructor=self.request.user,
-            advertisement_id=validated_data["advertisement_id"],
-            status=InstructorEnrolment.Status.PENDING,
-        ).delete()
+        with transaction.atomic():
+            deleted, _ = InstructorEnrolment.objects.filter(
+                instructor=self.request.user,
+                advertisement_id=validated_data["advertisement_id"],
+                status=InstructorEnrolment.Status.PENDING,
+            ).delete()
 
-        if not deleted:
-            return Response(result=False, err_msg="找不到该报名记录")
+            if not deleted:
+                return Response(result=False, err_msg="找不到该报名记录")
+
+            Advertisement.objects.filter(id=validated_data["advertisement_id"]).update(
+                enrolment_count=F('enrolment_count') - 1)
 
         return Response()
 

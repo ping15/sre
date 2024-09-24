@@ -17,12 +17,8 @@ from common.utils.drf.response import Response
 
 
 class FileUploadDownloadView(generics.GenericAPIView):
-    permission_classes = [AllowAny]
-
     def get_permissions(self):
-        if self.request.method == "GET":
-            return [AllowAny()]
-        return [IsAuthenticated()]
+        return [AllowAny()] if self.request.method == "GET" else [IsAuthenticated()]
 
     def get_validated_data(self, serializer_class):
         data = self.request.query_params if self.request.method == "GET" else self.request.data

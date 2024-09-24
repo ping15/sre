@@ -1,6 +1,7 @@
 import random
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.auth import logout
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
@@ -63,14 +64,14 @@ class AuthenticationViewSet(GenericViewSet):
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
             )
 
-        sms_code = ''.join(random.choices('0123456789', k=6))
-        # sms_code = "666666"
+        sms_code = ''.join(random.choices('0123456789', k=6)) if settings.ENABLE_SMS else "666666"
 
         # 设置验证码和发送时间戳到缓存
         cache.set(f"{SMS_KEY}:{phone}", sms_code, timeout=60)
         cache.set(f"{SMS_SEND_TIMESTAMP_KEY}:{phone}", timezone.now(), timeout=60)
 
-        send_sms(phone, sms_code)
+        if settings.ENABLE_SMS:
+            send_sms(phone, sms_code)
 
         return Response("发送成功")
 
