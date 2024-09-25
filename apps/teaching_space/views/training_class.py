@@ -29,7 +29,6 @@ from apps.teaching_space.serializers.training_class import (
     TrainingClassUpdateSerializer,
 )
 from common.utils import global_constants
-from common.utils.cos import cos_client
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import (
     ManageCompanyAdministratorPermission,
@@ -379,12 +378,7 @@ class TrainingClassModelViewSet(ModelViewSet):
         if datetime.datetime.now().date() < training_class.end_date:
             return Response(result=False, err_msg="该培训班未到达结课时间")
 
-        # 处理excel讲师评分数据
-        response: dict = cos_client.download_file(self.validated_data["file_key"])
-        if response.get("error"):
-            return Response(result=False, err_msg=response["error"])
-
-        datas: List[Dict[str, Any]] = excel_to_list(response["Body"].read(None), TRAINING_CLASS_SCORE_EXCEL_MAPPING)
+        datas: List[Dict[str, Any]] = excel_to_list(self.validated_data["file"], TRAINING_CLASS_SCORE_EXCEL_MAPPING)
 
         with transaction.atomic():
             # 统计讲师平均分
