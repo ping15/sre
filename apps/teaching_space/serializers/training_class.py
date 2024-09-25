@@ -95,4 +95,4 @@ class TrainingClassInstructorEventSerializer(serializers.ModelSerializer):
 
 
 class TrainingClassAnalyzeScoreSerializer(serializers.Serializer):
-    file_key = serializers.CharField(label="评分数据cos key")
+    file = serializers.FileField(label="文件")
