@@ -412,7 +412,7 @@ class ClientApprovalSlip(models.Model):
 
     class Status(models.TextChoices):
         PENDING = "pending", "待处理"
-        APPROVED = "approval", "同意"
+        AGREED = "agreed", "同意"
         REJECTED = "rejected", "驳回"
 
     name = models.CharField(_("标题"), max_length=64)

@@ -117,7 +117,7 @@ class TrainingClass(models.Model):
     @property
     def end_date(self) -> datetime.date:
         """结课时间"""
-        return self.start_date + datetime.timedelta(days=global_constants.CLASS_DAYS)
+        return self.start_date + datetime.timedelta(days=global_constants.CLASS_DAYS - 1)
 
     @property
     def student_count(self) -> int:

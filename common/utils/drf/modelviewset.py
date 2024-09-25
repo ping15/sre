@@ -8,6 +8,7 @@ from rest_framework.viewsets import ModelViewSet as DRFModelViewSet
 
 from common.utils.cos import cos_client
 from common.utils.drf.filters import BaseFilterSet
+from common.utils.drf.pagination import PageNumberPagination
 from common.utils.drf.response import Response
 from common.utils.excel_parser.parser import excel_to_list
 
@@ -66,6 +67,12 @@ class ModelViewSet(DRFModelViewSet):
     @staticmethod
     def transform_choices(choices):
         return [{"id": value, "name": label} for value, label in choices]
+
+    def list(self, request, *args, **kwargs):
+        if PageNumberPagination.page_size_query_param not in self.request.query_params:
+            return Response(self.get_serializer(self.filter_queryset(self.get_queryset()), many=True).data)
+
+        return super().list(request, *args, **kwargs)
 
     def retrieve(self, request, *args, **kwargs):
         return Response(super().retrieve(request, *args, **kwargs).data)

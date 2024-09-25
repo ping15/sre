@@ -268,7 +268,8 @@ class TrainingClassModelViewSet(ModelViewSet):
             return Response(result=False, err_msg="该培训班无广告")
 
         advertisement: Advertisement = training_class.advertisement
-        instructor_enrolments: QuerySet["InstructorEnrolment"] = advertisement.instructor_enrolments.all()
+        instructor_enrolments: QuerySet["InstructorEnrolment"] = advertisement.instructor_enrolments.all().filter(
+            status__in=[InstructorEnrolment.Status.PENDING, InstructorEnrolment.Status.ACCEPTED])
         now: datetime = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
         is_expired: bool = False
 

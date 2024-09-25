@@ -41,17 +41,15 @@ class ClientApprovalSlipModelViewSet(ModelViewSet):
         if instance.status != ClientApprovalSlip.Status.PENDING.value:
             return Response(result=False, err_msg="该单据装填已流转，不可更新")
 
-        if validated_data["status"] == ClientApprovalSlip.Status.APPROVED.value:
-            create_serializer = ClientCompanyCreateSerializer(
-                data=instance.submission_info
-            )
+        if validated_data["status"] == ClientApprovalSlip.Status.AGREED.value:
+            # 创建客户公司
+            create_serializer = ClientCompanyCreateSerializer(data=instance.submission_info)
             if not create_serializer.is_valid():
                 return Response(result=False, err_msg=str(create_serializer.errors))
-
-            # 更新单据状态
             create_serializer.save()
 
-        super().partial_update(request, *args, **kwargs)
+            # 更新单据状态
+            super().partial_update(request, *args, **kwargs)
 
         return Response()
 
@@ -75,6 +73,5 @@ class ClientApprovalSlipModelViewSet(ModelViewSet):
                     {"id": choice.value, "name": choice.label}  # noqa
                     for choice in ClientApprovalSlip.Status
                 ]},
-                {"id": "submission_datetime", "name": "时间", "children": []},
             ]
         )
