@@ -223,9 +223,7 @@ class EventHandler:
                 event_type=Event.EventType.CANCEL_UNAVAILABILITY).values_list("start_date", flat=True)
             if not all([current_date in cancel_dates for current_date in between(start_date, end_date)]):
                 # 如果该讲师的不可用时间和培训班日程冲突，直接返回不创建
-                for rule in Event.objects.filter(event_type__in=[
-                    Event.EventType.ONE_TIME_UNAVAILABILITY, Event.EventType.RECURRING_UNAVAILABILITY]
-                ):
+                for rule in Event.objects.filter(event_type__in=Event.EventType.rule_types, instructor=instructor):
                     if EventHandler.is_event_conflict_to_rule(event, rule):
                         raise ParseError("该培训班与已有的规则存在冲突")
 

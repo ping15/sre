@@ -23,7 +23,10 @@ from apps.platform_management.serialiers.instructor import (
 )
 from apps.teaching_space.models import TrainingClass
 from common.utils.drf.modelviewset import ModelViewSet
-from common.utils.drf.permissions import SuperAdministratorPermission
+from common.utils.drf.permissions import (
+    ManageCompanyAdministratorPermission,
+    SuperAdministratorPermission,
+)
 from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import INSTRUCTOR_EXCEL_MAPPING
 from common.utils.global_constants import AppModule
@@ -46,6 +49,10 @@ class InstructorModelViewSet(ModelViewSet):
         "update": InstructorUpdateSerializer,
         "partial_update": InstructorPartialUpdateSerializer,
         "filter_condition": InstructorFilterConditionSerializer,
+    }
+    PERMISSION_MAP = {
+        "list": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
+        "filter_condition": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
     }
 
     @action(methods=["GET"], detail=True)

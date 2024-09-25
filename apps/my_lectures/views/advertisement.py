@@ -86,7 +86,7 @@ class AdvertisementViewSet(ModelViewSet):
                     "target_client_company_name": training_class.target_client_company_name,
                 },
                 # 截至时间
-                "deadline_datetime": ad.deadline_datetime,
+                "deadline_datetime": ad.deadline_datetime.strftime("%Y-%m-%d %H:%M"),
                 # 广告状态
                 "status": status,
                 # 报名人数
@@ -131,6 +131,7 @@ class AdvertisementViewSet(ModelViewSet):
         validated_data = self.validated_data
 
         with transaction.atomic():
+            # 删除报名记录
             deleted, _ = InstructorEnrolment.objects.filter(
                 instructor=self.request.user,
                 advertisement_id=validated_data["advertisement_id"],
@@ -140,6 +141,7 @@ class AdvertisementViewSet(ModelViewSet):
             if not deleted:
                 return Response(result=False, err_msg="找不到该报名记录")
 
+            # 广告报名人数减1
             Advertisement.objects.filter(id=validated_data["advertisement_id"]).update(
                 enrolment_count=F('enrolment_count') - 1)
 

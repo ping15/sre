@@ -45,6 +45,7 @@ class FileUploadDownloadView(generics.GenericAPIView):
 
         return FileResponse(
             response["Body"],
+            as_attachment=validated_data["need_download"],
             filename=original_filename,
         )
 
@@ -64,7 +65,7 @@ class FileUploadDownloadView(generics.GenericAPIView):
         })
 
     def delete(self, request, *args, **kwargs):
-        """删除文件"""
+        """删除文件(暂无权限删除)"""
         validated_data = self.get_validated_data(FileDeleteSerializer)
 
         response: dict = cos_client.delete_file(validated_data["file_key"])
