@@ -4,6 +4,7 @@ from apps.my_lectures.handles.event import EventHandler
 from apps.my_lectures.serializers.schedule import (
     EventCreateSerializer,
     EventListSerializer,
+    EventRetrieveSerializer,
     EventUpdateSerializer,
 )
 from apps.platform_management.models import Event, Instructor
@@ -17,6 +18,7 @@ class ScheduleModelViewSet(ModelViewSet):
     queryset = Event.objects.all()
     ACTION_MAP = {
         "list": EventListSerializer,
+        "retrieve": EventRetrieveSerializer,
         "create": EventCreateSerializer,
         "update": EventUpdateSerializer,
     }

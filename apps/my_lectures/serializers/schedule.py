@@ -35,3 +35,9 @@ class EventListSerializer(serializers.Serializer):
 
 class EventUpdateSerializer(EventCreateSerializer):
     pass
+
+
+class EventRetrieveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = ["id", "freq_type", "start_date", "end_date", "freq_interval", "event_type"]

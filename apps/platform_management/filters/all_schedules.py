@@ -28,7 +28,7 @@ class AllScheduleFilterClass(BaseFilterSet):
                 id__in=[
                     training_class.id
                     for training_class in TrainingClass.objects.all()
-                    if training_class.affiliated_client_company.id == value
+                    if training_class.target_client_company_id == value
                 ]
             )
         )

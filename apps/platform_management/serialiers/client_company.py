@@ -18,7 +18,7 @@ class ClientCompanyListSerializer(serializers.ModelSerializer):
 
 
 class ClientCompanyRetrieveSerializer(serializers.ModelSerializer):
-    payment_method = serializers.CharField(source='get_payment_method_display')
+    # payment_method = serializers.CharField(source='get_payment_method_display')
 
     class Meta:
         model = ClientCompany
@@ -26,7 +26,7 @@ class ClientCompanyRetrieveSerializer(serializers.ModelSerializer):
 
 
 class ClientCompanyCreateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
-    payment_method = ChoiceField(choices=ClientCompany.PaymentMethod.choices, read_only=False)
+    payment_method = ChoiceField(choices=ClientCompany.PaymentMethod.choices)
 
     class Meta:
         model = ClientCompany
