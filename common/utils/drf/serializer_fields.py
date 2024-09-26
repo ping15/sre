@@ -21,19 +21,23 @@ class ChoiceField(serializers.ChoiceField):
         "invalid_choice": "{input} is not a valid choice, choices: {choices}"
     }
 
+    def __init__(self, choices, mapping=None, **kwargs):
+        super().__init__(choices, **kwargs)
+        self.mapping = mapping or {}
+
     def to_internal_value(self, data):
         data = reverse_dict(self.choices).get(data, data)
         if data == "" and self.allow_blank:
-            return ""
+            return None
+        if data in self.mapping:
+            return self.mapping[data]
+
         if isinstance(data, Enum) and str(data) != str(data.value):
             data = data.value
         try:
             return self.choice_strings_to_values[str(data)]
         except KeyError:
             self.fail("invalid_choice", input=data, choices=list(self.choices.keys()))
-
-    # def to_representation(self, value):
-    #     return super().to_representation(self.choices.get(value))
 
 
 class MonthYearField(serializers.Field):
@@ -47,3 +51,10 @@ class MonthYearField(serializers.Field):
             return datetime.strptime(data, '%Y-%m').date() + self.time_delta
         except ValueError:
             raise serializers.ValidationError("Date format should be 'YYYY-MM'")
+
+
+class BlankableDateField(serializers.DateField):
+    def to_internal_value(self, data):
+        if data == '':
+            return None
+        return super().to_internal_value(data)

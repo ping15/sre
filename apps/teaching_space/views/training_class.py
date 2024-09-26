@@ -371,7 +371,7 @@ class TrainingClassModelViewSet(ModelViewSet):
             return Response(result=False, err_msg="该培训班没有排期")
 
         # 如果该培训班未处于[开课中]，直接返回
-        if training_class.start_date != TrainingClass.Status.IN_PROGRESS:
+        if training_class.status != TrainingClass.Status.IN_PROGRESS:
             return Response(result=False, err_msg="该培训班未处于[开课中]")
 
         # 如果该培训班未到达结课时间，直接返回
@@ -383,7 +383,7 @@ class TrainingClassModelViewSet(ModelViewSet):
         with transaction.atomic():
             # 统计讲师平均分
             scores: List[float] = [float(data_dict["score"]) for data_dict in datas]
-            average_score: float = sum(scores) / len(scores)
+            average_score: float = min(max(sum(scores) / len(scores), 0), 5)
 
             # 如果讲师未评过分，即0.0分，则直接赋值
             # 否则平均之前的分数

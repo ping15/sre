@@ -68,6 +68,45 @@ class NumberInFilter(django_filters.BaseInFilter, django_filters.NumberFilter):
 
 
 class BaseFilterSet(django_filters.FilterSet):
+    default = django_filters.CharFilter(method="filter_default", label="默认筛选字段")
+
+    def filter_default(self, queryset, name, value):
+        # 获取所有需要匹配的字段和它们的类型
+        search_fields = self.base_filters.copy()
+
+        del search_fields["default"]
+
+        # 获取模型的所有字段名称
+        model_fields = {field.name for field in queryset.model._meta.get_fields()}
+
+        # 构建 Q 对象进行 OR 查询
+        query = Q()
+
+        for field_name, filter_instance in search_fields.items():
+            # 检查字段是否是模型字段
+            if field_name not in model_fields:
+                continue
+
+            if isinstance(filter_instance, django_filters.CharFilter):
+                # 对字符串字段进行部分匹配
+                query |= Q(**{f"{field_name}__icontains": value})
+            elif isinstance(filter_instance, django_filters.NumberFilter):
+                try:
+                    # 尝试将 value 转换为数字
+                    num_value = float(value)
+                    query |= Q(**{f"{field_name}": num_value})
+                except ValueError:
+                    # 如果转换失败，跳过这个字段
+                    continue
+
+        return queryset.filter(query)
+
+    # # 针对 PropertyFilter 或其他自定义过滤器的处理
+    # elif hasattr(filter_instance, 'method'):
+    #     # 如果过滤器有自定义方法，我们可以调用该方法
+    #     # 这里假设自定义方法接受 queryset, name, value 作为参数
+    #     queryset = filter_instance.method(queryset, name, value)
+
     @classmethod
     def _filter_by_related_model(cls, queryset, pk, model, field_name, related_field):
         """

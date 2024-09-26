@@ -67,8 +67,8 @@ class CourseTemplate(models.Model):
     )
     abbreviation = models.CharField(_("英文缩写"), max_length=32)
     num_lessons = models.IntegerField(_("课时数量"))
-    version = models.CharField(_("版本"), max_length=16)
-    release_date = models.DateField(_("上线日期"))
+    version = models.CharField(_("版本"), max_length=16, default="")
+    release_date = models.DateField(_("上线日期"), blank=True, null=True)
     status = models.CharField(
         _("状态"),
         choices=Status.choices,
@@ -99,18 +99,22 @@ class CourseTemplate(models.Model):
         choices=ExamType.choices,
         default=list,
     )
-    num_questions = models.IntegerField(_("考题数量"))
+    num_questions = models.IntegerField(_("考题数量"), null=True, blank=True)
     exam_duration = models.IntegerField(
         _("考试时长"),
         choices=ExamDuration.choices,
+        null=True,
+        blank=True,
     )
     exam_language = models.CharField(
         _("考试语言"),
         choices=ExamLanguage.choices,
         max_length=8,
+        null=True,
+        blank=True,
     )
-    passing_score = models.IntegerField(_("过线分数"))
-    require_authorized_training = models.BooleanField(_("是否要求授权培训"))
+    passing_score = models.IntegerField(_("过线分数"), null=True, blank=True)
+    require_authorized_training = models.BooleanField(_("是否要求授权培训"), null=True, blank=True)
     certification_body = models.JSONField(
         _("认证机构"),
         choices=CertificationBody.choices,
@@ -462,7 +466,7 @@ class Event(models.Model):
             empty = [(None, cls.__empty__)] if hasattr(cls, '__empty__') else []
             return empty + [
                 (member.value, member.label) # noqa
-                for member in cls if member in [cls.ONE_TIME_UNAVAILABILITY, cls.RECURRING_UNAVAILABILITY]
+                for member in cls if member != cls.CLASS_SCHEDULE
             ]
 
         @classproperty
