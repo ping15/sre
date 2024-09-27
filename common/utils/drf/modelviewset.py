@@ -4,6 +4,7 @@ from typing import Any, Dict, List
 from django.http import FileResponse, Http404
 from rest_framework import serializers, status
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet as DRFModelViewSet
 
 from common.utils.cos import cos_client
@@ -87,9 +88,9 @@ class ModelViewSet(DRFModelViewSet):
         return Response(super().update(request, *args, **kwargs).data)
 
     def destroy(self, request, *args, **kwargs):
-        return Response(super().destroy(request, *args, **kwargs).data, status=status.HTTP_204_NO_CONTENT)
+        return Response(super().destroy(request, *args, **kwargs).data, status=status.HTTP_200_OK)
 
-    @action(methods=["GET"], detail=False)
+    @action(methods=["GET"], detail=False, permission_classes=[IsAuthenticated])
     def filter_condition(self, request, *args, **kwargs):
         return NotImplemented("条件筛选")
 
