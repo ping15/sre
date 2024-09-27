@@ -33,15 +33,16 @@ ALLOWED_HOSTS = ["*"]
 
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.mysql',
-        'ENGINE': 'mysql.connector.django',
+        'ENGINE': 'django.db.backends.mysql',
+        # 'ENGINE': 'mysql.connector.django',
         'NAME': os.getenv('DATABASE_NAME'),
         'USER': os.getenv('DATABASE_USER'),
         'PASSWORD': os.getenv('DATABASE_PASSWORD'),
         'HOST': os.getenv('DATABASE_HOST'),
         'PORT': '3306',
         'OPTIONS': {
-            'auth_plugin': 'mysql_native_password'
+            'auth_plugin': 'mysql_native_password',
+            'charset': 'utf8mb4',
         }
     }
 }
