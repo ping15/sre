@@ -1,6 +1,8 @@
 import urllib
 import urllib.request
 
+from django.conf import settings
+
 status_mapping = {
     '0': '短信发送成功',
     '-1': '参数不全',
@@ -14,12 +16,13 @@ status_mapping = {
 }
 
 
+# todo: 临时短信api，等资源下来后替换
 def send_sms(phone, sms_code):
     smsapi = "http://api.smsbao.com/"
     # 短信平台账号
-    user = 'gqp_15'
+    user = settings.SMS_USERNAME
     # 短信平台密码
-    password = "dab8292ea8974b64a060c95ad2435206"
+    password = settings.SMS_PASSWORD
     # 要发送的短信内容
     content = f'【SRE培训学习中心】{sms_code}为您的登录验证码，请于1分钟内填写，如非本人操作，请忽略本短信。'
     data = urllib.parse.urlencode({'u': user, 'p': password, 'm': phone, 'c': content})

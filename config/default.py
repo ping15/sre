@@ -223,6 +223,8 @@ DEFAULT_LOOKUP_EXPR = "icontains"
 
 # 是否启用SMS，不启用默认值为666666
 ENABLE_SMS = bool(os.environ.get("ENABLE_SMS", False))
+SMS_USERNAME = os.environ.get("SMS_USERNAME", "")
+SMS_PASSWORD = os.environ.get("SMS_PASSWORD", "")
 
 # DRF配置
 REST_FRAMEWORK = {

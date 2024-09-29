@@ -33,12 +33,13 @@ class AuthenticationViewSet(GenericViewSet):
         if not user:
             return Response(result=False, err_msg="不存在该手机号的用户")
 
-        cached_captcha_text = cache.get(f'{SMS_KEY}:{self.validated_data["phone"]}')
-        if not cached_captcha_text:
-            return Response(result=False, err_msg="未发送验证码或验证码已失效")
+        if settings.ENABLE_SMS:
+            cached_captcha_text = cache.get(f'{SMS_KEY}:{self.validated_data["phone"]}')
+            if not cached_captcha_text:
+                return Response(result=False, err_msg="未发送验证码或验证码已失效")
 
-        if captcha_text != cached_captcha_text:
-            return Response(result=False, err_msg="验证码错误")
+            if captcha_text != cached_captcha_text:
+                return Response(result=False, err_msg="验证码错误")
 
         login(request, user)
         return Response({"role": user.role, "username": user.username})

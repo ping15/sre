@@ -6,7 +6,6 @@ from django.db.models import QuerySet
 
 from apps.my_lectures.handles.event import EventHandler
 from apps.platform_management.models import CourseTemplate, Event, Instructor
-from common.utils import global_constants
 from common.utils.drf.filters import BaseFilterSet, DynamicRangeFilter, PropertyFilter
 
 
@@ -20,33 +19,29 @@ class InstructorFilterClass(BaseFilterSet):
     is_partnered = django_filters.BooleanFilter("is_partnered", label="是否合作")
 
     def filter_availability_date(self, queryset: QuerySet["Instructor"], name: str, today: datetime.date):
-        if not self.request.user.role == global_constants.Role.INSTRUCTOR.value:
-            return queryset
+        # if not self.request.user.role == global_constants.Role.INSTRUCTOR.value:
+        #     return queryset
 
-        # 当 今天可用 + 明天可用 时，这个讲师可以预约
-        today_can_use = tomorrow_can_use = False
-        tomorrow = today + datetime.timedelta(days=1)
-        cancel_events: List[datetime.date] = Event.objects.filter(
-            event_type=Event.EventType.CANCEL_UNAVAILABILITY).values_list("start_date", flat=True)
+        tomorrow: datetime.date = today + datetime.timedelta(days=1)
         instructor_ids: List = []
         for instructor in queryset:
-            if EventHandler.is_current_date_in_cancel_events(today, cancel_events):
+            today_can_use = tomorrow_can_use = True
+            for rule in instructor.events.filter(event_type__in=Event.EventType.rule_types):
+                if today_can_use and EventHandler.is_current_date_in_rule(today, rule):
+                    today_can_use = False
+
+                if tomorrow_can_use and EventHandler.is_current_date_in_rule(tomorrow, rule):
+                    tomorrow_can_use = False
+
+            cancel_days: List[datetime.date] = instructor.events.filter(
+                event_type=Event.EventType.CANCEL_UNAVAILABILITY).values_list("start_date", flat=True)
+            if EventHandler.is_current_date_in_cancel_events(today, cancel_days):
                 today_can_use = True
 
-            if EventHandler.is_current_date_in_cancel_events(tomorrow, cancel_events):
+            if EventHandler.is_current_date_in_cancel_events(tomorrow, cancel_days):
                 tomorrow_can_use = True
 
-            if today_can_use and tomorrow_can_use:
-                instructor_ids.append(instructor.id)
-                continue
-
-            for rule in instructor.events.filter(event_type__in=Event.EventType.rule_types):
-                if not EventHandler.is_current_date_in_rule(today, rule):
-                    today_can_use = True
-
-                if not EventHandler.is_current_date_in_rule(tomorrow, rule):
-                    tomorrow_can_use = True
-
+            # 当 今天可用 + 明天可用 时，这个讲师可以预约
             if today_can_use and tomorrow_can_use:
                 instructor_ids.append(instructor.id)
                 continue

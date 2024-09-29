@@ -1,43 +1,52 @@
 from collections import defaultdict
 
+from django.db.models import QuerySet
 from rest_framework.decorators import action
 
 from apps.my_lectures.handles.event import EventHandler
 from apps.platform_management.filters.all_schedules import AllScheduleFilterClass
 from apps.platform_management.models import (
+    Administrator,
     ClientCompany,
     Event,
     Instructor,
     ManageCompany,
 )
-from apps.platform_management.serialiers.all_schedules import (
-    AllScheduleCreateSerializer,
+from apps.platform_management.serialiers.all_schedules import (  # AllScheduleCreateSerializer,
     AllScheduleListSerializer,
 )
 from apps.teaching_space.models import TrainingClass
 from common.utils.drf.modelviewset import ModelViewSet
-from common.utils.drf.permissions import SuperAdministratorPermission
+from common.utils.drf.permissions import (
+    ManageCompanyAdministratorPermission,
+    SuperAdministratorPermission,
+)
 from common.utils.drf.response import Response
 
 
 class AllScheduleModelViewSet(ModelViewSet):
-    permission_classes = [SuperAdministratorPermission]
+    permission_classes = [SuperAdministratorPermission | ManageCompanyAdministratorPermission]
     queryset = Event.objects.all()
     filter_class = AllScheduleFilterClass
+    http_method_names = ["get"]
     ACTION_MAP = {
         "list": AllScheduleListSerializer,
-        "create": AllScheduleCreateSerializer,
     }
+
+    def get_queryset(self):
+        user: Administrator = self.request.user
+        queryset: QuerySet["Event"] = super().get_queryset().filter(event_type=Event.EventType.CLASS_SCHEDULE.value)
+        if self.request.user.role != Administrator.Role.SUPER_MANAGER:
+            affiliated_manage_company_name = user.affiliated_manage_company_name
+            queryset = queryset.filter(
+                training_class__target_client_company__affiliated_manage_company_name=affiliated_manage_company_name)
+        return queryset
 
     def list(self, request, *args, **kwargs):
         validated_data = self.validated_data
         return Response(
             EventHandler.build_calendars(
-                self.filter_queryset(
-                    self.get_queryset().filter(
-                        event_type=Event.EventType.CLASS_SCHEDULE.value
-                    )
-                ),
+                self.filter_queryset(self.get_queryset()),
                 validated_data["start_date"],
                 validated_data["end_date"],
             )
@@ -80,7 +89,7 @@ class AllScheduleModelViewSet(ModelViewSet):
                     ),
                 },
                 {
-                    "id": "training_classes",
+                    "id": "training_class",
                     "name": "培训班",
                     "children": self.aggregate_items(
                         TrainingClass.objects.all(), "name"

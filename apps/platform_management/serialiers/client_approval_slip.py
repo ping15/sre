@@ -11,6 +11,8 @@ from common.utils.drf.serializer_fields import ChoiceField
 
 
 class ClientApprovalSlipListSerializer(serializers.ModelSerializer):
+    submission_datetime = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+
     class Meta:
         model = ClientApprovalSlip
         exclude = ["submission_info"]
@@ -27,22 +29,15 @@ class ClientApprovalSlipCreateSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         submission_info = validated_data["submission_info"]
 
-        if ClientApprovalSlip.objects.filter(
-            affiliated_client_company_name=submission_info["name"]
-        ).exists():
+        if ClientApprovalSlip.objects.filter(affiliated_client_company_name=submission_info["name"]).exists():
             raise ValidationError("该公司已申请")
 
-        validated_data["affiliated_manage_company_name"] = submission_info[
-            "affiliated_manage_company_name"
-        ]
+        validated_data["affiliated_manage_company_name"] = submission_info["affiliated_manage_company_name"]
         validated_data["affiliated_client_company_name"] = submission_info["name"]
         validated_data["submitter"] = request.user.username
-        validated_data["submission_datetime"] = datetime.datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S"
-        )
-        validated_data[
-            "name"
-        ] = f"{submission_info['affiliated_manage_company_name']}申请给{submission_info['name']}培训服务"
+        validated_data["submission_datetime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        validated_data["name"] = (f"{submission_info['affiliated_manage_company_name']}申请"
+                                  f"给{submission_info['name']}培训服务")
         return super().create(validated_data)
 
     class Meta:

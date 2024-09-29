@@ -131,6 +131,9 @@ class TrainingClassModelViewSet(ModelViewSet):
             # 指定讲师
             training_class.instructor_id = validated_data["instructor_id"]
 
+            # 修改培训班开课时间
+            training_class.start_date = start_date
+
             # 新增讲师事件
             InstructorEvent.objects.create(
                 event_name=f"[{training_class.affiliated_manage_company_name}]邀请你为"

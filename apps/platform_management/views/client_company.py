@@ -1,14 +1,18 @@
+from django.db.models import QuerySet
 from rest_framework.decorators import action
 
 from apps.platform_management.filters.client_company import ClientCompanyFilterClass
-from apps.platform_management.models import ClientCompany
+from apps.platform_management.models import Administrator, ClientCompany
 from apps.platform_management.serialiers.client_company import (
     ClientCompanyCreateSerializer,
     ClientCompanyListSerializer,
     ClientCompanyRetrieveSerializer,
 )
 from common.utils.drf.modelviewset import ModelViewSet
-from common.utils.drf.permissions import SuperAdministratorPermission
+from common.utils.drf.permissions import (
+    ManageCompanyAdministratorPermission,
+    SuperAdministratorPermission,
+)
 from common.utils.drf.response import Response
 
 
@@ -22,18 +26,20 @@ class ClientCompanyModelViewSet(ModelViewSet):
         "create": ClientCompanyCreateSerializer,
         "retrieve": ClientCompanyRetrieveSerializer,
         "update": ClientCompanyCreateSerializer,
-        # "partial_update": ClientCompanyCreateSerializer,
+    }
+    PERMISSION_MAP = {
+        "retrieve": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
     }
 
-    def list(self, request, *args, **kwargs):
-        # user: Administrator = request.user
-        #
-        # # 非超级管理员只能看到自己所属管理公司下面的客户公司
-        # if user.role in [Administrator.Role.PARTNER_MANAGER, Administrator.Role.COMPANY_MANAGER]:
-        #     self.queryset = self.get_queryset().filter(
-        #         affiliated_manage_company_name=user.affiliated_manage_company_name)
+    def get_queryset(self):
+        queryset: QuerySet["ClientCompany"] = super().get_queryset()
 
-        return super().list(request, *args, **kwargs)
+        # 非超级管理员只能看到自己所属管理公司下面的客户公司
+        user: Administrator = self.request.user
+        if user.role != Administrator.Role.SUPER_MANAGER:
+            queryset = queryset.filter(affiliated_manage_company_name=user.affiliated_manage_company_name)
+
+        return queryset
 
     def update(self, request, *args, **kwargs):
         if "name" in self.request.data:

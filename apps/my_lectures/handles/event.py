@@ -47,7 +47,6 @@ class EventHandler:
             elif event.event_type in [
                 Event.EventType.ONE_TIME_UNAVAILABILITY, Event.EventType.RECURRING_UNAVAILABILITY
             ]:
-                # blank_calendar[format_date(marking_start_date)]["rules"].append(cls.build_event_data(event))
                 cls.marking_unavailable(blank_calendar, event, marking_start_date, marking_end_date)
 
         blank_calendar = {

@@ -33,6 +33,13 @@ class ManagementCompanyModelViewSet(ModelViewSet):
             ManageCompany.sync_name(self.get_object().name, self.request.data["name"])
         return super().update(request, *args, **kwargs)
 
+    def destroy(self, request, *args, **kwargs):
+        manage_company: ManageCompany = self.get_object()
+        if manage_company.type == ManageCompany.Type.DEFAULT:
+            return Response(result=False, err_msg="默认公司不可删除")
+
+        return super().destroy(request, *args, **kwargs)
+
     @action(methods=["GET"], detail=False)
     def filter_condition(self, request, *args, **kwargs):
         return Response(

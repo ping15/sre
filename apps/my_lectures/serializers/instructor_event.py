@@ -21,6 +21,7 @@ class InstructorEventRetrieveSerializer(serializers.ModelSerializer):
             ]
 
     training_class = TrainingInfoSerializer()
+    created_datetime = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
 
     class Meta:
         model = InstructorEvent
@@ -31,7 +32,7 @@ class InstructorEventRetrieveSerializer(serializers.ModelSerializer):
 
 
 class InstructorEventUpdateStatusSerializer(serializers.Serializer):
-    status = ChoiceField(label="讲师事项状态", choices=InstructorEvent.Status.choices)
+    status = ChoiceField(label="讲师事项状态", choices=InstructorEvent.Status.get_handle_choices())
 
 
 class InstructorEventUpdateReviewSerializer(serializers.Serializer):

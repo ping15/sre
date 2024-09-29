@@ -25,6 +25,13 @@ class InstructorEvent(models.Model):
         def get_completed_statuses(cls) -> List:
             return [cls.AGREED, cls.REJECTED, cls.REMOVED, cls.FINISHED]
 
+        @classmethod
+        def get_handle_choices(cls):
+            return [
+                (cls.AGREED, "已同意"),
+                (cls.REJECTED, "已拒绝"),
+            ]
+
     class EventType(models.TextChoices):
         INVITE_TO_CLASS = "invite_to_class", "邀请上课"
         POST_CLASS_REVIEW = "post_class_review", "课后复盘"

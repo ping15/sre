@@ -9,6 +9,7 @@ from apps.platform_management.serialiers.course_template import (
 )
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import (
+    InstructorPermission,
     ManageCompanyAdministratorPermission,
     SuperAdministratorPermission,
 )
@@ -35,14 +36,11 @@ class CourseTemplateModelViewSet(ModelViewSet):
         )
 
     @action(methods=["GET"], detail=False, permission_classes=[
-        SuperAdministratorPermission | ManageCompanyAdministratorPermission
+        SuperAdministratorPermission | ManageCompanyAdministratorPermission | InstructorPermission
     ])
     def choices(self, request, *args, **kwargs):
         return Response([
-            {
-                "id": course_template.id,
-                "name": course_template.name,
-            }
+            {"id": course_template.id, "name": course_template.name}
             for course_template in self.get_queryset().filter(
                 Q(status=CourseTemplate.Status.IN_PROGRESS.value) | Q(
                     status=CourseTemplate.Status.PREPARATION.value)

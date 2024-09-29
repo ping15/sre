@@ -11,7 +11,7 @@ from common.utils.global_constants import AppModule
 
 
 class ClientStudentListSerializer(serializers.ModelSerializer):
-    education = ChoiceField(label="学历", choices=ClientStudent.Education.choices)
+    education = serializers.CharField(source="get_education_display")
 
     class Meta:
         model = ClientStudent
@@ -30,7 +30,7 @@ class ClientStudentCreateSerializer(
         fields = "__all__"
 
 
-class ClientStudentUpdateSerializer(serializers.ModelSerializer, BasicSerializerValidator,):
+class ClientStudentUpdateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
     education = ChoiceField(label="学历", choices=ClientStudent.Education.choices)
 
     def save(self, **kwargs):

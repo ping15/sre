@@ -14,6 +14,7 @@ from apps.my_lectures.serializers.instructor_event import (
     InstructorEventUpdateStatusSerializer,
 )
 from apps.platform_management.models import Event
+from common.utils import global_constants
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import InstructorPermission
 from common.utils.drf.response import Response
@@ -74,8 +75,22 @@ class InstructorEventModelViewSet(ModelViewSet):
             # 1. 同意则新增日程
             # 2. 因讲师无法同时在一天内给多个客户公司上课，其他单据与当前单据有时间冲突的自动流转为已拒绝
             if validated_data["status"] == InstructorEvent.Status.AGREED.value:
+                # # 修改开课时间，优先使用可预约时间，如果没有默认使用培训班开课时间
+                # training_class: TrainingClass = instructor_event.training_class
+                # training_class.start_date = instructor_event.start_date
+                # training_class.save()
+
+                # 新增日程
                 EventHandler.create_event(
                     training_class=instructor_event.training_class, event_type=Event.EventType.CLASS_SCHEDULE.value)
+
+                # 将单据状态为[待处理]，且时间与该单据有冲突的自动修改为[已拒绝]
+                self.get_queryset().filter(
+                    status=InstructorEvent.Status.PENDING,
+                    start_date__range=(
+                        instructor_event.start_date,
+                        instructor_event.start_date + datetime.timedelta(days=global_constants.CLASS_DAYS - 1)
+                    )).update(status=InstructorEvent.Status.REJECTED)
 
         return Response()
 

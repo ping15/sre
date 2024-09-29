@@ -125,7 +125,7 @@ class ModelViewSet(DRFModelViewSet):
             filename=os.path.basename(self.batch_import_template_path),
         )
 
-    @action(methods=["GET"], detail=False)
+    @action(methods=["GET"], detail=False, permission_classes=[IsAuthenticated])
     def simple_query(self, request, *args, **kwargs):
         validated_data = self.validated_data
         return Response(list(self.queryset.values(*validated_data["query"].split(","))))
