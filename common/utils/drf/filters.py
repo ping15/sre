@@ -11,6 +11,7 @@ class PropertyFilter(django_filters.CharFilter):
     def value(self):
         return 1
     """
+
     def filter(self, qs, value):
         if self.lookup_expr == "icontains":
             return qs.filter(

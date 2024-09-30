@@ -219,7 +219,7 @@ CELERY_TIMEZONE = 'UTC'
 DJANGO_CELERY_BEAT_TZ_AWARE = False
 
 # django_filters默认lookup_expr
-DEFAULT_LOOKUP_EXPR = "icontains"
+FILTERS_DEFAULT_LOOKUP_EXPR = "icontains"
 
 # 是否启用SMS，不启用默认值为666666
 ENABLE_SMS = bool(os.environ.get("ENABLE_SMS", False))
