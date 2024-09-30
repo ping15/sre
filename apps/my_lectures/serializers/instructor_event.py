@@ -6,6 +6,8 @@ from common.utils.drf.serializer_fields import ChoiceField
 
 
 class InstructorEventListSerializer(serializers.ModelSerializer):
+    created_datetime = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+
     class Meta:
         model = InstructorEvent
         fields = ["id", "event_name", "event_type", "initiator", "status", "created_datetime"]

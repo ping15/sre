@@ -158,6 +158,11 @@ class EventHandler:
         elif rule.freq_type == Event.FreqType.MONTHLY and current_date.day in rule.freq_interval:
             return True
 
+        elif rule.freq_type == Event.FreqType.BIWEEKLY:
+            delta_days = (current_date - rule.start_date).days
+            if (delta_days // 7) % 2 == 0 and current_date.isoweekday() in rule.freq_interval:
+                return True
+
         return False
 
     @classmethod
