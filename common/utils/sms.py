@@ -15,6 +15,8 @@ status_mapping = {
     '50': '内容含有敏感词'
 }
 
+SUCCESS_STATUS = "0"
+
 
 # todo: 临时短信api，等资源下来后替换
 def send_sms(phone, sms_code):

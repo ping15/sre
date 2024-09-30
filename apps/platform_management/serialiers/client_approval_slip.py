@@ -20,10 +20,12 @@ class ClientApprovalSlipListSerializer(serializers.ModelSerializer):
 
 class ClientApprovalSlipCreateSerializer(serializers.ModelSerializer):
     submission_info = ClientCompanyCreateSerializer(label="客户公司申请信息")
-    status = ChoiceField(
-        choices=ClientApprovalSlip.Status.choices,
-        default=ClientApprovalSlip.Status.PENDING.value,
-    )
+
+    def to_internal_value(self, data):
+        return super().to_internal_value({
+            "submission_info": data,
+            "status": ClientApprovalSlip.Status.PENDING.value,
+        })
 
     def create(self, validated_data):
         request = self.context.get("request")
@@ -54,6 +56,12 @@ class ClientApprovalSlipCreateSerializer(serializers.ModelSerializer):
 
 class ClientApprovalSlipPartialUpdateSerializer(serializers.ModelSerializer):
     status = ChoiceField(choices=ClientApprovalSlip.Status.choices)
+
+    # todo: 临时代码
+    def to_internal_value(self, data):
+        if "status" in data and data["status"] == "approval":
+            data["status"] = ClientApprovalSlip.Status.AGREED
+        return super().to_internal_value(data)
 
     class Meta:
         model = ClientApprovalSlip

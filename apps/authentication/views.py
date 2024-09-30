@@ -13,9 +13,9 @@ from rest_framework.viewsets import GenericViewSet
 
 from apps.authentication.serializers import LoginSerializer, SMSSerializer
 from apps.platform_management.models import Administrator, ClientStudent, Instructor
+from common.utils import sms
 from common.utils.auth import SMS_KEY, SMS_SEND_TIMESTAMP_KEY, login
 from common.utils.drf.response import Response
-from common.utils.sms import send_sms
 
 
 class AuthenticationViewSet(GenericViewSet):
@@ -67,17 +67,18 @@ class AuthenticationViewSet(GenericViewSet):
 
         sms_code = ''.join(random.choices('0123456789', k=6)) if settings.ENABLE_SMS else "666666"
 
+        if settings.ENABLE_SMS:
+            sms_status: str = sms.send_sms(phone, sms_code)
+            if sms_status != sms.SUCCESS_STATUS:
+                return Response(result=False, err_msg=f"短信发送失败: {sms.status_mapping.get(sms_status, '未知错误')}")
+
         # 设置验证码和发送时间戳到缓存
         cache.set(f"{SMS_KEY}:{phone}", sms_code, timeout=60)
         cache.set(f"{SMS_SEND_TIMESTAMP_KEY}:{phone}", timezone.now(), timeout=60)
 
-        if settings.ENABLE_SMS:
-            send_sms(phone, sms_code)
-
         return Response("发送成功")
 
     @action(methods=["GET"], detail=False, permission_classes=[IsAuthenticated])
-    # @action(methods=["GET"], detail=False)
     def permissions(self, request, *args, **kwargs):
         return Response(
             {
