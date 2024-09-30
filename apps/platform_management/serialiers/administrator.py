@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.platform_management.models import Administrator, ManageCompany
+from common.utils import global_constants
 from common.utils.drf.serializer_fields import ChoiceField
 from common.utils.drf.serializer_validator import (
     BasicSerializerValidator,
@@ -29,6 +30,20 @@ class AdministratorListSerializer(serializers.ModelSerializer):
 
 class AdministratorCreateSerializer(serializers.ModelSerializer, PhoneCreateSerializerValidator):
     role = ChoiceField(label="管理员角色", choices=Administrator.Role.choices)
+
+    def create(self, validated_data):
+        affiliated_manage_company: ManageCompany = validated_data["affiliated_manage_company"]
+        role: str = validated_data["role"]
+        default_manage_company: str = global_constants.DEFAULT_MANAGE_COMPANY
+
+        # 公司选择[鸿雪公司]时角色不能选择[合作伙伴管理员]
+        # 公司选择非[鸿雪公司]时角色不能选择[鸿雪公司管理员]
+        if affiliated_manage_company.name == default_manage_company and role == Administrator.Role.PARTNER_MANAGER:
+            raise serializers.ValidationError(f"公司选择[{default_manage_company}]时角色不能选择[合作伙伴管理员]")
+        elif affiliated_manage_company.name != default_manage_company and role == Administrator.Role.COMPANY_MANAGER:
+            raise serializers.ValidationError(f"公司选择非[{default_manage_company}]时角色不能选择[鸿雪公司管理员]")
+
+        return super().create(validated_data)
 
     class Meta:
         model = Administrator

@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from apps.platform_management.models import ManageCompany
-from common.utils.drf.serializer_fields import ChoiceField
 
 
 class ManagementCompanyListSerializer(serializers.ModelSerializer):
@@ -20,11 +19,13 @@ class ManagementCompanyListSerializer(serializers.ModelSerializer):
 
 
 class ManagementCompanyCreateSerializer(serializers.ModelSerializer):
-    type = ChoiceField(label="公司类型", choices=ManageCompany.Type.choices, default=ManageCompany.Type.PARTNER.value)
+    def create(self, validated_data):
+        validated_data['type'] = ManageCompany.Type.PARTNER.value
+        return super().create(validated_data)
 
     class Meta:
         model = ManageCompany
-        fields = "__all__"
+        fields = ["name", "email"]
 
 
 class ManagementCompanyUpdateSerializer(serializers.ModelSerializer):

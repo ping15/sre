@@ -36,19 +36,10 @@ class AdministratorModelViewSet(ModelViewSet):
                 {"id": "username", "name": "管理员名称", "children": []},
                 {"id": "email", "name": "邮箱", "children": []},
                 {"id": "phone", "name": "手机", "children": []},
-                {
-                    "id": "affiliated_manage_company_name",
-                    "name": "所属公司",
-                    "children": [],
-                },
-                {
-                    "id": "role",
-                    "name": "权限角色",
-                    "children": [
-                        {"id": value, "name": label}
-                        for value, label in Administrator.Role.choices
-                    ],
-                },
+                {"id": "affiliated_manage_company_name", "name": "所属公司", "children": []},
+                {"id": "role", "name": "权限角色", "children": [
+                    {"id": value, "name": label} for value, label in Administrator.Role.choices
+                ]},
             ]
         )
 
