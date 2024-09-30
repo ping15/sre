@@ -1,3 +1,4 @@
+from django.db.models import QuerySet
 from rest_framework.decorators import action
 
 from apps.my_lectures.serializers.my_training_class import (
@@ -5,6 +6,7 @@ from apps.my_lectures.serializers.my_training_class import (
     MyTrainingClassRetrieveSerializer,
 )
 from apps.platform_management.filters.all_classes import AllClassesFilterClass
+from apps.platform_management.models import Event
 from apps.teaching_space.models import TrainingClass
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import InstructorPermission
@@ -20,6 +22,9 @@ class MyTrainingClassViewSet(ModelViewSet):
         "list": MyTrainingClassListSerializer,
         "retrieve": MyTrainingClassRetrieveSerializer,
     }
+
+    def get_queryset(self) -> QuerySet["TrainingClass"]:
+        return TrainingClass.objects.filter(event__in=Event.objects.filter(instructor=self.request.user))
 
     @action(methods=["GET"], detail=False)
     def filter_condition(self, request, *args, **kwargs):
