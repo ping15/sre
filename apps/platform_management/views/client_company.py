@@ -59,3 +59,12 @@ class ClientCompanyModelViewSet(ModelViewSet):
                 },
             ]
         )
+
+    @action(methods=["GET"], detail=False, permission_classes=[
+        SuperAdministratorPermission | ManageCompanyAdministratorPermission
+    ])
+    def choices(self, request, *args, **kwargs):
+        return Response([
+            {"id": client_company.id, "name": client_company.name}
+            for client_company in ClientCompany.objects.all()
+        ])
