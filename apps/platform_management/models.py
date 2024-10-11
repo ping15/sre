@@ -4,13 +4,12 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 from django.db.models import QuerySet
 from django.utils.functional import classproperty
-from django.utils.translation import ugettext_lazy as _
 
 from common.utils import global_constants
 
 
 class Attachment(models.Model):
-    file = models.FileField(_("附件"), upload_to="attachment/")
+    file = models.FileField("附件", upload_to="attachment/")
 
 
 class CourseTemplate(models.Model):
@@ -59,67 +58,34 @@ class CourseTemplate(models.Model):
         ("授课", 0),
     ]
 
-    name = models.CharField(_("课程名称"), max_length=32, unique=True)
-    level = models.CharField(
-        _("级别"),
-        choices=Level.choices,
-        max_length=32,
-    )
-    abbreviation = models.CharField(_("英文缩写"), max_length=32)
-    num_lessons = models.IntegerField(_("课时数量"))
-    version = models.CharField(_("版本"), max_length=16, default="")
-    release_date = models.DateField(_("上线日期"), blank=True, null=True)
-    status = models.CharField(
-        _("状态"),
-        choices=Status.choices,
-        max_length=32,
-    )
-    assessment_method = models.CharField(
-        _("考核方式"),
-        choices=AssessmentMethod.choices,
-        max_length=16,
-    )
-    attachments = models.JSONField(_("附件区域"), default=list)
-    certification = models.CharField(_("认证证书"), max_length=32)
-    trainees_count = models.IntegerField(_("培训人次"))
-    client_company_count = models.IntegerField(_("客户数"))
-    class_count = models.IntegerField(_("开班次数"))
-    num_instructors = models.IntegerField(_("讲师数量"))
-    material_content = models.TextField(
-        _("教材内容"),
-    )
-    course_overview = models.TextField(_("课程概述"))
-    target_students = models.TextField(_("目标学员"), default="")
-    learning_objectives = models.TextField(_("学习目标"), default="")
-    learning_benefits = models.TextField(_("学习收益"), default="")
-    course_content = models.TextField(_("课程内容"))
-    remarks = models.TextField(_("备注"))
-    exam_type = models.JSONField(
-        _("考试题型"),
-        choices=ExamType.choices,
-        default=list,
-    )
-    num_questions = models.IntegerField(_("考题数量"), null=True, blank=True)
-    exam_duration = models.IntegerField(
-        _("考试时长"),
-        choices=ExamDuration.choices,
-        null=True,
-        blank=True,
-    )
-    exam_language = models.CharField(
-        _("考试语言"),
-        choices=ExamLanguage.choices,
-        max_length=8,
-        null=True,
-        blank=True,
-    )
-    passing_score = models.IntegerField(_("过线分数"), null=True, blank=True)
-    require_authorized_training = models.BooleanField(_("是否要求授权培训"), null=True, blank=True)
-    certification_body = models.JSONField(
-        _("认证机构"),
-        choices=CertificationBody.choices,
-        default=list,
-    )
+    name = models.CharField("课程名称", max_length=32, unique=True)
+    level = models.CharField("级别", choices=Level.choices, max_length=32)
+    abbreviation = models.CharField("英文缩写", max_length=32)
+    num_lessons = models.IntegerField("课时数量")
+    version = models.CharField("版本", max_length=16, default="")
+    release_date = models.DateField("上线日期", blank=True, null=True)
+    status = models.CharField("状态", choices=Status.choices, max_length=32)
+    assessment_method = models.CharField("考核方式", choices=AssessmentMethod.choices, max_length=16)
+    attachments = models.JSONField("附件区域", default=list)
+    certification = models.CharField("认证证书", max_length=32)
+    trainees_count = models.IntegerField("培训人次")
+    client_company_count = models.IntegerField("客户数")
+    class_count = models.IntegerField("开班次数")
+    num_instructors = models.IntegerField("讲师数量")
+    material_content = models.TextField("教材内容")
+    course_overview = models.TextField("课程概述")
+    target_students = models.TextField("目标学员", default="")
+    learning_objectives = models.TextField("学习目标", default="")
+    learning_benefits = models.TextField("学习收益", default="")
+    course_content = models.TextField("课程内容")
+    remarks = models.TextField("备注")
+    exam_type = models.JSONField("考试题型", choices=ExamType.choices, default=list)
+    num_questions = models.IntegerField("考题数量", null=True, blank=True)
+    exam_duration = models.IntegerField("考试时长", choices=ExamDuration.choices, null=True, blank=True)
+    exam_language = models.CharField("考试语言", choices=ExamLanguage.choices, max_length=8, null=True, blank=True)
+    passing_score = models.IntegerField("过线分数", null=True, blank=True)
+    require_authorized_training = models.BooleanField("是否要求授权培训", null=True, blank=True)
+    certification_body = models.JSONField("认证机构", choices=CertificationBody.choices, default=list)
 
     def __str__(self):
         return self.name
@@ -135,6 +101,8 @@ class CourseTemplate(models.Model):
 
     class Meta:
         ordering = ["-id"]
+        verbose_name = "课程模板"
+        verbose_name_plural = verbose_name
 
 
 class ManageCompany(models.Model):
@@ -144,13 +112,9 @@ class ManageCompany(models.Model):
         DEFAULT = "default", "默认公司"
         PARTNER = "partner", "合作伙伴"
 
-    name = models.CharField(_("名称"), max_length=32, unique=True)
-    email = models.EmailField(_("邮箱"), max_length=32)
-    type = models.CharField(
-        _("类型"),
-        choices=Type.choices,
-        max_length=32,
-    )
+    name = models.CharField("名称", max_length=32, unique=True)
+    email = models.EmailField("邮箱", max_length=32)
+    type = models.CharField("类型", choices=Type.choices, max_length=32, default=Type.PARTNER.value,)
 
     @property
     def client_companies(self) -> QuerySet["ClientCompany"]:
@@ -189,6 +153,10 @@ class ManageCompany(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = "管理公司"
+        verbose_name_plural = verbose_name
+
 
 class Administrator(AbstractUser):
     """管理员"""
@@ -198,26 +166,19 @@ class Administrator(AbstractUser):
         COMPANY_MANAGER = "company_manager", "鸿雪公司管理员"
         PARTNER_MANAGER = "partner_manager", "合作伙伴管理员"
 
-    username = models.CharField(_("名称"), max_length=64, db_index=True)
-    phone = models.CharField(_("手机号码"), max_length=16, db_index=True, unique=True)
+    username = models.CharField("名称", max_length=64, db_index=True)
+    phone = models.CharField("手机号码", max_length=16, db_index=True, unique=True)
     affiliated_manage_company = models.ForeignKey(
         ManageCompany,
         on_delete=models.CASCADE,
-        verbose_name=_("管理公司"),
+        verbose_name="管理公司",
         related_name="administrators",
     )
-    role = models.CharField(
-        _("权限角色"),
-        choices=Role.choices,
-        max_length=16,
-        db_index=True,
-    )
-    groups = models.ManyToManyField(
-        Group, verbose_name=_("groups"), blank=True, related_name="manager_set"
-    )
+    role = models.CharField("权限角色", choices=Role.choices, max_length=16, db_index=True)
+    groups = models.ManyToManyField(Group, verbose_name="groups", blank=True, related_name="manager_set")
     user_permissions = models.ManyToManyField(
         Permission,
-        verbose_name=_("user permissions"),
+        verbose_name="user permissions",
         blank=True,
         related_name="manager_set",
     )
@@ -229,41 +190,45 @@ class Administrator(AbstractUser):
     def affiliated_manage_company_name(self) -> str:
         return self.affiliated_manage_company.name
 
+    @property
+    def is_super_administrator(self) -> bool:
+        return self.role == Administrator.Role.SUPER_MANAGER
+
     def clean(self):
         super().clean()
         self.email = self.__class__.objects.normalize_email(self.email)
 
     class Meta:
         app_label = "platform_management"
+        verbose_name = "管理员"
+        verbose_name_plural = verbose_name
 
 
 class Instructor(models.Model):
     """讲师"""
 
-    username = models.CharField(_("姓名"), max_length=64, db_index=True)
-    phone = models.CharField(_("电话"), max_length=16, unique=True)
-    email = models.EmailField(_("邮箱"), max_length=64)
-    city = models.CharField(_("所在城市"), max_length=32)
-    company = models.CharField(_("所在公司"), max_length=64)
-    department = models.CharField(_("部门"), max_length=32)
-    position = models.CharField(_("岗位"), max_length=32)
-    introduction = models.TextField(_("简介"))
-    teachable_courses = models.JSONField(_("可授课程"), default=list)
-    satisfaction_score = models.FloatField(_("满意度评分"), default=0.0)
-    hours_taught = models.IntegerField(_("已授课时"), default=0)
-    is_partnered = models.BooleanField(_("是否合作"), default=True)
-    id_photo = models.JSONField(_("证件照"), default=dict)
+    username = models.CharField("姓名", max_length=64, db_index=True)
+    phone = models.CharField("电话", max_length=16, unique=True)
+    email = models.EmailField("邮箱", max_length=64)
+    city = models.CharField("所在城市", max_length=32)
+    company = models.CharField("所在公司", max_length=64)
+    department = models.CharField("部门", max_length=32)
+    position = models.CharField("岗位", max_length=32)
+    introduction = models.TextField("简介")
+    teachable_courses = models.JSONField("可授课程", default=list)
+    satisfaction_score = models.FloatField("满意度评分", default=0.0)
+    hours_taught = models.IntegerField("已授课时", default=0)
+    is_partnered = models.BooleanField("是否合作", default=True)
+    id_photo = models.JSONField("证件照", default=dict)
 
-    last_login = models.DateTimeField(_("最后登录时间"), blank=True, null=True)
-    # training_class = models.OneToOneField(
-    #     TrainingClass,
-    #     related_name='instructor',
-    #     verbose_name=_("课堂"),
-    #     on_delete=models.CASCADE
-    # )
+    last_login = models.DateTimeField("最后登录时间", blank=True, null=True)
 
     @property
     def is_anonymous(self) -> bool:
+        return False
+
+    @property
+    def is_super_administrator(self) -> bool:
         return False
 
     @property
@@ -281,6 +246,10 @@ class Instructor(models.Model):
     def __str__(self):
         return self.username
 
+    class Meta:
+        verbose_name = "讲师"
+        verbose_name_plural = verbose_name
+
 
 class ClientCompany(models.Model):
     """客户公司"""
@@ -292,31 +261,27 @@ class ClientCompany(models.Model):
         ALIPAY = "alipay", "对公支付宝"
 
     # 基本信息
-    name = models.CharField(_("客户公司名称"), max_length=32, unique=True)
-    contact_person = models.CharField(_("联系人"), max_length=32)
-    contact_phone = models.CharField(_("电话"), max_length=16)
-    contact_email = models.EmailField(_("邮箱"), max_length=64)
-    payment_method = models.CharField(
-        _("参会费支付方式"),
-        choices=PaymentMethod.choices,
-        max_length=32,
-    )
-    affiliated_manage_company_name = models.CharField(_("管理公司"), max_length=64)
+    name = models.CharField("客户公司名称", max_length=32, unique=True)
+    contact_person = models.CharField("联系人", max_length=32)
+    contact_phone = models.CharField("电话", max_length=16)
+    contact_email = models.EmailField("邮箱", max_length=64)
+    payment_method = models.CharField("参会费支付方式", choices=PaymentMethod.choices, max_length=32)
+    affiliated_manage_company_name = models.CharField("管理公司", max_length=64)
 
     # 通讯信息
-    certificate_address = models.CharField(_("证书收件地址"), max_length=128)
-    recipient_name = models.CharField(_("收件人"), max_length=32)
-    recipient_phone = models.CharField(_("收件人电话"), max_length=16)
+    certificate_address = models.CharField("证书收件地址", max_length=128)
+    recipient_name = models.CharField("收件人", max_length=32)
+    recipient_phone = models.CharField("收件人电话", max_length=16)
 
     # 开票信息
-    invoice_company_name = models.CharField(_("公司名称"), max_length=64)
-    tax_identification_number = models.CharField(_("纳税人识别号"), max_length=32)
-    invoice_company_address = models.CharField(_("单位地址"), max_length=128)
-    invoice_company_phone = models.CharField(_("单位电话"), max_length=16)
-    bank_name = models.CharField(_("开户行"), max_length=64)
-    bank_account = models.CharField(_("账号"), max_length=32)
+    invoice_company_name = models.CharField("公司名称", max_length=64)
+    tax_identification_number = models.CharField("纳税人识别号", max_length=32)
+    invoice_company_address = models.CharField("单位地址", max_length=128)
+    invoice_company_phone = models.CharField("单位电话", max_length=16)
+    bank_name = models.CharField("开户行", max_length=64)
+    bank_account = models.CharField("账号", max_length=32)
 
-    created_date = models.DateField(_("创建时间"), auto_now_add=True)
+    created_date = models.DateField("创建时间", auto_now_add=True)
 
     @property
     def students(self) -> QuerySet["ClientStudent"]:
@@ -350,6 +315,10 @@ class ClientCompany(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = "客户公司"
+        verbose_name_plural = verbose_name
+
 
 class ClientStudent(models.Model):
     """客户学员"""
@@ -361,23 +330,19 @@ class ClientStudent(models.Model):
         MASTER = "master", "硕士研究生"
         DOCTORATE = "doctorate", "博士生"
 
-    username = models.CharField(_("名称"), max_length=64)
-    gender = models.CharField(_("性别"), max_length=32)
-    id_number = models.CharField(_("身份证号"), max_length=32)
-    education = models.CharField(
-        _("学历"),
-        choices=Education.choices,
-        max_length=32,
-    )
-    phone = models.CharField(_("电话"), max_length=16, unique=True)
-    email = models.EmailField(_("邮箱"), max_length=64)
-    affiliated_client_company_name = models.CharField(_("客户公司"), max_length=64)
-    department = models.CharField(_("部门"), max_length=32)
-    position = models.CharField(_("职位"), max_length=32)
-    id_photo = models.JSONField(_("证件照"), default=dict)
+    username = models.CharField("名称", max_length=64)
+    gender = models.CharField("性别", max_length=32)
+    id_number = models.CharField("身份证号", max_length=32)
+    education = models.CharField("学历", choices=Education.choices, max_length=32)
+    phone = models.CharField("电话", max_length=16, unique=True)
+    email = models.EmailField("邮箱", max_length=64)
+    affiliated_client_company_name = models.CharField("客户公司", max_length=64)
+    department = models.CharField("部门", max_length=32)
+    position = models.CharField("职位", max_length=32)
+    id_photo = models.JSONField("证件照", default=dict)
 
-    last_login = models.DateTimeField(_("最后登录时间"), blank=True, null=True)
-    created_date = models.DateField(_("创建时间"), auto_now_add=True)
+    last_login = models.DateTimeField("最后登录时间", blank=True, null=True)
+    created_date = models.DateField("创建时间", auto_now_add=True)
 
     @property
     def affiliated_client_company(self) -> ClientCompany:
@@ -396,6 +361,10 @@ class ClientStudent(models.Model):
         return False
 
     @property
+    def is_super_administrator(self) -> bool:
+        return False
+
+    @property
     def is_authenticated(self) -> bool:
         return True
 
@@ -410,6 +379,10 @@ class ClientStudent(models.Model):
     def __str__(self):
         return self.username
 
+    class Meta:
+        verbose_name = "客户学员"
+        verbose_name_plural = verbose_name
+
 
 class ClientApprovalSlip(models.Model):
     """客户审批单据"""
@@ -419,18 +392,13 @@ class ClientApprovalSlip(models.Model):
         AGREED = "agreed", "同意"
         REJECTED = "rejected", "驳回"
 
-    name = models.CharField(_("标题"), max_length=64)
-    affiliated_manage_company_name = models.CharField(_("管理公司"), max_length=32)
-    affiliated_client_company_name = models.CharField(_("客户公司"), max_length=32)
-    submitter = models.CharField(_("提单人"), max_length=32)
-    status = models.CharField(
-        _("状态"),
-        choices=Status.choices,
-        max_length=32,
-        default=Status.PENDING.value,
-    )
-    submission_datetime = models.DateTimeField(_("提单时间"))
-    submission_info = models.JSONField(_("提交信息"), default=dict)
+    name = models.CharField("标题", max_length=64)
+    affiliated_manage_company_name = models.CharField("管理公司", max_length=32)
+    affiliated_client_company_name = models.CharField("客户公司", max_length=32)
+    submitter = models.CharField("提单人", max_length=32)
+    status = models.CharField("状态", choices=Status.choices, max_length=32, default=Status.PENDING.value)
+    submission_datetime = models.DateTimeField("提单时间")
+    submission_info = models.JSONField("提交信息", default=dict)
 
     @property
     def affiliated_manage_company(self) -> ManageCompany:
@@ -448,6 +416,10 @@ class ClientApprovalSlip(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = "客户资料审批"
+        verbose_name_plural = verbose_name
 
 
 class Event(models.Model):
@@ -478,17 +450,15 @@ class Event(models.Model):
         BIWEEKLY = "biweekly", "每两周"
         MONTHLY = "monthly", "每月"
 
-    event_type = models.CharField(_("事件类型"), max_length=50, choices=EventType.choices)
-    freq_type = models.CharField(
-        choices=FreqType.choices, max_length=16, null=True, blank=True
-    )
+    event_type = models.CharField("事件类型", max_length=50, choices=EventType.choices)
+    freq_type = models.CharField(choices=FreqType.choices, max_length=16, null=True, blank=True)
     freq_interval = models.JSONField(default=list)
-    start_date = models.DateField(_("开始时间"))
-    end_date = models.DateField(_("结束时间"), null=True, blank=True)
+    start_date = models.DateField("开始时间")
+    end_date = models.DateField("结束时间", null=True, blank=True)
     instructor = models.ForeignKey(
         Instructor,
         related_name="events",
-        verbose_name=_("讲师"),
+        verbose_name="讲师",
         on_delete=models.CASCADE,
         null=True,
         blank=True
@@ -497,11 +467,11 @@ class Event(models.Model):
         TrainingClass,
         related_name="event",
         on_delete=models.CASCADE,
-        verbose_name=_("培训班"),
+        verbose_name="培训班",
         null=True,
         blank=True,
     )
 
     class Meta:
-        verbose_name = _("日程事件")
+        verbose_name = "日程事件"
         verbose_name_plural = verbose_name

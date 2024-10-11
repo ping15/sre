@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework.decorators import action
 
 from apps.platform_management.filters.management_company import (
@@ -25,13 +26,16 @@ class ManagementCompanyModelViewSet(ModelViewSet):
         "list": ManagementCompanyListSerializer,
         "create": ManagementCompanyCreateSerializer,
         "update": ManagementCompanyUpdateSerializer,
-        "partial_update": ManagementCompanyUpdateSerializer,
     }
 
     def update(self, request, *args, **kwargs):
-        if "name" in self.request.data:
-            ManageCompany.sync_name(self.get_object().name, self.request.data["name"])
-        return super().update(request, *args, **kwargs)
+        manage_company: ManageCompany = self.get_object()
+
+        with transaction.atomic():
+            response = super().update(request, *args, **kwargs)
+            if "name" in self.request.data:
+                ManageCompany.sync_name(manage_company.name, self.request.data["name"])
+        return response
 
     def destroy(self, request, *args, **kwargs):
         manage_company: ManageCompany = self.get_object()

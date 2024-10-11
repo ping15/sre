@@ -40,6 +40,24 @@ class ChoiceField(serializers.ChoiceField):
             self.fail("invalid_choice", input=data, choices=list(self.choices.keys()))
 
 
+class MappingField(serializers.Field):
+    def __init__(self, field, mapping=None, *args, **kwargs):
+        self.field = field
+        self.mapping = mapping or {}
+        super().__init__(*args, **kwargs)
+
+    def to_internal_value(self, data):
+        # 使用映射进行转换
+        if data in self.mapping:
+            return self.mapping[data]
+        # 否则，使用包装字段的 to_internal_value 方法
+        return self.field.to_internal_value(data)
+
+    def to_representation(self, value):
+        # 使用包装字段的 to_representation 方法
+        return self.field.to_representation(value)
+
+
 class MonthYearField(serializers.Field):
     def __init__(self, *args, time_delta=relativedelta(), **kwargs):
         super().__init__(*args, **kwargs)
@@ -58,3 +76,18 @@ class BlankableDateField(serializers.DateField):
         if data == '':
             return None
         return super().to_internal_value(data)
+
+
+class UniqueCharField(serializers.CharField):
+    def to_internal_value(self, data):
+        data = super().to_internal_value(data)
+
+        # 检查外部序列化器是否是 ModelSerializer 的子类
+        if not isinstance(self.parent, serializers.ModelSerializer):
+            raise TypeError("UniqueCharField必须在ModelSerializer中使用.")
+
+        model = self.parent.Meta.model
+        if model.objects.filter(**{self.field_name: data}).exists():
+            raise serializers.ValidationError(f"该{self.label or self.field_name}已存在")
+
+        return data

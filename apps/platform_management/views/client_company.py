@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import QuerySet
 from rest_framework.decorators import action
 
@@ -7,6 +8,7 @@ from apps.platform_management.serialiers.client_company import (
     ClientCompanyCreateSerializer,
     ClientCompanyListSerializer,
     ClientCompanyRetrieveSerializer,
+    ClientCompanyUpdateSerializer,
 )
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import (
@@ -25,7 +27,7 @@ class ClientCompanyModelViewSet(ModelViewSet):
         "list": ClientCompanyListSerializer,
         "create": ClientCompanyCreateSerializer,
         "retrieve": ClientCompanyRetrieveSerializer,
-        "update": ClientCompanyCreateSerializer,
+        "update": ClientCompanyUpdateSerializer,
     }
     PERMISSION_MAP = {
         "retrieve": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
@@ -36,15 +38,20 @@ class ClientCompanyModelViewSet(ModelViewSet):
 
         # 非超级管理员只能看到自己所属管理公司下面的客户公司
         user: Administrator = self.request.user
-        if user.role != Administrator.Role.SUPER_MANAGER:
+        if not user.is_super_administrator:
             queryset = queryset.filter(affiliated_manage_company_name=user.affiliated_manage_company_name)
 
         return queryset
 
     def update(self, request, *args, **kwargs):
-        if "name" in self.request.data:
-            ClientCompany.sync_name(self.get_object().name, self.request.data["name"])
-        return super().update(request, *args, **kwargs)
+        client_company: ClientCompany = self.get_object()
+
+        with transaction.atomic():
+            response = super().update(request, *args, **kwargs)
+            if "name" in self.request.data:
+                ClientCompany.sync_name(client_company.name, self.request.data["name"])
+
+        return response
 
     @action(methods=["GET"], detail=False)
     def filter_condition(self, request, *args, **kwargs):

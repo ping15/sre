@@ -102,12 +102,6 @@ class BaseFilterSet(django_filters.FilterSet):
 
         return queryset.filter(query)
 
-    # # 针对 PropertyFilter 或其他自定义过滤器的处理
-    # elif hasattr(filter_instance, 'method'):
-    #     # 如果过滤器有自定义方法，我们可以调用该方法
-    #     # 这里假设自定义方法接受 queryset, name, value 作为参数
-    #     queryset = filter_instance.method(queryset, name, value)
-
     @classmethod
     def _filter_by_related_model(cls, queryset, pk, model, field_name, related_field):
         """

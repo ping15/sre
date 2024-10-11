@@ -1,4 +1,8 @@
+from itertools import chain
+from typing import Dict, List, Union
+
 from rest_framework.exceptions import (
+    ErrorDetail,
     NotAuthenticated,
     ParseError,
     PermissionDenied,
@@ -27,10 +31,28 @@ def exception_handler(exc, context):
             if isinstance(exc, NotAuthenticated)
             else exc.status_code
         )
-        return Response(status=status_code, err_msg=str(exc_detail), result=False)
+
+        return Response(status=status_code, err_msg=_handler_error_details(exc_detail), result=False)
 
     # 处理其他类型的异常，如果有的话，可以在这里添加自定义处理
     if response is not None:
         response.data["status_code"] = response.status_code
 
     return response
+
+
+def _handler_error_details(
+    details: Union[Dict[str, Union[List[ErrorDetail], ErrorDetail]], List[ErrorDetail], ErrorDetail]
+) -> str:
+    if isinstance(details, dict):
+        details = list(chain.from_iterable(
+            [f"{key} -> {v}" for v in value] if isinstance(value, list) else [f"{key} -> {value}"]
+            for key, value in details.items()
+        ))
+
+    elif isinstance(details, ErrorDetail):
+        details = [details]
+
+    err_msg = "\n".join(f"{str(value)}" for i, value in enumerate(details))
+
+    return err_msg

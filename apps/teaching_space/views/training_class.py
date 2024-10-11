@@ -10,7 +10,13 @@ from rest_framework.decorators import action
 
 from apps.my_lectures.handles.event import EventHandler
 from apps.my_lectures.models import Advertisement, InstructorEnrolment, InstructorEvent
-from apps.platform_management.models import CourseTemplate, Event, Instructor
+from apps.platform_management.models import (
+    Administrator,
+    ClientStudent,
+    CourseTemplate,
+    Event,
+    Instructor,
+)
 from apps.platform_management.serialiers.client_student import (
     ClientStudentListSerializer,
 )
@@ -42,13 +48,14 @@ from common.utils.excel_parser.parser import excel_to_list
 class TrainingClassModelViewSet(ModelViewSet):
     permission_classes = [ManageCompanyAdministratorPermission | SuperAdministratorPermission]
     queryset = TrainingClass.objects.all()
-    serializer_class = TrainingClassCreateSerializer
     filter_class = TrainingClassFilterClass
+    http_method_names = ["get", "post", "put", "patch"]
     ACTION_MAP = {
         "list": TrainingClassListSerializer,
         "create": TrainingClassCreateSerializer,
         "retrieve": TrainingClassRetrieveSerializer,
         "update": TrainingClassUpdateSerializer,
+        "partial_update": TrainingClassUpdateSerializer,
         "designate_instructor": TrainingClassDesignateInstructorSerializer,
         "publish_advertisement": TrainingClassPublishAdvertisementSerializer,
         "advertisement": TrainingClassAdvertisementSerializer,
@@ -56,6 +63,15 @@ class TrainingClassModelViewSet(ModelViewSet):
         "instructor_event": TrainingClassInstructorEventSerializer,
         "analyze_score": TrainingClassAnalyzeScoreSerializer,
     }
+
+    def get_queryset(self):
+        user: Administrator = self.request.user
+        queryset: QuerySet["TrainingClass"] = super().get_queryset()
+        if not user.is_super_administrator:
+            queryset = queryset.filter(
+                target_client_company__affiliated_manage_company_name=user.affiliated_manage_company_name)
+
+        return queryset
 
     @action(detail=True, methods=["GET"])
     def students(self, request, *args, **kwargs):
@@ -76,13 +92,16 @@ class TrainingClassModelViewSet(ModelViewSet):
 
         instructor_event: InstructorEvent = training_class.instructor_event.last()
 
-        # 如果该单据已经过了截至时间则超时了
+        # 如果该单据已经过了[截至时间]且处于[待处理]则超时了
         deadline_date: datetime.date = instructor_event.start_date or training_class.start_date
-        if InstructorEvent.Status != InstructorEvent.Status.TIMEOUT and deadline_date <= datetime.datetime.now().date():
+        if all([
+            instructor_event.status != InstructorEvent.Status.TIMEOUT,
+            instructor_event.status == InstructorEvent.Status.PENDING,
+            deadline_date <= datetime.datetime.now().date()
+        ]):
             instructor_event.status = InstructorEvent.Status.TIMEOUT
             instructor_event.save()
 
-        # return Response(InstructorEventListSerializer(instructor_event).data)
         return Response(self.get_serializer(instructor_event).data)
 
     @action(detail=True, methods=["POST"])
@@ -119,11 +138,16 @@ class TrainingClassModelViewSet(ModelViewSet):
             ).exists():
                 return Response(result=False, err_msg="该讲师已经在这个时间段存在日程，不允许邀请")
 
+            try:
+                instructor: Instructor = Instructor.objects.get(id=validated_data["instructor_id"])
+            except Instructor.DoesNotExist:
+                return Response(result=False, err_msg="查不到该讲师")
+
             # 如果指定讲师的时候，开课时间和[不可用时间规则，取消单日不可用时间]规则冲突，不允许邀请
             if not EventHandler.is_range_date_usable(
-                start_date,
-                start_date + datetime.timedelta(days=1),
-                validated_data["instructor_id"],
+                start_date=start_date,
+                end_date=start_date + datetime.timedelta(days=global_constants.CLASS_DAYS - 1),
+                instructor=instructor,
                 without_training_class=True
             ):
                 return Response(result=False, err_msg="该讲师已经在这个时间段存在不可用规则限制，不允许邀请")
@@ -355,6 +379,7 @@ class TrainingClassModelViewSet(ModelViewSet):
             "class_mode": self.transform_choices(TrainingClass.ClassMode.choices),
             "publish_type": self.transform_choices(TrainingClass.PublishType.choices),
             "assessment_method": self.transform_choices(CourseTemplate.AssessmentMethod.choices),
+            "education": self.transform_choices(ClientStudent.Education.choices),
         })
 
     @action(methods=["GET"], detail=False)

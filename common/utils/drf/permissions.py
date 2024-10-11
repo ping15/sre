@@ -8,7 +8,7 @@ class SuperAdministratorPermission(BasePermission):
     """超级管理员权限"""
 
     def has_permission(self, request, view):
-        if request.user.is_authenticated and request.user.role == Administrator.Role.SUPER_MANAGER.value:
+        if request.user.is_authenticated and request.user.is_super_administrator:
             return True
         return False
 
@@ -18,8 +18,8 @@ class ManageCompanyAdministratorPermission(BasePermission):
 
     def has_permission(self, request, view):
         if request.user.is_authenticated and request.user.role in [
-            Administrator.Role.PARTNER_MANAGER.value,
-            Administrator.Role.COMPANY_MANAGER.value,
+            Administrator.Role.PARTNER_MANAGER,
+            Administrator.Role.COMPANY_MANAGER,
         ]:
             return True
 

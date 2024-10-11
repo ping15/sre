@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.platform_management.models import Instructor
-from common.utils.drf.serializer_fields import ChoiceField
+from common.utils.drf.serializer_fields import ChoiceField, UniqueCharField
 from common.utils.drf.serializer_validator import (
     BasicSerializerValidator,
     PhoneCreateSerializerValidator,
@@ -27,15 +27,14 @@ class InstructorListSerializer(serializers.ModelSerializer):
 
 
 class InstructorCreateSerializer(serializers.ModelSerializer, PhoneCreateSerializerValidator, BasicSerializerValidator):
+    phone = UniqueCharField(label="讲师手机号码", max_length=16)
+
     class Meta:
         model = Instructor
         fields = "__all__"
 
 
-class InstructorUpdateSerializer(
-    serializers.ModelSerializer,
-    BasicSerializerValidator,
-):
+class InstructorUpdateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
     def save(self, **kwargs):
         if not self.initial_data["phone"] == self.instance.phone:
             PhoneCreateSerializerValidator.validate_phone(self.initial_data["phone"])
@@ -61,10 +60,6 @@ class InstructorRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Instructor
         exclude = ["id", "hours_taught", "is_partnered"]
-
-
-class InstructorReviewSerializer(serializers.ModelSerializer):
-    pass
 
 
 class InstructorFilterConditionSerializer(serializers.Serializer):

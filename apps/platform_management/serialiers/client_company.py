@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.platform_management.models import ClientCompany
-from common.utils.drf.serializer_fields import ChoiceField
+from common.utils.drf.serializer_fields import ChoiceField, UniqueCharField
 from common.utils.drf.serializer_validator import BasicSerializerValidator
 
 
@@ -25,8 +25,16 @@ class ClientCompanyRetrieveSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ClientCompanyCreateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
+class ClientCompanyUpdateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
     payment_method = ChoiceField(choices=ClientCompany.PaymentMethod.choices)
+
+    class Meta:
+        model = ClientCompany
+        fields = "__all__"
+
+
+class ClientCompanyCreateSerializer(ClientCompanyUpdateSerializer):
+    name = UniqueCharField(label="客户公司", max_length=32)
 
     class Meta:
         model = ClientCompany

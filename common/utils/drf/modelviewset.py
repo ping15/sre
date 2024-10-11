@@ -90,10 +90,6 @@ class ModelViewSet(DRFModelViewSet):
     def destroy(self, request, *args, **kwargs):
         return Response(super().destroy(request, *args, **kwargs).data, status=status.HTTP_200_OK)
 
-    @action(methods=["GET"], detail=False, permission_classes=[IsAuthenticated])
-    def filter_condition(self, request, *args, **kwargs):
-        return NotImplemented("条件筛选")
-
     @action(methods=["POST"], detail=False)
     def batch_import(self, request, *args, **kwargs):
         """批量导入"""

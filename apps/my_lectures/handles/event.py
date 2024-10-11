@@ -208,27 +208,34 @@ class EventHandler:
             rule = new_event
 
             # 如果与培训班日程冲突，直接返回不创建
-            for event in Event.objects.filter(event_type=Event.EventType.CLASS_SCHEDULE.value):
-                if EventHandler.is_event_conflict_to_rule(event, rule):
+            for event in instructor.events.filter(event_type=Event.EventType.CLASS_SCHEDULE):
+                if cls.is_event_conflict_to_rule(event, rule):
                     raise ParseError("该规则与已有的培训班日程存在冲突")
 
             # 如果与讲师参与广告报名冲突，直接返回不创建
 
             # [取消单日不可用时间]如果在规则内，则清除该类型的事件
-            for event in Event.objects.filter(event_type=Event.EventType.CANCEL_UNAVAILABILITY):
-                if EventHandler.is_event_conflict_to_rule(event, rule):
+            for event in instructor.events.filter(event_type=Event.EventType.CANCEL_UNAVAILABILITY):
+                if cls.is_event_conflict_to_rule(event, rule):
                     event.delete()
 
         elif new_event.event_type == Event.EventType.CLASS_SCHEDULE.value:
-            event = new_event
+            for event in instructor.events.filter(event_type=Event.EventType.CLASS_SCHEDULE):
+                if all([
+                    cls.is_current_date_in_range(current_date, event.start_date, event.end_date)
+                    for current_date in between(new_event.start_date, new_event.end_date)
+                ]):
+                    raise ParseError("该培训班与已有的培训班排期存在冲突")
+
+            # 该讲师所有[取消单日不可用时间]
+            cancel_dates: List[date] = instructor.events.filter(
+                event_type=Event.EventType.CANCEL_UNAVAILABILITY).values_list("start_date", flat=True)
 
             # [取消单日不可用时间]如果覆盖培训班日程，则不受规则约束
-            cancel_dates: List[date] = Event.objects.filter(
-                event_type=Event.EventType.CANCEL_UNAVAILABILITY).values_list("start_date", flat=True)
             if not all([current_date in cancel_dates for current_date in between(start_date, end_date)]):
                 # 如果该讲师的不可用时间和培训班日程冲突，直接返回不创建
-                for rule in Event.objects.filter(event_type__in=Event.EventType.rule_types, instructor=instructor):
-                    if EventHandler.is_event_conflict_to_rule(event, rule):
+                for rule in instructor.events.filter(event_type__in=Event.EventType.rule_types):
+                    if cls.is_event_conflict_to_rule(new_event, rule):
                         raise ParseError("该培训班与已有的规则存在冲突")
 
         new_event.save()
@@ -239,34 +246,33 @@ class EventHandler:
     def is_current_date_usable(
         cls,
         current_date: date,
-        instructor_id: int,
+        instructor: Instructor,
         without_training_class: bool = False,
         without_rule: bool = False,
         without_cancel_event: bool = False,
     ) -> bool:
-        for event in Event.objects.filter(instructor_id=instructor_id):
+        for training_event in instructor.events.filter(event_type=Event.EventType.CLASS_SCHEDULE):
+            if without_training_class:
+                break
+
             # 判断是否在培训班日程范围内
-            if (
-                not without_training_class
-                and event.event_type == Event.EventType.CLASS_SCHEDULE
-                and cls.is_current_date_in_range(current_date, event.start_date, event.end_date)
-            ):
+            if cls.is_current_date_in_range(current_date, training_event.start_date, training_event.end_date):
                 return False
 
+        for cancel_event in instructor.events.filter(event_type=Event.EventType.CANCEL_UNAVAILABILITY):
+            if without_cancel_event:
+                break
+
             # 判断是否在取消不可用时间范围内
-            if (
-                not without_cancel_event
-                and event.event_type == Event.EventType.CANCEL_UNAVAILABILITY
-                and cls.is_current_date_in_cancel_events(current_date, event)
-            ):
+            if cls.is_current_date_in_cancel_events(current_date, [cancel_event.start_date]):
                 return True
 
+        for event in instructor.events.filter(event_type__in=Event.EventType.rule_types):
+            if without_rule:
+                break
+
             # 判断是否在规则范围内
-            if (
-                not without_rule
-                and event.event_type in Event.EventType.rule_types
-                and cls.is_current_date_in_rule(current_date, event)
-            ):
+            if cls.is_current_date_in_rule(current_date, event):
                 return False
 
         return True
@@ -276,7 +282,7 @@ class EventHandler:
         cls,
         start_date: date,
         end_date: date,
-        instructor_id: int,
+        instructor: Instructor,
         without_training_class: bool = False,
         without_rule: bool = False,
         without_cancel_event: bool = False,
@@ -284,11 +290,37 @@ class EventHandler:
         for current_date in between(start_date, end_date):
             if not cls.is_current_date_usable(
                 current_date=current_date,
-                instructor_id=instructor_id,
+                instructor=instructor,
                 without_training_class=without_training_class,
                 without_rule=without_rule,
                 without_cancel_event=without_cancel_event,
             ):
                 return False
+
+        return True
+
+    @classmethod
+    def is_instructor_idle(cls, instructor: Instructor, start_date: date, end_date: date) -> bool:
+        """在期间内该讲师是否都有空闲时间"""
+        rule_events: QuerySet["Event"] = instructor.events.filter(event_type__in=Event.EventType.rule_types)
+        cancel_days: List[datetime.date] = instructor.events.filter(
+            event_type=Event.EventType.CANCEL_UNAVAILABILITY).values_list("start_date", flat=True)
+        training_events: QuerySet["Event"] = instructor.events.filter(event_type=Event.EventType.CLASS_SCHEDULE)
+
+        # 如果周期内某一天不可用，则整个周期不可用
+        for day in between(start_date, end_date):
+            # 如果该天有培训班日程，则该天不可用
+            for event in training_events:
+                if cls.is_current_date_in_range(day, event.start_date, event.end_date):
+                    return False
+
+            # [取消单日不可用时间]优先级高于[规则]，如果该天在[取消单日不可用时间]范围内，则该天可用
+            if cls.is_current_date_in_cancel_events(day, cancel_days):
+                continue
+
+            # 如果该天在[规则]，则该天不可用
+            for rule in rule_events:
+                if cls.is_current_date_in_rule(day, rule):
+                    return False
 
         return True

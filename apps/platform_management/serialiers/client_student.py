@@ -1,8 +1,12 @@
 from dateutil.relativedelta import relativedelta
 from rest_framework import serializers
 
-from apps.platform_management.models import ClientStudent
-from common.utils.drf.serializer_fields import ChoiceField, MonthYearField
+from apps.platform_management.models import Administrator, ClientCompany, ClientStudent
+from common.utils.drf.serializer_fields import (
+    ChoiceField,
+    MonthYearField,
+    UniqueCharField,
+)
 from common.utils.drf.serializer_validator import (
     BasicSerializerValidator,
     PhoneCreateSerializerValidator,
@@ -11,7 +15,7 @@ from common.utils.global_constants import AppModule
 
 
 class ClientStudentListSerializer(serializers.ModelSerializer):
-    education = serializers.CharField(source="get_education_display")
+    affiliated_client_company_id = serializers.ReadOnlyField(source="affiliated_client_company.id")
 
     class Meta:
         model = ClientStudent
@@ -23,7 +27,24 @@ class ClientStudentCreateSerializer(
     PhoneCreateSerializerValidator,
     BasicSerializerValidator,
 ):
+    phone = UniqueCharField(label="学员手机号码", max_length=16)
     education = ChoiceField(label="学历", choices=ClientStudent.Education.choices)
+
+    def create(self, validated_data):
+        user: Administrator = self.context["request"].user
+        try:
+            client_company: ClientCompany = ClientCompany.objects.get(
+                name=validated_data["affiliated_client_company_name"])
+        except ClientCompany.DoesNotExist:
+            raise serializers.ValidationError("该客户公司不存在")
+
+        if all([
+            not user.is_super_administrator,
+            user.affiliated_manage_company != client_company.affiliated_manage_company
+        ]):
+            raise serializers.ValidationError("非超级管理员不可创建其他管理公司下面客户公司的学员")
+
+        return super().create(validated_data)
 
     class Meta:
         model = ClientStudent
@@ -47,14 +68,6 @@ class ClientStudentRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientStudent
         fields = "__all__"
-
-
-class ClientStudentQuickSearchSerializer(serializers.Serializer):
-    class ClientCompanySerializer(serializers.Serializer):
-        affiliated_client_company_name = serializers.CharField(label="客户公司名字", source="name")
-
-    manage_company_name = serializers.CharField(label="管理公司名字", source="name")
-    children = ClientCompanySerializer(label="客户公司列表", source="client_companies", many=True)
 
 
 class ClientStudentBatchImportSerializer(

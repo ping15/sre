@@ -36,7 +36,7 @@ class AllScheduleModelViewSet(ModelViewSet):
     def get_queryset(self):
         user: Administrator = self.request.user
         queryset: QuerySet["Event"] = super().get_queryset().filter(event_type=Event.EventType.CLASS_SCHEDULE.value)
-        if self.request.user.role != Administrator.Role.SUPER_MANAGER:
+        if not self.request.user.is_super_administrator:
             affiliated_manage_company_name = user.affiliated_manage_company_name
             queryset = queryset.filter(
                 training_class__target_client_company__affiliated_manage_company_name=affiliated_manage_company_name)
@@ -53,7 +53,7 @@ class AllScheduleModelViewSet(ModelViewSet):
         )
 
     @staticmethod
-    def aggregate_items(queryset, field_name):
+    def _aggregate_items(queryset, field_name):
         aggregation_dict = defaultdict(list)
         for item in queryset:
             field_value = getattr(item, field_name)
@@ -70,28 +70,28 @@ class AllScheduleModelViewSet(ModelViewSet):
                 {
                     "id": "manage_company",
                     "name": "管理公司",
-                    "children": self.aggregate_items(
+                    "children": self._aggregate_items(
                         ManageCompany.objects.all(), "name"
                     ),
                 },
                 {
                     "id": "client_company",
                     "name": "客户公司",
-                    "children": self.aggregate_items(
+                    "children": self._aggregate_items(
                         ClientCompany.objects.all(), "name"
                     ),
                 },
                 {
                     "id": "instructor",
                     "name": "讲师",
-                    "children": self.aggregate_items(
+                    "children": self._aggregate_items(
                         Instructor.objects.all(), "username"
                     ),
                 },
                 {
                     "id": "training_class",
                     "name": "培训班",
-                    "children": self.aggregate_items(
+                    "children": self._aggregate_items(
                         TrainingClass.objects.all(), "name"
                     ),
                 },

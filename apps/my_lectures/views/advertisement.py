@@ -6,6 +6,7 @@ from django.db.models import F, QuerySet
 from rest_framework.decorators import action
 
 from apps.my_lectures.filters.advertisement import AdvertisementFilterClass
+from apps.my_lectures.handles.event import EventHandler
 from apps.my_lectures.models import Advertisement, InstructorEnrolment
 from apps.my_lectures.serializers.advertisement import (
     AdvertisementAdvertisementCancelSerializer,
@@ -109,6 +110,14 @@ class AdvertisementViewSet(ModelViewSet):
         # 如果该广告已过期，不可报名
         if advertisement.deadline_datetime <= datetime.datetime.now().replace(tzinfo=datetime.timezone.utc):
             return Response(result=False, err_msg="该广告已过期")
+
+        # 是否该讲师有空给该培训班上课
+        if not EventHandler.is_instructor_idle(
+            instructor=self.request.user,
+            start_date=advertisement.training_class.start_date,
+            end_date=advertisement.training_class.end_date
+        ):
+            return Response(result=False, err_msg="该广告与原有日程有冲突，不可报名")
 
         with transaction.atomic():
             # 创建一条报名状况

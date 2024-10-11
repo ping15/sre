@@ -38,7 +38,6 @@ REVIEW_TEMPLATE = """<h2>进展好的方面</h2>
 <h2>关于教材（是否识别到需要优化和勘误的地方）</h2>"""
 
 # 培训班导入数据模板
-# TRAINING_CLASS_IMPORT_TEMPLATE_PATH = os.path.join(settings.BASE_DIR, "import_template")
 TRAINING_CLASS_SCORE_TEMPLATE_PATH = "common/utils/excel_parser/templates/培训班数据导入模板.xlsx"
 
 # 默认管理公司名称

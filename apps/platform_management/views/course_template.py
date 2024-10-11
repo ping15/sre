@@ -6,6 +6,7 @@ from apps.platform_management.models import CourseTemplate
 from apps.platform_management.serialiers.course_template import (
     CourseTemplateCreateSerializer,
     CourseTemplateListSerializer,
+    CourseTemplateUpdateSerializer,
 )
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import (
@@ -24,7 +25,15 @@ class CourseTemplateModelViewSet(ModelViewSet):
     ACTION_MAP = {
         "list": CourseTemplateListSerializer,
         "create": CourseTemplateCreateSerializer,
+        "update": CourseTemplateUpdateSerializer,
     }
+
+    def destroy(self, request, *args, **kwargs):
+        course_template: CourseTemplate = self.get_object()
+        if course_template.status != CourseTemplate.Status.TERMINATED:
+            return Response(result=False, err_msg="非[停课]状态课程不可删除")
+
+        return super().destroy(request, *args, **kwargs)
 
     @action(methods=["GET"], detail=False)
     def filter_condition(self, request, *args, **kwargs):

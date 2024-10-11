@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.platform_management.models import ManageCompany
+from common.utils.drf.serializer_fields import UniqueCharField
 
 
 class ManagementCompanyListSerializer(serializers.ModelSerializer):
@@ -19,9 +20,7 @@ class ManagementCompanyListSerializer(serializers.ModelSerializer):
 
 
 class ManagementCompanyCreateSerializer(serializers.ModelSerializer):
-    def create(self, validated_data):
-        validated_data['type'] = ManageCompany.Type.PARTNER.value
-        return super().create(validated_data)
+    name = UniqueCharField(label="公司名称", max_length=32)
 
     class Meta:
         model = ManageCompany

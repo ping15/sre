@@ -17,7 +17,7 @@ class ClientStudentFilterClass(BaseFilterSet):
     phone = django_filters.CharFilter("phone", lookup_expr="icontains")
     department = django_filters.CharFilter("department", lookup_expr="icontains")
     position = django_filters.CharFilter("position", lookup_expr="icontains")
-    sex = django_filters.CharFilter("sex", lookup_expr="icontains")
+    gender = django_filters.CharFilter("gender", lookup_expr="icontains")
     id_number = django_filters.CharFilter("id_number", lookup_expr="icontains")
     education = django_filters.CharFilter("education", lookup_expr="exact")
 

@@ -19,30 +19,25 @@ class InstructorEvent(models.Model):
 
         @classmethod
         def get_pending_statuses(cls) -> List:
+            """[未办事项]状态列表"""
             return [cls.PENDING, cls.TIMEOUT]
 
         @classmethod
         def get_completed_statuses(cls) -> List:
+            """[已办事项]状态列表"""
             return [cls.AGREED, cls.REJECTED, cls.REMOVED, cls.FINISHED]
 
         @classmethod
         def get_handle_choices(cls):
-            return [
-                (cls.AGREED, "已同意"),
-                (cls.REJECTED, "已拒绝"),
-            ]
+            """用户可操作状态"""
+            return [(cls.AGREED, "已同意"), (cls.REJECTED, "已拒绝")]
 
     class EventType(models.TextChoices):
         INVITE_TO_CLASS = "invite_to_class", "邀请上课"
         POST_CLASS_REVIEW = "post_class_review", "课后复盘"
 
     event_name = models.CharField("事项名", max_length=255)
-    event_type = models.CharField(
-        "事件类型",
-        max_length=32,
-        choices=EventType.choices,
-        default=EventType.INVITE_TO_CLASS,
-    )
+    event_type = models.CharField("事件类型", max_length=32, choices=EventType.choices, default=EventType.INVITE_TO_CLASS)
     initiator = models.CharField("发起人", max_length=255)
     status = models.CharField("状态", max_length=50, choices=Status.choices, default=Status.PENDING)
     training_class = models.ForeignKey(
@@ -62,6 +57,13 @@ class InstructorEvent(models.Model):
     created_datetime = models.DateTimeField("发起时间", auto_now_add=True)
     start_date = models.DateField("开课时间", null=True, blank=True)
     review = models.TextField("课后复盘", default=global_constants.REVIEW_TEMPLATE)
+
+    def __str__(self):
+        return f"{self.instructor.username} -> {self.event_name}"
+
+    class Meta:
+        verbose_name = "讲师事项"
+        verbose_name_plural = verbose_name
 
 
 class Advertisement(models.Model):
@@ -105,3 +107,10 @@ class InstructorEnrolment(models.Model):
         related_name="instructor_enrolments"
     )
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
+
+    def __str__(self):
+        return f"{self.instructor.username} -> {self.advertisement.training_class.name} -> {self.get_status_display()}"
+
+    class Meta:
+        verbose_name = "讲师报名表"
+        verbose_name_plural = verbose_name

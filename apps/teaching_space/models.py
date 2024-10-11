@@ -1,7 +1,6 @@
 import datetime
 
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
 
 from apps.platform_management.models import (
     ClientCompany,
@@ -32,53 +31,44 @@ class TrainingClass(models.Model):
     course = models.ForeignKey(
         CourseTemplate,
         related_name="training_classes",
-        verbose_name=_("课程"),
+        verbose_name="课程",
         on_delete=models.CASCADE,
         null=True,
     )
-    session_number = models.CharField(_("课程期数"), max_length=32)
-    status = models.CharField(_("状态"), max_length=16, choices=Status.choices, default=Status.PREPARING)
+    session_number = models.CharField("课程期数", max_length=32)
+    status = models.CharField("状态", max_length=16, choices=Status.choices, default=Status.PREPARING)
     course_status = models.CharField(
-        _("状态"),
+        "状态",
         choices=CourseTemplate.Status.choices,
         max_length=32,
         default=CourseTemplate.Status.PREPARATION,
     )
-    class_mode = models.CharField(
-        _("上课模式"),
-        choices=ClassMode.choices,
-        max_length=16,
-        default=ClassMode.ONLINE
-    )
-    start_date = models.DateField(_("开课时间"))
-    assessment_method = models.CharField(
-        _("考核方式"),
-        choices=CourseTemplate.AssessmentMethod.choices,
-        max_length=16,
-    )
-    certification = models.CharField(_("认证证书"), max_length=32, default="")
-    location = models.CharField(_("开课地点"), max_length=32)
+    class_mode = models.CharField("上课模式", choices=ClassMode.choices, max_length=16, default=ClassMode.ONLINE)
+    start_date = models.DateField("开课时间")
+    assessment_method = models.CharField("考核方式", choices=CourseTemplate.AssessmentMethod.choices, max_length=16)
+    certification = models.CharField("认证证书", max_length=32, default="")
+    location = models.CharField("开课地点", max_length=32)
     target_client_company = models.ForeignKey(
         ClientCompany,
         related_name="training_classes",
-        verbose_name=_("客户公司"),
+        verbose_name="客户公司",
         on_delete=models.CASCADE,
         null=True,
     )
     instructor = models.ForeignKey(
         Instructor,
         related_name="training_classes",
-        verbose_name=_("讲师"),
+        verbose_name="讲师",
         on_delete=models.CASCADE,
         null=True,
     )
-    hours_per_lesson = models.IntegerField(_("课程课时"), default=6)
-    review = models.TextField(_("课后复盘"), default="")
+    hours_per_lesson = models.IntegerField("课程课时", default=6)
+    review = models.TextField("课后复盘", default="")
 
     publish_type = models.CharField("发布方式", max_length=24, choices=PublishType.choices, default=PublishType.NONE)
     creator = models.CharField("创建人", max_length=32, default="")
 
-    questionnaire_qr_code = models.JSONField(_("问卷二维码"), default=dict)
+    questionnaire_qr_code = models.JSONField("问卷二维码", default=dict)
 
     @property
     def course_name(self) -> CourseTemplate:
@@ -139,3 +129,7 @@ class TrainingClass(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = "培训班"
+        verbose_name_plural = verbose_name

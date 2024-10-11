@@ -1,7 +1,12 @@
 from rest_framework import serializers
 
 from apps.my_lectures.models import InstructorEnrolment, InstructorEvent
-from apps.platform_management.models import CourseTemplate
+from apps.platform_management.models import (
+    Administrator,
+    CourseTemplate,
+    Event,
+    ManageCompany,
+)
 from apps.platform_management.serialiers.client_company import (
     ClientCompanyListSerializer,
 )
@@ -49,6 +54,12 @@ class TrainingClassCreateSerializer(serializers.ModelSerializer, BasicSerializer
     assessment_method = ChoiceField(choices=CourseTemplate.AssessmentMethod.choices)
 
     def create(self, validated_data):
+        user: Administrator = self.context["request"].user
+        affiliated_manage_company: ManageCompany = validated_data["target_client_company"].affiliated_manage_company
+
+        if not user.is_super_administrator and user.affiliated_manage_company != affiliated_manage_company:
+            raise serializers.ValidationError("非超级管理员不可创建其他管理公司下面客户公司的培训班")
+
         validated_data["creator"] = self.context["request"].user.username
         return super().create(validated_data)
 
@@ -80,6 +91,12 @@ class TrainingClassSelectInstructorSerializer(serializers.Serializer):
 
 
 class TrainingClassUpdateSerializer(serializers.ModelSerializer):
+    def update(self, instance: TrainingClass, validated_data):
+        if "start_date" in validated_data and instance.start_date != validated_data["start_date"]:
+            if Event.objects.filter(event_type=Event.EventType.CLASS_SCHEDULE, training_class=instance).exists():
+                raise serializers.ValidationError("该培训班存在排期，开课时间不可修改")
+        return super().update(instance, validated_data)
+
     class Meta:
         model = TrainingClass
         exclude = ["review", "creator", "instructor"]

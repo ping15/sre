@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from apps.platform_management.models import Administrator, ManageCompany
 from common.utils import global_constants
-from common.utils.drf.serializer_fields import ChoiceField
+from common.utils.drf.serializer_fields import ChoiceField, UniqueCharField
 from common.utils.drf.serializer_validator import (
     BasicSerializerValidator,
     PhoneCreateSerializerValidator,
@@ -29,6 +29,7 @@ class AdministratorListSerializer(serializers.ModelSerializer):
 
 
 class AdministratorCreateSerializer(serializers.ModelSerializer, PhoneCreateSerializerValidator):
+    phone = UniqueCharField(label="管理员手机号码", max_length=16)
     role = ChoiceField(label="管理员角色", choices=Administrator.Role.choices)
 
     def create(self, validated_data):

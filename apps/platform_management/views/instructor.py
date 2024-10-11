@@ -18,7 +18,6 @@ from apps.platform_management.serialiers.instructor import (
     InstructorListSerializer,
     InstructorPartialUpdateSerializer,
     InstructorRetrieveSerializer,
-    InstructorReviewSerializer,
     InstructorUpdateSerializer,
 )
 from apps.teaching_space.models import TrainingClass
@@ -45,7 +44,6 @@ class InstructorModelViewSet(ModelViewSet):
         "create": InstructorCreateSerializer,
         "retrieve": InstructorRetrieveSerializer,
         "calendar": InstructorCalendarSerializer,
-        "review": InstructorReviewSerializer,
         "update": InstructorUpdateSerializer,
         "partial_update": InstructorPartialUpdateSerializer,
         "filter_condition": InstructorFilterConditionSerializer,
@@ -54,6 +52,12 @@ class InstructorModelViewSet(ModelViewSet):
         "list": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
         "filter_condition": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
     }
+
+    def destroy(self, request, *args, **kwargs):
+        instructor: Instructor = self.get_object()
+        if instructor.is_partnered:
+            return Response(result=False, err_msg="合作中的讲师不可删除")
+        return super().destroy(request, *args, **kwargs)
 
     @action(methods=["GET"], detail=True)
     def taught_courses(self, request, *args, **kwargs):
@@ -106,9 +110,7 @@ class InstructorModelViewSet(ModelViewSet):
     def review(self, request, *args, **kwargs):
         """课后复盘"""
         taught_courses: List[Dict[str:str]] = []
-        training_classes: QuerySet[
-            TrainingClass
-        ] = self.get_object().training_classes.filter(
+        training_classes: QuerySet[TrainingClass] = self.get_object().training_classes.filter(
             start_date__gte=datetime.datetime.now() + datetime.timedelta(days=1)
         )
 
@@ -141,8 +143,7 @@ class InstructorModelViewSet(ModelViewSet):
                 {"id": "username", "name": "讲师名称", "children": []},
                 {"id": "satisfaction_score", "name": "讲师评分", "children": []},
                 {"id": "city", "name": "城市", "children": [
-                    {"id": city, "name": city}
-                    for city in cities
+                    {"id": city, "name": city} for city in cities
                 ]},
                 {"id": "availability_date", "name": "讲师可预约时间", "children": []},
             ])

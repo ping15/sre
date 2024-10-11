@@ -17,7 +17,6 @@ from apps.platform_management.serialiers.client_student import (
     ClientStudentCreateSerializer,
     ClientStudentFilterConditionSerializer,
     ClientStudentListSerializer,
-    ClientStudentQuickSearchSerializer,
     ClientStudentRetrieveSerializer,
     ClientStudentStatisticSerializer,
     ClientStudentUpdateSerializer,
@@ -47,7 +46,6 @@ class ClientStudentModelViewSet(ModelViewSet):
         "update": ClientStudentUpdateSerializer,
         "partial_update": ClientStudentUpdateSerializer,
         "retrieve": ClientStudentRetrieveSerializer,
-        "quick_search": ClientStudentQuickSearchSerializer,
         "statistic_client_companies": ClientStudentStatisticSerializer,
         "statistic_client_students": ClientStudentStatisticSerializer,
         "filter_condition": ClientStudentFilterConditionSerializer,
@@ -58,14 +56,14 @@ class ClientStudentModelViewSet(ModelViewSet):
         user: Administrator = self.request.user
 
         # 非超级管理员只能看到自己所属管理公司下面的所有学员
-        if user.role != Administrator.Role.SUPER_MANAGER:
+        if not user.is_super_administrator:
             queryset: QuerySet["ClientStudent"] = user.affiliated_manage_company.students
 
         return queryset
 
     @action(methods=["GET"], detail=False)
     def quick_search(self, request, *args, **kwargs):
-        if request.user.role == Administrator.Role.SUPER_MANAGER.value:
+        if request.user.is_super_administrator:
             manage_companies: QuerySet["ManageCompany"] = ManageCompany.objects.all()
         else:
             manage_companies: List["ManageCompany"] = [request.user.affiliated_manage_company]
@@ -116,7 +114,7 @@ class ClientStudentModelViewSet(ModelViewSet):
             return Response(
                 [
                     {"id": "username", "name": "学员名称", "children": []},
-                    {"id": "sex", "name": "性别", "children": []},
+                    {"id": "gender", "name": "性别", "children": []},
                     {"id": "id_number", "name": "身份证", "children": []},
                     {"id": "education", "name": "学历", "children": [
                         {"id": choice.value, "name": choice.label}  # noqa
