@@ -21,7 +21,7 @@ def start_training_class(func):
         # 筹备中
         status=TrainingClass.Status.PREPARING,
         # 时间到达开课时间
-        start_date=now_date,
+        start_date__gte=now_date,
         # 状态在<发布广告>或<指定讲师>
         publish_type__in=[
             TrainingClass.PublishType.DESIGNATE_INSTRUCTOR, TrainingClass.PublishType.PUBLISH_ADVERTISEMENT

@@ -3,6 +3,8 @@ from rest_framework import serializers
 from apps.my_lectures.models import InstructorEnrolment, InstructorEvent
 from apps.platform_management.models import (
     Administrator,
+    ClientCompany,
+    ClientStudent,
     CourseTemplate,
     Event,
     ManageCompany,
@@ -15,7 +17,7 @@ from apps.platform_management.serialiers.course_template import (
 )
 from apps.platform_management.serialiers.instructor import InstructorListSerializer
 from apps.teaching_space.models import TrainingClass
-from common.utils.drf.serializer_fields import ChoiceField
+from common.utils.drf.serializer_fields import ChoiceField, ModelInstanceField
 from common.utils.drf.serializer_validator import BasicSerializerValidator
 
 
@@ -55,12 +57,14 @@ class TrainingClassCreateSerializer(serializers.ModelSerializer, BasicSerializer
 
     def create(self, validated_data):
         user: Administrator = self.context["request"].user
-        affiliated_manage_company: ManageCompany = validated_data["target_client_company"].affiliated_manage_company
+        target_client_company: ClientCompany = validated_data["target_client_company"]
 
+        affiliated_manage_company: ManageCompany = target_client_company.affiliated_manage_company
         if not user.is_super_administrator and user.affiliated_manage_company != affiliated_manage_company:
             raise serializers.ValidationError("非超级管理员不可创建其他管理公司下面客户公司的培训班")
 
-        validated_data["creator"] = self.context["request"].user.username
+        validated_data["creator"] = user.username
+        validated_data["client_students"] = target_client_company.students
         return super().create(validated_data)
 
     class Meta:
@@ -113,3 +117,7 @@ class TrainingClassInstructorEventSerializer(serializers.ModelSerializer):
 
 class TrainingClassAnalyzeScoreSerializer(serializers.Serializer):
     file = serializers.FileField(label="文件")
+
+
+class TrainingClassRemoveStudentSerializer(serializers.Serializer):
+    client_students = serializers.ListSerializer(child=ModelInstanceField(model=ClientStudent), label="客户学员列表")

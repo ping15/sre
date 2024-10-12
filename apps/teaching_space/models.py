@@ -4,6 +4,7 @@ from django.db import models
 
 from apps.platform_management.models import (
     ClientCompany,
+    ClientStudent,
     CourseTemplate,
     Instructor,
     ManageCompany,
@@ -69,6 +70,14 @@ class TrainingClass(models.Model):
     creator = models.CharField("创建人", max_length=32, default="")
 
     questionnaire_qr_code = models.JSONField("问卷二维码", default=dict)
+
+    client_students = models.ManyToManyField(
+        ClientStudent,
+        verbose_name="客户学员",
+        blank=True,
+        null=True,
+        related_name="training_classes"
+    )
 
     @property
     def course_name(self) -> CourseTemplate:

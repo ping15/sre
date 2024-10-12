@@ -10,6 +10,7 @@ from rest_framework.decorators import action
 
 from apps.my_lectures.handles.event import EventHandler
 from apps.my_lectures.models import Advertisement, InstructorEnrolment, InstructorEvent
+from apps.platform_management.filters.client_student import ClientStudentFilterClass
 from apps.platform_management.models import (
     Administrator,
     ClientStudent,
@@ -18,6 +19,7 @@ from apps.platform_management.models import (
     Instructor,
 )
 from apps.platform_management.serialiers.client_student import (
+    ClientStudentCreateSerializer,
     ClientStudentListSerializer,
 )
 from apps.teaching_space.filters.training_class import TrainingClassFilterClass
@@ -30,6 +32,7 @@ from apps.teaching_space.serializers.training_class import (
     TrainingClassInstructorEventSerializer,
     TrainingClassListSerializer,
     TrainingClassPublishAdvertisementSerializer,
+    TrainingClassRemoveStudentSerializer,
     TrainingClassRetrieveSerializer,
     TrainingClassSelectInstructorSerializer,
     TrainingClassUpdateSerializer,
@@ -62,6 +65,9 @@ class TrainingClassModelViewSet(ModelViewSet):
         "select_instructor": TrainingClassSelectInstructorSerializer,
         "instructor_event": TrainingClassInstructorEventSerializer,
         "analyze_score": TrainingClassAnalyzeScoreSerializer,
+        "remove_student": TrainingClassRemoveStudentSerializer,
+        "students": ClientStudentListSerializer,
+        "add_students": ClientStudentCreateSerializer,
     }
 
     def get_queryset(self):
@@ -76,8 +82,26 @@ class TrainingClassModelViewSet(ModelViewSet):
     @action(detail=True, methods=["GET"])
     def students(self, request, *args, **kwargs):
         """客户学员"""
+        client_students = ClientStudentFilterClass(request.GET, queryset=self.get_object().client_students).qs
+        return self.paginate_response(self.get_serializer(client_students, many=True).data)
+
+    @action(detail=True, methods=["POST"])
+    def add_students(self, request, *args, **kwargs):
         training_class: TrainingClass = self.get_object()
-        return Response(ClientStudentListSerializer(training_class.target_client_company.students, many=True).data)
+        with transaction.atomic():
+            response = super().create(request, *args, **kwargs)
+
+            # 将该学员添加到培训班中
+            training_class.client_students.add(
+                *(response.instance if isinstance(response.instance, list) else [response.instance]))
+        return response
+
+    @action(detail=True, methods=["POST"])
+    def remove_student(self, request, *args, **kwargs):
+        training_class: TrainingClass = self.get_object()
+        client_students: QuerySet[ClientStudent] = self.validated_data["client_students"]
+        training_class.client_students.remove(*client_students)
+        return Response()
 
     @action(detail=True, methods=["GET"])
     def instructor_event(self, request, *args, **kwargs):
@@ -287,7 +311,6 @@ class TrainingClassModelViewSet(ModelViewSet):
     @action(detail=True, methods=["GET"])
     def advertisement(self, request, *args, **kwargs):
         """讲师报名表"""
-        # 培训班，广告，报名状况
         training_class: TrainingClass = self.get_object()
 
         if not hasattr(training_class, "advertisement") or training_class.advertisement is None:
@@ -318,7 +341,8 @@ class TrainingClassModelViewSet(ModelViewSet):
             "is_expired": is_expired,
             "total": advertisement.enrolment_count,
             "deadline": advertisement.deadline_datetime,
-            "instructor_enrolments": self.paginate_data(self.get_serializer(instructor_enrolments, many=True).data)
+            "instructor_enrolments": self.paginate_response(self.get_serializer(
+                instructor_enrolments, many=True).data).data["data"]
         })
 
     @action(detail=True, methods=["POST"])
@@ -332,9 +356,7 @@ class TrainingClassModelViewSet(ModelViewSet):
         if training_class.publish_type != TrainingClass.PublishType.PUBLISH_ADVERTISEMENT:
             return Response(result=False, err_msg="该培训班未处于[发布广告]")
 
-        instructor_enrolments: QuerySet["InstructorEnrolment"] = (
-            training_class.advertisement.instructor_enrolments.all()
-        )
+        instructor_enrolments: QuerySet[InstructorEnrolment] = training_class.advertisement.instructor_enrolments.all()
 
         # 检查所有的状态是否为pending
         if not all(enrolment.status == InstructorEnrolment.Status.PENDING for enrolment in instructor_enrolments):
@@ -348,12 +370,14 @@ class TrainingClassModelViewSet(ModelViewSet):
             return Response(result=False, err_msg="不存在该报名记录")
 
         with transaction.atomic():
-            # 更新状态
+            # 更新状态，被选中的讲师状态为[ACCEPTED]，其他讲师为[REJECTED]
             for enrolment in instructor_enrolments:
-                if enrolment.id == selected_enrolment.id:
-                    enrolment.status = InstructorEnrolment.Status.ACCEPTED
-                else:
-                    enrolment.status = InstructorEnrolment.Status.REJECTED
+                enrolment.status = (
+                    InstructorEnrolment.Status.ACCEPTED
+                    if enrolment.id == selected_enrolment
+                    else InstructorEnrolment.Status.REJECTED
+                )
+
                 enrolment.save()
 
             # 指定培训班的讲师

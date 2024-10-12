@@ -4,7 +4,6 @@ from typing import Any, Dict, List
 from django.http import FileResponse, Http404
 from rest_framework import serializers, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet as DRFModelViewSet
 
 from common.utils.cos import cos_client
@@ -62,8 +61,8 @@ class ModelViewSet(DRFModelViewSet):
         serializer.is_valid(raise_exception=True)
         return serializer.validated_data
 
-    def paginate_data(self, datas: List[Any]) -> List[Any]:
-        return self.get_paginated_response(self.paginate_queryset(datas)).data["data"]
+    def paginate_response(self, datas: List[Any]) -> Response:
+        return self.get_paginated_response(self.paginate_queryset(datas))
 
     @staticmethod
     def transform_choices(choices):
@@ -120,8 +119,3 @@ class ModelViewSet(DRFModelViewSet):
             as_attachment=True,
             filename=os.path.basename(self.batch_import_template_path),
         )
-
-    @action(methods=["GET"], detail=False, permission_classes=[IsAuthenticated])
-    def simple_query(self, request, *args, **kwargs):
-        validated_data = self.validated_data
-        return Response(list(self.queryset.values(*validated_data["query"].split(","))))

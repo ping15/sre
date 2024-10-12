@@ -2,6 +2,7 @@ from datetime import datetime
 from enum import Enum
 
 from dateutil.relativedelta import relativedelta
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from rest_framework import serializers
 
 from common.utils.cipher import cipher
@@ -47,14 +48,11 @@ class MappingField(serializers.Field):
         super().__init__(*args, **kwargs)
 
     def to_internal_value(self, data):
-        # 使用映射进行转换
         if data in self.mapping:
             return self.mapping[data]
-        # 否则，使用包装字段的 to_internal_value 方法
         return self.field.to_internal_value(data)
 
     def to_representation(self, value):
-        # 使用包装字段的 to_representation 方法
         return self.field.to_representation(value)
 
 
@@ -71,11 +69,11 @@ class MonthYearField(serializers.Field):
             raise serializers.ValidationError("Date format should be 'YYYY-MM'")
 
 
-class BlankableDateField(serializers.DateField):
-    def to_internal_value(self, data):
-        if data == '':
-            return None
-        return super().to_internal_value(data)
+# class BlankableDateField(serializers.DateField):
+#     def to_internal_value(self, data):
+#         if data == '':
+#             return None
+#         return super().to_internal_value(data)
 
 
 class UniqueCharField(serializers.CharField):
@@ -91,3 +89,26 @@ class UniqueCharField(serializers.CharField):
             raise serializers.ValidationError(f"该{self.label or self.field_name}已存在")
 
         return data
+
+
+class ModelInstanceField(serializers.IntegerField):
+    def __init__(self, model, **kwargs):
+        self.model = model
+        super().__init__(**kwargs)
+
+    def to_internal_value(self, data):
+        instance_id = super().to_internal_value(data)
+
+        try:
+            return self.model.objects.get(id=instance_id)
+        except ObjectDoesNotExist:
+            raise serializers.ValidationError("该模型实例查不到")
+        except MultipleObjectsReturned:
+            raise serializers.ValidationError("该模型实例对象存在多个")
+
+    def to_representation(self, value):
+        return value
+        # 确保输出的是模型实例
+        # if isinstance(value, self.model):
+        #     return super().to_representation(value.pk)
+        # return value

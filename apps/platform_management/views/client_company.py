@@ -31,6 +31,7 @@ class ClientCompanyModelViewSet(ModelViewSet):
     }
     PERMISSION_MAP = {
         "retrieve": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
+        "choices": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
     }
 
     def get_queryset(self):
@@ -59,17 +60,11 @@ class ClientCompanyModelViewSet(ModelViewSet):
             [
                 {"id": "name", "name": "客户公司名称", "children": []},
                 {"id": "contact_email", "name": "联系邮箱", "children": []},
-                {
-                    "id": "affiliated_manage_company_name",
-                    "name": "管理公司名称",
-                    "children": [],
-                },
+                {"id": "affiliated_manage_company_name", "name": "管理公司名称", "children": []},
             ]
         )
 
-    @action(methods=["GET"], detail=False, permission_classes=[
-        SuperAdministratorPermission | ManageCompanyAdministratorPermission
-    ])
+    @action(methods=["GET"], detail=False)
     def choices(self, request, *args, **kwargs):
         return Response([
             {"id": client_company.id, "name": client_company.name}

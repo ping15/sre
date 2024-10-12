@@ -28,7 +28,7 @@ app.conf.beat_schedule = {
     # },
     'start-training-class': {
         'task': 'apps.teaching_space.tasks.start_training_class',
-        'schedule': crontab(minute="59", hour="09"),
+        'schedule': crontab(minute="50", hour="17"),
         'args': ()
     },
     'finish-training-class': {
