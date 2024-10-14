@@ -10,8 +10,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.urls import re_path
+from django.views.static import serve
 
 from home_application import views
 
@@ -32,6 +35,6 @@ urlpatterns = [
     url(r"^api/my_lectures/", include("apps.my_lectures.urls")),
     # url(r"^swagger/", swagger_schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     # url(r"^redoc/", swagger_schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    # re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
+    re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
     url(r"^(?:.*)/?$", views.home),
 ]
