@@ -1,5 +1,4 @@
 import datetime
-from datetime import timedelta
 from typing import Dict, List, Set
 
 from django.db.models import QuerySet
@@ -10,7 +9,7 @@ from apps.platform_management.filters.instructor import (
     InstructorFilterClass,
     InstructorTaughtCoursesFilterClass,
 )
-from apps.platform_management.models import Event, Instructor
+from apps.platform_management.models import Instructor
 from apps.platform_management.serialiers.instructor import (
     InstructorCalendarSerializer,
     InstructorCreateSerializer,
@@ -97,10 +96,11 @@ class InstructorModelViewSet(ModelViewSet):
     def calendar(self, request, *args, **kwargs):
         """日程"""
         validated_data = self.validated_data
+        instructor: Instructor = self.get_object()
 
         return Response(
             EventHandler.build_calendars(
-                Event.objects.all(),
+                instructor.events.all(),
                 start_date=validated_data["start_date"],
                 end_date=validated_data["end_date"],
             )
@@ -109,9 +109,11 @@ class InstructorModelViewSet(ModelViewSet):
     @action(methods=["GET"], detail=True)
     def review(self, request, *args, **kwargs):
         """课后复盘"""
+        instructor: Instructor = self.get_object()
+
         taught_courses: List[Dict[str:str]] = []
-        training_classes: QuerySet[TrainingClass] = self.get_object().training_classes.filter(
-            start_date__gte=datetime.datetime.now() + datetime.timedelta(days=1)
+        training_classes: QuerySet[TrainingClass] = instructor.training_classes.filter(
+            status=TrainingClass.Status.COMPLETED
         )
 
         for instance in training_classes:
@@ -119,7 +121,8 @@ class InstructorModelViewSet(ModelViewSet):
                 {
                     "course_name": instance.name,
                     "target_client_company_name": instance.target_client_company_name,
-                    "finish_date": instance.start_date + timedelta(days=1),
+                    "finish_date": instance.end_date,
+                    # "review": instance.instructor_event.first().review,
                     "review": instance.review,
                 }
             )

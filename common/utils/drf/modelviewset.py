@@ -45,8 +45,6 @@ class ModelViewSet(DRFModelViewSet):
             cls.ACTION_MAP["batch_import"] = BatchImportSerializer
             cls.batch_import_serializer = cls.batch_import_serializer or cls.ACTION_MAP.get("create")
 
-        cls.ACTION_MAP["simple_query"] = SimpleQuerySerializer
-
     def get_permissions(self):
         self.permission_classes = self.PERMISSION_MAP.get(self.action, self.permission_classes)  # noqa
         return super().get_permissions()

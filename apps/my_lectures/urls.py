@@ -7,7 +7,7 @@ from apps.my_lectures.views.instructor_event import InstructorEventModelViewSet
 from apps.my_lectures.views.my_training_class import MyTrainingClassViewSet
 from apps.my_lectures.views.schedule import ScheduleModelViewSet
 
-router = routers.DefaultRouter(trailing_slash=True)
+router = routers.SimpleRouter(trailing_slash=True)
 
 # 日程
 router.register(r"schedule", ScheduleModelViewSet, basename="schedule")

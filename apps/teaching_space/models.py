@@ -64,7 +64,7 @@ class TrainingClass(models.Model):
         null=True,
     )
     hours_per_lesson = models.IntegerField("课程课时", default=6)
-    review = models.TextField("课后复盘", default="")
+    review = models.TextField("课后复盘", default=global_constants.REVIEW_TEMPLATE)
 
     publish_type = models.CharField("发布方式", max_length=24, choices=PublishType.choices, default=PublishType.NONE)
     creator = models.CharField("创建人", max_length=32, default="")

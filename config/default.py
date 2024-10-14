@@ -33,7 +33,7 @@ INSTALLED_APPS = (
     # account app
     # "blueapps.account",
     "django_extensions",
-    "drf_file_upload",
+    # "drf_file_upload",
     "django_filters",
     "drf_yasg",
     "rest_framework",
@@ -239,6 +239,7 @@ REST_FRAMEWORK = {
     ],
     "PAGE_SIZE": 10,
     "EXCEPTION_HANDLER": "common.utils.drf.exceptions.exception_handler",
+    "DEFAULT_FORMAT_SUFFIXES": '',  # 禁用格式后缀
 }
 
 """

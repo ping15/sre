@@ -3,7 +3,7 @@ from rest_framework import routers
 
 from apps.teaching_space.views.training_class import TrainingClassModelViewSet
 
-router = routers.DefaultRouter(trailing_slash=True)
+router = routers.SimpleRouter(trailing_slash=True)
 
 # 公司信息
 

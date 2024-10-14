@@ -12,6 +12,7 @@ class AllClassesModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission]
     queryset = TrainingClass.objects.all()
     filter_class = AllClassesFilterClass
+    http_method_names = ["get"]
     ACTION_MAP = {
         "list": AllClassesListSerializer,
     }

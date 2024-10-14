@@ -450,4 +450,13 @@ class TrainingClassModelViewSet(ModelViewSet):
             training_class.status = TrainingClass.Status.COMPLETED
             training_class.save()
 
+            # 相应讲师产生 [填写复盘] 单据
+            InstructorEvent.objects.create(
+                event_name=f"[{training_class.target_client_company_name}] 的课后复盘等待填写",
+                event_type=InstructorEvent.EventType.POST_CLASS_REVIEW,
+                initiator=training_class.creator,
+                training_class=training_class,
+                instructor=training_class.instructor,
+            )
+
         return Response()

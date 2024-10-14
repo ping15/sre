@@ -12,9 +12,7 @@ from apps.platform_management.models import (
     Instructor,
     ManageCompany,
 )
-from apps.platform_management.serialiers.all_schedules import (  # AllScheduleCreateSerializer,
-    AllScheduleListSerializer,
-)
+from apps.platform_management.serialiers.all_schedules import AllScheduleListSerializer
 from apps.teaching_space.models import TrainingClass
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import (

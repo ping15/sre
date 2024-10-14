@@ -115,6 +115,11 @@ class InstructorEventModelViewSet(ModelViewSet):
             # 填写课后复盘
             instructor_event.review = validated_data["review"]
 
+            # 更新培训班的课后复盘
+            training_class: TrainingClass = instructor_event.training_class
+            training_class.review = validated_data["review"]
+            training_class.save()
+
             # 更新单据状态
             instructor_event.status = InstructorEvent.Status.FINISHED
             instructor_event.save()

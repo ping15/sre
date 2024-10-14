@@ -4,6 +4,7 @@ import uuid
 
 from django.http import FileResponse
 from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
 
 from apps.platform_management.serialiers.attachment import (
     FileDeleteSerializer,
@@ -16,6 +17,7 @@ from common.utils.drf.response import Response
 
 
 class FileUploadDownloadView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
     # def get_permissions(self):
     #     return [AllowAny()] if self.request.method == "GET" else [IsAuthenticated()]
 
