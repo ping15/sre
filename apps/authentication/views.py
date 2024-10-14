@@ -1,5 +1,4 @@
 import random
-from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.auth import logout
@@ -24,10 +23,7 @@ class AuthenticationViewSet(GenericViewSet):
     @action(methods=["POST"], detail=False, serializer_class=LoginSerializer)
     def login(self, request, *args, **kwargs):
         validated_data = self.validated_data
-        phone, captcha_text = (
-            validated_data["phone"],
-            validated_data["captcha_text"],
-        )
+        phone, captcha_text = validated_data["phone"], validated_data["captcha_text"]
         user = self.get_user_by_phone(phone)
 
         if not user:
@@ -56,25 +52,24 @@ class AuthenticationViewSet(GenericViewSet):
         if not user:
             return Response(result=False, err_msg="不存在该手机号的用户")
 
-        # 获取上次发送的时间戳，存在则对比时间间隔
-        last_send_time = cache.get(f"{SMS_SEND_TIMESTAMP_KEY}:{phone}")
-        if last_send_time and timezone.now() - last_send_time < timedelta(seconds=60):
-            return Response(
-                result=False,
-                err_msg="请等待60秒后再发送验证码",
-                status=status.HTTP_429_TOO_MANY_REQUESTS,
-            )
-
-        sms_code = ''.join(random.choices('0123456789', k=6)) if settings.ENABLE_SMS else "666666"
-
         if settings.ENABLE_SMS:
+            # 获取上次发送的时间戳，存在则对比时间间隔
+            last_send_time = cache.get(f"{SMS_SEND_TIMESTAMP_KEY}:{phone}")
+            if last_send_time:
+                return Response(
+                    result=False,
+                    err_msg="请等待60秒后再发送验证码",
+                    status=status.HTTP_429_TOO_MANY_REQUESTS,
+                )
+
+            sms_code = ''.join(random.choices('0123456789', k=6))
             sms_status: str = sms.send_sms(phone, sms_code)
             if sms_status != sms.SUCCESS_STATUS:
                 return Response(result=False, err_msg=f"短信发送失败: {sms.status_mapping.get(sms_status, '未知错误')}")
 
-        # 设置验证码和发送时间戳到缓存
-        cache.set(f"{SMS_KEY}:{phone}", sms_code, timeout=60)
-        cache.set(f"{SMS_SEND_TIMESTAMP_KEY}:{phone}", timezone.now(), timeout=60)
+            # 设置验证码和发送时间戳到缓存
+            cache.set(f"{SMS_KEY}:{phone}", sms_code, timeout=60)
+            cache.set(f"{SMS_SEND_TIMESTAMP_KEY}:{phone}", timezone.now(), timeout=60)
 
         return Response("发送成功")
 
@@ -107,8 +102,7 @@ class AuthenticationViewSet(GenericViewSet):
         user_models = [Administrator, Instructor, ClientStudent]
         for user_model in user_models:
             try:
-                user = user_model.objects.get(phone=phone)
-                return user
+                return user_model.objects.get(phone=phone)
             except ObjectDoesNotExist:
                 continue
         return None

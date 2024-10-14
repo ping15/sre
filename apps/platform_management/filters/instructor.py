@@ -19,7 +19,8 @@ class InstructorFilterClass(BaseFilterSet):
     course_id = django_filters.NumberFilter(method="filter_course_id", label="培训班授课课程id")
     is_partnered = django_filters.BooleanFilter("is_partnered", label="是否合作", lookup_expr="exact")
 
-    def filter_availability_date(self, queryset: QuerySet["Instructor"], name: str, today: datetime.date):
+    @staticmethod
+    def filter_availability_date(queryset: QuerySet["Instructor"], name: str, today: datetime.date):
         instructor_ids: List = []
         for instructor in queryset:
             if EventHandler.is_instructor_idle(
@@ -31,7 +32,8 @@ class InstructorFilterClass(BaseFilterSet):
 
         return queryset.filter(id__in=instructor_ids)
 
-    def filter_course_id(self, queryset: QuerySet["Instructor"], name: str, course_id: int):
+    @staticmethod
+    def filter_course_id(queryset: QuerySet["Instructor"], name: str, course_id: int):
         try:
             course_name = CourseTemplate.objects.get(id=course_id).name
             return queryset.filter(teachable_courses__contains=[course_name])

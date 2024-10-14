@@ -120,9 +120,8 @@ class InstructorModelViewSet(ModelViewSet):
             taught_courses.append(
                 {
                     "course_name": instance.name,
-                    "target_client_company_name": instance.target_client_company_name,
+                    "target_client_company": instance.target_client_company_name,
                     "finish_date": instance.end_date,
-                    # "review": instance.instructor_event.first().review,
                     "review": instance.review,
                 }
             )

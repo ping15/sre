@@ -6,6 +6,7 @@ from common.utils.drf.serializer_fields import (
     ChoiceField,
     MonthYearField,
     UniqueCharField,
+    get_model_instance_or_raise,
 )
 from common.utils.drf.serializer_validator import (
     BasicSerializerValidator,
@@ -32,11 +33,11 @@ class ClientStudentCreateSerializer(
 
     def create(self, validated_data):
         user: Administrator = self.context["request"].user
-        try:
-            client_company: ClientCompany = ClientCompany.objects.get(
-                name=validated_data["affiliated_client_company_name"])
-        except ClientCompany.DoesNotExist:
-            raise serializers.ValidationError("该客户公司不存在")
+        client_company: ClientCompany = get_model_instance_or_raise(
+            model=ClientCompany,
+            field="name",
+            value=validated_data["affiliated_client_company_name"]
+        )
 
         if all([
             not user.is_super_administrator,
@@ -78,7 +79,6 @@ class ClientStudentBatchImportSerializer(
     education = ChoiceField(label="学历", choices=ClientStudent.Education.choices)
 
     def validate(self, attrs):
-        attrs = super().validate(attrs)
         attrs["education"] = dict(ClientStudent.Education.choices).get(attrs["education"])
         return attrs
 
@@ -88,8 +88,13 @@ class ClientStudentBatchImportSerializer(
 
 
 class ClientStudentStatisticSerializer(serializers.Serializer):
-    start_date = MonthYearField()
-    end_date = MonthYearField(time_delta=relativedelta(months=1, days=-1))
+    start_date = MonthYearField(label="开始时间")
+    end_date = MonthYearField(time_delta=relativedelta(months=1, days=-1), label="结束时间")
+    affiliated_client_company = serializers.IntegerField(label="客户公司id")
+
+    def validate(self, attrs):
+        attrs["client_company"] = get_model_instance_or_raise(ClientCompany, "id", attrs["affiliated_client_company"])
+        return attrs
 
 
 class ClientStudentFilterConditionSerializer(serializers.Serializer):

@@ -1,12 +1,16 @@
 from datetime import datetime
 from enum import Enum
+from typing import Any, Type, TypeVar
 
 from dateutil.relativedelta import relativedelta
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
+from django.db.models import Model
 from rest_framework import serializers
 
 from common.utils.cipher import cipher
 from common.utils.tools import reverse_dict
+
+T = TypeVar(name="T", bound=Model)
 
 
 class PasswordField(serializers.CharField):
@@ -69,13 +73,6 @@ class MonthYearField(serializers.Field):
             raise serializers.ValidationError("Date format should be 'YYYY-MM'")
 
 
-# class BlankableDateField(serializers.DateField):
-#     def to_internal_value(self, data):
-#         if data == '':
-#             return None
-#         return super().to_internal_value(data)
-
-
 class UniqueCharField(serializers.CharField):
     def to_internal_value(self, data):
         data = super().to_internal_value(data)
@@ -92,19 +89,14 @@ class UniqueCharField(serializers.CharField):
 
 
 class ModelInstanceField(serializers.IntegerField):
-    def __init__(self, model, **kwargs):
+    def __init__(self, model, field="id", **kwargs):
         self.model = model
+        self.field = field
         super().__init__(**kwargs)
 
     def to_internal_value(self, data):
-        instance_id = super().to_internal_value(data)
-
-        try:
-            return self.model.objects.get(id=instance_id)
-        except ObjectDoesNotExist:
-            raise serializers.ValidationError("该模型实例查不到")
-        except MultipleObjectsReturned:
-            raise serializers.ValidationError("该模型实例对象存在多个")
+        value = super().to_internal_value(data)
+        return get_model_instance_or_raise(self.model, self.field, value)
 
     def to_representation(self, value):
         return value
@@ -112,3 +104,12 @@ class ModelInstanceField(serializers.IntegerField):
         # if isinstance(value, self.model):
         #     return super().to_representation(value.pk)
         # return value
+
+
+def get_model_instance_or_raise(model: Type[T], field: str, value: Any) -> T:
+    try:
+        return model.objects.get(**{field: value})
+    except ObjectDoesNotExist:
+        raise serializers.ValidationError(f"该 {model.__name__} 模型实例查不到")
+    except MultipleObjectsReturned:
+        raise serializers.ValidationError(f"该 {model.__name__} 模型实例对象存在多个")
