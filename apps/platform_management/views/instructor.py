@@ -80,7 +80,7 @@ class InstructorModelViewSet(ModelViewSet):
                 }
             )
 
-        return self.get_paginated_response(self.paginate_queryset(taught_courses))
+        return self.paginate_response(taught_courses)
 
     @action(methods=["GET"], detail=True, url_path="taught_courses/filter_condition")
     def taught_courses_filter_condition(self, request, *args, **kwargs):

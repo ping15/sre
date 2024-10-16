@@ -121,7 +121,7 @@ class TrainingClass(models.Model):
     @property
     def student_count(self) -> int:
         """学员数量"""
-        return self.target_client_company.student_count
+        return self.client_students.count()
 
     @property
     def instructor_count(self) -> int:

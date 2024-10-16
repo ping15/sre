@@ -102,7 +102,13 @@ class AuthenticationViewSet(GenericViewSet):
         user_models = [Administrator, Instructor, ClientStudent]
         for user_model in user_models:
             try:
-                return user_model.objects.get(phone=phone)
+                user = user_model.objects.get(phone=phone)
+
+                # 不合作的讲师不可登录
+                if isinstance(user, Instructor) and not user.is_partnered:
+                    return None
+
+                return user
             except ObjectDoesNotExist:
                 continue
         return None

@@ -15,34 +15,27 @@ from common.utils.drf.response import Response
 
 
 def exception_handler(exc, context):
-    # 调用 DRF 默认的异常处理器以获得标准的错误响应。
     response = drf_exception_handler(exc, context)
 
-    custom_exceptions = (
-        ValidationError,
-        PermissionDenied,
-        NotAuthenticated,
-        ParseError,
-    )
+    custom_exceptions = (ValidationError, PermissionDenied, NotAuthenticated, ParseError)
     if isinstance(exc, custom_exceptions):
         exc_detail = exc.detail
-        status_code = (
-            HTTP_401_UNAUTHORIZED
-            if isinstance(exc, NotAuthenticated)
-            else exc.status_code
-        )
+        status_code = HTTP_401_UNAUTHORIZED if isinstance(exc, NotAuthenticated) else exc.status_code
 
         return Response(status=status_code, err_msg=_handler_error_details(exc_detail), result=False)
-
-    # 处理其他类型的异常，如果有的话，可以在这里添加自定义处理
-    if response is not None:
-        response.data["status_code"] = response.status_code
 
     return response
 
 
 def _handler_error_details(
-    details: Union[Dict[str, Union[List[ErrorDetail], ErrorDetail]], List[ErrorDetail], ErrorDetail]
+    details: Union[
+        Dict[str, Union[List[ErrorDetail], ErrorDetail]],
+        List[Union[
+            ErrorDetail,
+            Dict[str, List[ErrorDetail]]
+        ]],
+        ErrorDetail
+    ]
 ) -> str:
     if isinstance(details, dict):
         details = list(chain.from_iterable(
@@ -53,6 +46,11 @@ def _handler_error_details(
     elif isinstance(details, ErrorDetail):
         details = [details]
 
+    elif isinstance(details, list) and all(isinstance(item, dict) for item in details):
+        details = [value for item in details for value in list(item.values())[0]]
+
     err_msg = "\n".join(f"{str(value)}" for i, value in enumerate(details))
+
+    err_msg = err_msg[:100] + "..." if len(err_msg) > 100 else err_msg
 
     return err_msg

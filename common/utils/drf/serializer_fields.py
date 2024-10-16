@@ -83,7 +83,7 @@ class UniqueCharField(serializers.CharField):
 
         model = self.parent.Meta.model
         if model.objects.filter(**{self.field_name: data}).exists():
-            raise serializers.ValidationError(f"该{self.label or self.field_name}已存在")
+            raise serializers.ValidationError(f"该{self.label or self.field_name}{data}已存在")
 
         return data
 
