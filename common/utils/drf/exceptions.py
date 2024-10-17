@@ -47,7 +47,7 @@ def handler_error_details(
         details = [details]
 
     elif isinstance(details, list) and all(isinstance(item, dict) for item in details):
-        details = [value for item in details for value in list(item.values())[0]]
+        details = [value for item in details if item for value in list(item.values())[0] if value]
 
     err_msg = "\n".join(f"{str(value)}" for i, value in enumerate(details))
 

@@ -1,7 +1,7 @@
 import datetime
 import math
 import os
-from typing import Any, Dict, List
+from typing import List
 
 from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
@@ -430,7 +430,9 @@ class TrainingClassModelViewSet(ModelViewSet):
         if datetime.datetime.now().date() < training_class.end_date:
             return Response(result=False, err_msg="该培训班未到达结课时间")
 
-        datas: List[Dict[str, Any]] = excel_to_list(self.validated_data["file"], TRAINING_CLASS_SCORE_EXCEL_MAPPING)
+        datas, err_msg = excel_to_list(self.validated_data["file"], TRAINING_CLASS_SCORE_EXCEL_MAPPING)
+        if err_msg:
+            return Response(result=False, err_msg=err_msg)
 
         with transaction.atomic():
             # 统计讲师平均分

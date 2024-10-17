@@ -44,6 +44,5 @@ class InstructorFilterClass(BaseFilterSet):
 
 class InstructorTaughtCoursesFilterClass(BaseFilterSet):
     name = PropertyFilter("name", label="培训班名称")
-    target_client_company_name = django_filters.CharFilter(
-        "target_client_company_name", lookup_expr="icontains", label="客户公司")
-    start_date = django_filters.DateFromToRangeFilter("start_date", "开课时间")
+    target_client_company_name = PropertyFilter("target_client_company_name", label="客户公司")
+    start_date = django_filters.DateFromToRangeFilter("start_date", label="开课时间")

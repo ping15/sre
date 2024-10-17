@@ -65,16 +65,16 @@ class AdministratorUpdateSerializer(serializers.ModelSerializer, BasicSerializer
 
 
 class AdministratorBatchImportSerializer(serializers.ModelSerializer, PhoneCreateSerializerValidator):
+    phone = UniqueCharField(label="管理员手机号码", max_length=16)
+
     def to_internal_value(self, data):
         data["role"] = reverse_dict(dict(Administrator.Role.choices)).get(data["role"])
-
-        # 根据管理公司名字找到对应公司id
         try:
             data["affiliated_manage_company"] = ManageCompany.objects.get(
                 name=data["affiliated_manage_company_name"]).id
         except ManageCompany.DoesNotExist:
             raise serializers.ValidationError(f"该管理公司不存在: {data['affiliated_manage_company_name']}")
-
+        super().to_internal_value(data)
         return data
 
     class Meta:

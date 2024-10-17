@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, List
+from typing import Any, List
 
 from django.http import FileResponse, Http404
 from rest_framework import serializers, status
@@ -98,7 +98,9 @@ class ModelViewSet(DRFModelViewSet):
             return Response(result=False, err_msg=response["error"])
 
         # 解析excel
-        datas: List[Dict[str, str]] = excel_to_list(response["Body"].read(None), self.batch_import_mapping)
+        datas, err_msg = excel_to_list(response["Body"].read(None), self.batch_import_mapping)
+        if err_msg:
+            return Response(result=False, err_msg=err_msg)
 
         create_serializer = self.batch_import_serializer(data=datas, many=True)
 

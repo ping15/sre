@@ -77,6 +77,7 @@ class ClientStudentBatchImportSerializer(
     BasicSerializerValidator
 ):
     education = ChoiceField(label="学历", choices=ClientStudent.Education.choices)
+    phone = UniqueCharField(label="学员手机号码", max_length=16)
 
     def validate(self, attrs):
         attrs["education"] = dict(ClientStudent.Education.choices).get(attrs["education"])

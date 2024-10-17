@@ -71,10 +71,10 @@ class PhoneCreateSerializerValidator:
             raise serializers.ValidationError("手机号必须为11位，第一位为1，第二位可选数字[3,5,6,7,8,9]")
 
         if Instructor.objects.filter(phone=value).exists():
-            raise serializers.ValidationError("有讲师存在该手机号。")
+            raise serializers.ValidationError(f"该讲师手机号码{value}已存在。")
         if Administrator.objects.filter(phone=value).exists():
-            raise serializers.ValidationError("有管理员存在该手机号。")
+            raise serializers.ValidationError(f"该管理员手机号码{value}已存在。")
         if ClientStudent.objects.filter(phone=value).exists():
-            raise serializers.ValidationError("有客户学员存在该手机号。")
+            raise serializers.ValidationError(f"该客户学员手机号码{value}已存在。")
 
         return value

@@ -1,9 +1,10 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 
 
-def excel_to_list(contents: bytes, mapping: Dict[str, Dict[str, str]]) -> List[Dict[str, str]]:
+def excel_to_list(contents: bytes, mapping: Dict[str, Dict[str, str]]) -> Tuple[List[Dict[str, str]], Optional[str]]:
+    err_msg = None
     df = pd.read_excel(contents)
 
     # 字段名 -> 字段类型
@@ -24,13 +25,16 @@ def excel_to_list(contents: bytes, mapping: Dict[str, Dict[str, str]]) -> List[D
 
     # 类型转换，df拿到的数据都为str
     datas = [_convert_data(data, field_name__field_type) for data in datas]
-    return datas
+    if len(datas) > 0 and not datas[0]:
+        err_msg = "Excel模板错误"
+
+    return datas, err_msg
 
 
 def _convert_data(data: Dict[str, Any], field_name__field_type: Dict[str, str]) -> Dict[str, str]:
     for field_name, field_value in data.copy().items():
         if field_name not in field_name__field_type:
-            break
+            return {}
 
         if field_name__field_type[field_name] == list:
             data[field_name] = str(field_value).split(",")

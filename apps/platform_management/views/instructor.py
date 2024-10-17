@@ -3,6 +3,7 @@ from typing import Dict, List, Set
 
 from django.db.models import QuerySet
 from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 
 from apps.my_lectures.handles.event import EventHandler
 from apps.platform_management.filters.instructor import (
@@ -61,9 +62,11 @@ class InstructorModelViewSet(ModelViewSet):
     @action(methods=["GET"], detail=True)
     def taught_courses(self, request, *args, **kwargs):
         """已授课程"""
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        instructor: Instructor = get_object_or_404(Instructor, **{self.lookup_field: self.kwargs[lookup_url_kwarg]})
         taught_courses: List[Dict[str:str]] = []
 
-        training_classes: QuerySet["TrainingClass"] = self.get_object().training_classes.filter(
+        training_classes: QuerySet["TrainingClass"] = instructor.training_classes.filter(
             start_date__lte=datetime.datetime.now()
         )
 
