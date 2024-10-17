@@ -102,8 +102,7 @@ class ModelViewSet(DRFModelViewSet):
 
         create_serializer = self.batch_import_serializer(data=datas, many=True)
 
-        if not create_serializer.is_valid():
-            return Response(data=[], result=False, err_msg=str(create_serializer.errors))
+        create_serializer.is_valid(raise_exception=True)
 
         return Response(create_serializer.validated_data)
 

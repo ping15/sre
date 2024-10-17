@@ -22,12 +22,12 @@ def exception_handler(exc, context):
         exc_detail = exc.detail
         status_code = HTTP_401_UNAUTHORIZED if isinstance(exc, NotAuthenticated) else exc.status_code
 
-        return Response(status=status_code, err_msg=_handler_error_details(exc_detail), result=False)
+        return Response(status=status_code, err_msg=handler_error_details(exc_detail), result=False)
 
     return response
 
 
-def _handler_error_details(
+def handler_error_details(
     details: Union[
         Dict[str, Union[List[ErrorDetail], ErrorDetail]],
         List[Union[
