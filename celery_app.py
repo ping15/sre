@@ -21,19 +21,14 @@ setattr(app, "timezone", pytz.timezone("Asia/Shanghai"))
 
 # 定义定时任务
 app.conf.beat_schedule = {
-    # 'print-hello-every-10-seconds': {
-    #     'task': 'apps.platform_management.tasks.print_hello',
-    #     'schedule': 10.0,
-    #     'args': ()
-    # },
     'start-training-class': {
         'task': 'apps.teaching_space.tasks.start_training_class',
-        'schedule': crontab(minute="50", hour="17"),
+        'schedule': crontab(minute="00", hour="00"),
         'args': ()
     },
     'finish-training-class': {
         'task': 'apps.teaching_space.tasks.finish_training_class',
-        'schedule': crontab(minute="59", hour="09"),
+        'schedule': crontab(minute="00", hour="00"),
         'args': ()
     },
 }

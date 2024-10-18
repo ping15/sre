@@ -75,7 +75,6 @@ class TrainingClass(models.Model):
         ClientStudent,
         verbose_name="客户学员",
         blank=True,
-        null=True,
         related_name="training_classes"
     )
 

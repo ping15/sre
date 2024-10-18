@@ -268,4 +268,5 @@ class Migration(migrations.Migration):
                 ("objects", django.contrib.auth.models.UserManager()),
             ],
         ),
+        # migrations.RunPython(create_initial_records),
     ]

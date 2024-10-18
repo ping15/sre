@@ -92,8 +92,8 @@ class TrainingClassModelViewSet(ModelViewSet):
             response = super().create(request, *args, **kwargs)
 
             # 将该学员添加到培训班中
-            training_class.client_students.add(
-                *(response.instance if isinstance(response.instance, list) else [response.instance]))
+            new_client_students = response.instance if isinstance(response.instance, list) else [response.instance]
+            training_class.client_students.add(*new_client_students)
         return response
 
     @action(detail=True, methods=["POST"])

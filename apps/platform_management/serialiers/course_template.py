@@ -50,6 +50,11 @@ class CourseTemplateUpdateSerializer(serializers.ModelSerializer):
         allow_null=True
     )
 
+    def validate(self, attrs):
+        if attrs["status"] == CourseTemplate.Status.PREPARATION and attrs["class_count"] > 5:
+            raise serializers.ValidationError("[准备期]课程授课次数不能超过5次")
+        return attrs
+
     class Meta:
         model = CourseTemplate
         fields = "__all__"

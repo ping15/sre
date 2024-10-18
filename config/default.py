@@ -226,6 +226,9 @@ ENABLE_SMS = bool(os.environ.get("ENABLE_SMS", False))
 SMS_USERNAME = os.environ.get("SMS_USERNAME", "")
 SMS_PASSWORD = os.environ.get("SMS_PASSWORD", "")
 
+# 默认ADMIN手机号码
+ADMIN_PHONE = os.environ.get("ADMIN_PHONE", "13111111111")
+
 # DRF配置
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [

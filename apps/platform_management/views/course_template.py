@@ -1,4 +1,3 @@
-from django.db.models import Q
 from rest_framework.decorators import action
 
 from apps.platform_management.filters.course_templates import CourseTemplatesFilterClass
@@ -27,6 +26,9 @@ class CourseTemplateModelViewSet(ModelViewSet):
         "create": CourseTemplateCreateSerializer,
         "update": CourseTemplateUpdateSerializer,
     }
+    PERMISSION_MAP = {
+        "choices": [SuperAdministratorPermission | ManageCompanyAdministratorPermission | InstructorPermission]
+    }
 
     def destroy(self, request, *args, **kwargs):
         course_template: CourseTemplate = self.get_object()
@@ -44,14 +46,18 @@ class CourseTemplateModelViewSet(ModelViewSet):
             ]
         )
 
-    @action(methods=["GET"], detail=False, permission_classes=[
-        SuperAdministratorPermission | ManageCompanyAdministratorPermission | InstructorPermission
-    ])
+    @action(methods=["GET"], detail=False)
     def choices(self, request, *args, **kwargs):
+        # todo: 拓展功能
+        # 以下条件全部满足则该课程可选择
+        # 1. 处于[准备期]和[授课]的课程
+        # 2. 课程开课次数应不大于应用该课程的所有培训班的数量
+        # 3. 课程客户数量应不大于应用该课程的所有培训班的数量
         return Response([
             {"id": course_template.id, "name": course_template.name}
-            for course_template in self.get_queryset().filter(
-                Q(status=CourseTemplate.Status.IN_PROGRESS.value) | Q(
-                    status=CourseTemplate.Status.PREPARATION.value)
+            for course_template in self.get_queryset()
+            .filter(
+                # 处于[准备期]和[授课]的课程
+                status__in=[CourseTemplate.Status.IN_PROGRESS, CourseTemplate.Status.PREPARATION],
             )
         ])
