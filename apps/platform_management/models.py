@@ -72,12 +72,12 @@ class CourseTemplate(models.Model):
     client_company_count = models.IntegerField("客户数")
     class_count = models.IntegerField("开班次数")
     num_instructors = models.IntegerField("讲师数量")
-    material_content = models.TextField("教材内容")
+    material_content = models.TextField("教材内容")  # 富文本
     course_overview = models.TextField("课程概述")
-    target_students = models.TextField("目标学员", default="")
-    learning_objectives = models.TextField("学习目标", default="")
-    learning_benefits = models.TextField("学习收益", default="")
-    course_content = models.TextField("课程内容")
+    target_students = models.TextField("目标学员", default="")  # 富文本
+    learning_objectives = models.TextField("学习目标", default="")  # 富文本
+    learning_benefits = models.TextField("学习收益", default="")  # 富文本
+    course_content = models.TextField("课程内容")  # 富文本
     remarks = models.TextField("备注")
     exam_type = models.JSONField("考试题型", choices=ExamType.choices, default=list)
     num_questions = models.IntegerField("考题数量", null=True, blank=True)

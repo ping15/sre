@@ -3,6 +3,7 @@ from rest_framework import serializers
 from apps.platform_management.models import CourseTemplate
 from common.utils.drf.serializer_fields import (
     ChoiceField,
+    CleanedHTMLField,
     MappingField,
     UniqueCharField,
 )
@@ -61,6 +62,11 @@ class CourseTemplateUpdateSerializer(serializers.ModelSerializer):
 
 
 class CourseTemplateCreateSerializer(CourseTemplateUpdateSerializer):
+    material_content = CleanedHTMLField()
+    target_students = CleanedHTMLField()
+    learning_objectives = CleanedHTMLField()
+    learning_benefits = CleanedHTMLField()
+    course_content = CleanedHTMLField()
     name = UniqueCharField(label="课程", max_length=32)
 
 
