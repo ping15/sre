@@ -26,11 +26,11 @@ app.conf.beat_schedule = {
         'schedule': crontab(minute="00", hour="00"),
         'args': ()
     },
-    'finish-training-class': {
-        'task': 'apps.teaching_space.tasks.finish_training_class',
-        'schedule': crontab(minute="00", hour="00"),
-        'args': ()
-    },
+    # 'finish-training-class': {
+    #     'task': 'apps.teaching_space.tasks.finish_training_class',
+    #     'schedule': crontab(minute="00", hour="00"),
+    #     'args': ()
+    # },
 }
 
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)

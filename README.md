@@ -55,7 +55,7 @@ CACHES = {
 #### 2.4. python manage.py runserver启动服务器
 
 ## 线上docker部署
-### 1. 创建文件夹，按下面结构组装
+### 1. 创建文件夹，按下面结构组装，build.sh文件一些变量需要修改
 - Dockerfile(来源于后端仓库deploy文件夹)
 - build.sh(来源于后端仓库deploy文件夹)
 - docker-compose.yml(来源于后端仓库deploy文件夹)
@@ -63,4 +63,4 @@ CACHES = {
 - training-center-api(后端代码仓库)
 - training-center-front(前端代码仓库)
 
-### 2. 在当前文件夹目录中执行bash build.sh
+### 2. 在当前文件夹目录中执行bash build.sh，添加bash build.sh local本地部署

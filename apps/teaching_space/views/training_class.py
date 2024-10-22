@@ -87,6 +87,7 @@ class TrainingClassModelViewSet(ModelViewSet):
 
     @action(detail=True, methods=["POST"])
     def add_students(self, request, *args, **kwargs):
+        """添加学员"""
         training_class: TrainingClass = self.get_object()
         with transaction.atomic():
             response = super().create(request, *args, **kwargs)
@@ -98,6 +99,7 @@ class TrainingClassModelViewSet(ModelViewSet):
 
     @action(detail=True, methods=["POST"])
     def remove_student(self, request, *args, **kwargs):
+        """移除学员"""
         training_class: TrainingClass = self.get_object()
         client_students: QuerySet[ClientStudent] = self.validated_data["client_students"]
         training_class.client_students.remove(*client_students)

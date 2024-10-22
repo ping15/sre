@@ -66,9 +66,7 @@ class PhoneCreateSerializerValidator:
     @classmethod
     def validate_phone(cls, value: str):
         """手机号唯一性校验"""
-        pattern = re.compile(r"^1[356789]\d{9}$")
-        if not pattern.match(value):
-            raise serializers.ValidationError("手机号必须为11位，第一位为1，第二位可选数字[3,5,6,7,8,9]")
+        BasicSerializerValidator.validate_phone(value)
 
         if Instructor.objects.filter(phone=value).exists():
             raise serializers.ValidationError(f"该讲师手机号码{value}已存在。")

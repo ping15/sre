@@ -32,9 +32,9 @@ class AdministratorCreateSerializer(serializers.ModelSerializer, PhoneCreateSeri
     phone = UniqueCharField(label="管理员手机号码", max_length=16)
     role = ChoiceField(label="管理员角色", choices=Administrator.Role.choices)
 
-    def create(self, validated_data):
-        affiliated_manage_company: ManageCompany = validated_data["affiliated_manage_company"]
-        role: str = validated_data["role"]
+    def validate(self, attrs):
+        affiliated_manage_company: ManageCompany = attrs["affiliated_manage_company"]
+        role: str = attrs["role"]
         default_manage_company: str = global_constants.DEFAULT_MANAGE_COMPANY
 
         # 公司选择[鸿雪公司]时角色不能选择[合作伙伴管理员]
@@ -44,14 +44,15 @@ class AdministratorCreateSerializer(serializers.ModelSerializer, PhoneCreateSeri
         elif affiliated_manage_company.name != default_manage_company and role == Administrator.Role.COMPANY_MANAGER:
             raise serializers.ValidationError(f"公司选择非[{default_manage_company}]时角色不能选择[鸿雪公司管理员]")
 
-        return super().create(validated_data)
+        return super().validate(attrs)
 
     class Meta:
         model = Administrator
         exclude = ["password"]
 
 
-class AdministratorUpdateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
+class AdministratorUpdateSerializer(BasicSerializerValidator, AdministratorCreateSerializer):
+    phone = serializers.CharField(label="管理员手机号", max_length=16)
     role = ChoiceField(label="管理员角色", choices=Administrator.Role.choices)
 
     def save(self, **kwargs):
