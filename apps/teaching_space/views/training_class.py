@@ -7,6 +7,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
 from django.http import FileResponse
 from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 
 from apps.my_lectures.handles.event import EventHandler
 from apps.my_lectures.models import Advertisement, InstructorEnrolment, InstructorEvent
@@ -82,7 +83,11 @@ class TrainingClassModelViewSet(ModelViewSet):
     @action(detail=True, methods=["GET"])
     def students(self, request, *args, **kwargs):
         """客户学员"""
-        client_students = ClientStudentFilterClass(request.GET, queryset=self.get_object().client_students).qs
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        training_class: TrainingClass = get_object_or_404(
+            TrainingClass, **{self.lookup_field: self.kwargs[lookup_url_kwarg]})
+
+        client_students = ClientStudentFilterClass(request.GET, queryset=training_class.client_students).qs
         return self.paginate_response(self.get_serializer(client_students, many=True).data)
 
     @action(detail=True, methods=["POST"])
@@ -436,9 +441,13 @@ class TrainingClassModelViewSet(ModelViewSet):
         if err_msg:
             return Response(result=False, err_msg=err_msg)
 
+        if len(datas) == 0:
+            return Response(result=False, err_msg="Excel数据为空")
+
         with transaction.atomic():
             # 统计讲师平均分
             scores: List[float] = [float(data_dict["score"]) for data_dict in datas]
+
             average_score: float = min(max(sum(scores) / len(scores), 0), 5)
 
             # 如果讲师未评过分，即0.0分，则直接赋值
