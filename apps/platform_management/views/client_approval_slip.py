@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework.decorators import action
 
 from apps.platform_management.filters.client_approval_slip import (
@@ -41,12 +42,13 @@ class ClientApprovalSlipModelViewSet(ModelViewSet):
         if instance.status != ClientApprovalSlip.Status.PENDING.value:
             return Response(result=False, err_msg="该单据装填已流转，不可更新")
 
-        if validated_data["status"] == ClientApprovalSlip.Status.AGREED.value:
-            # 创建客户公司
-            create_serializer = ClientCompanyCreateSerializer(data=instance.submission_info)
-            if not create_serializer.is_valid():
-                return Response(result=False, err_msg=str(create_serializer.errors))
-            create_serializer.save()
+        with transaction.atomic():
+            if validated_data["status"] == ClientApprovalSlip.Status.AGREED.value:
+                # 创建客户公司
+                create_serializer = ClientCompanyCreateSerializer(data=instance.submission_info)
+                if not create_serializer.is_valid():
+                    return Response(result=False, err_msg=str(create_serializer.errors))
+                create_serializer.save()
 
             # 更新单据状态
             super().partial_update(request, *args, **kwargs)
