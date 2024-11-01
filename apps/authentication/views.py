@@ -4,7 +4,6 @@ from django.conf import settings
 from django.contrib.auth import logout
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils import timezone
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -13,7 +12,7 @@ from rest_framework.viewsets import GenericViewSet
 from apps.authentication.serializers import LoginSerializer, SMSSerializer
 from apps.platform_management.models import Administrator, ClientStudent, Instructor
 from common.utils import sms
-from common.utils.auth import SMS_KEY, SMS_SEND_TIMESTAMP_KEY, login
+from common.utils.auth import SMS_KEY, login
 from common.utils.drf.response import Response
 
 
@@ -52,24 +51,23 @@ class AuthenticationViewSet(GenericViewSet):
         if not user:
             return Response(result=False, err_msg="不存在该手机号的用户")
 
-        if settings.ENABLE_SMS:
-            # 获取上次发送的时间戳，存在则对比时间间隔
-            last_send_time = cache.get(f"{SMS_SEND_TIMESTAMP_KEY}:{phone}")
-            if last_send_time:
-                return Response(
-                    result=False,
-                    err_msg="请等待60秒后再发送验证码",
-                    status=status.HTTP_429_TOO_MANY_REQUESTS,
-                )
+        lock_id = f"lock:sms:{phone}"
+        lock = cache.add(lock_id, "lock", timeout=60)  # Lock expires in 60 seconds
 
+        if not lock:
+            return Response(
+                {"result": False, "err_msg": "请等待60秒后再发送验证码"},
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
+        if not settings.ENABLE_SMS:
             sms_code = ''.join(random.choices('0123456789', k=6))
+
             sms_status: str = sms.send_sms(phone, sms_code)
             if sms_status != sms.SUCCESS_STATUS:
                 return Response(result=False, err_msg=f"短信发送失败: {sms.status_mapping.get(sms_status, '未知错误')}")
 
-            # 设置验证码和发送时间戳到缓存
             cache.set(f"{SMS_KEY}:{phone}", sms_code, timeout=60)
-            cache.set(f"{SMS_SEND_TIMESTAMP_KEY}:{phone}", timezone.now(), timeout=60)
 
         return Response("发送成功")
 

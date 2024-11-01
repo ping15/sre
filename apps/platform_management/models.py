@@ -219,7 +219,7 @@ class Instructor(models.Model):
     satisfaction_score = models.FloatField("满意度评分", default=0.0)
     hours_taught = models.IntegerField("已授课时", default=0)
     is_partnered = models.BooleanField("是否合作", default=True)
-    id_photo = models.JSONField("证件照", default=dict)
+    id_photo = models.JSONField("证件照")
 
     last_login = models.DateTimeField("最后登录时间", blank=True, null=True)
 
@@ -339,7 +339,7 @@ class ClientStudent(models.Model):
     affiliated_client_company_name = models.CharField("客户公司", max_length=64)
     department = models.CharField("部门", max_length=32)
     position = models.CharField("职位", max_length=32)
-    id_photo = models.JSONField("证件照", default=dict)
+    id_photo = models.JSONField("证件照")
 
     last_login = models.DateTimeField("最后登录时间", blank=True, null=True)
     created_date = models.DateField("创建时间", auto_now_add=True)

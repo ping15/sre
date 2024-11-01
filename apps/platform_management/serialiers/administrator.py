@@ -48,7 +48,7 @@ class AdministratorCreateSerializer(serializers.ModelSerializer, PhoneCreateSeri
 
     class Meta:
         model = Administrator
-        exclude = ["password"]
+        exclude = ["password", "last_login"]
 
 
 class AdministratorUpdateSerializer(BasicSerializerValidator, AdministratorCreateSerializer):
@@ -62,7 +62,7 @@ class AdministratorUpdateSerializer(BasicSerializerValidator, AdministratorCreat
 
     class Meta:
         model = Administrator
-        exclude = ["password"]
+        exclude = ["password", "last_login"]
 
 
 class AdministratorBatchImportSerializer(serializers.ModelSerializer, PhoneCreateSerializerValidator):

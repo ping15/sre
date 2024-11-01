@@ -5,6 +5,7 @@ from apps.platform_management.models import Administrator, ClientCompany, Client
 from common.utils.drf.serializer_fields import (
     ChoiceField,
     MonthYearField,
+    ResourceURLField,
     UniqueCharField,
     get_model_instance_or_raise,
 )
@@ -15,12 +16,18 @@ from common.utils.drf.serializer_validator import (
 from common.utils.global_constants import AppModule
 
 
+class ResourceInfoSerializer(serializers.Serializer):
+    file_key = serializers.CharField(label="文件标识符")
+    file_name = serializers.CharField(label="文件名")
+    url = ResourceURLField(label="文件路径")
+
+
 class ClientStudentListSerializer(serializers.ModelSerializer):
     affiliated_client_company_id = serializers.ReadOnlyField(source="affiliated_client_company.id")
 
     class Meta:
         model = ClientStudent
-        fields = "__all__"
+        exclude = ["last_login", "id_photo"]
 
 
 class ClientStudentCreateSerializer(
@@ -30,15 +37,16 @@ class ClientStudentCreateSerializer(
 ):
     phone = UniqueCharField(label="学员手机号码", max_length=16)
     education = ChoiceField(label="学历", choices=ClientStudent.Education.choices)
+    id_photo = ResourceInfoSerializer(label="资源信息")
 
     def create(self, validated_data):
+        # 非超级管理员不可创建其他管理公司下面客户公司的学员
         user: Administrator = self.context["request"].user
         client_company: ClientCompany = get_model_instance_or_raise(
             model=ClientCompany,
             field="name",
             value=validated_data["affiliated_client_company_name"]
         )
-
         if all([
             not user.is_super_administrator,
             user.affiliated_manage_company != client_company.affiliated_manage_company
@@ -68,7 +76,7 @@ class ClientStudentUpdateSerializer(serializers.ModelSerializer, BasicSerializer
 class ClientStudentRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientStudent
-        fields = "__all__"
+        exclude = ["last_login"]
 
 
 class ClientStudentBatchImportSerializer(
@@ -85,7 +93,7 @@ class ClientStudentBatchImportSerializer(
 
     class Meta:
         model = ClientStudent
-        fields = "__all__"
+        exclude = ["last_login", "id_photo"]
 
 
 class ClientStudentStatisticSerializer(serializers.Serializer):

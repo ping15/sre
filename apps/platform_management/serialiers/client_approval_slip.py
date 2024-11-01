@@ -3,7 +3,7 @@ import datetime
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from apps.platform_management.models import ClientApprovalSlip
+from apps.platform_management.models import Administrator, ClientApprovalSlip
 from apps.platform_management.serialiers.client_company import (
     ClientCompanyCreateSerializer,
 )
@@ -31,12 +31,17 @@ class ClientApprovalSlipCreateSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         submission_info = validated_data["submission_info"]
 
+        user: Administrator = request.user
+        if not user.is_super_administrator:
+            if user.affiliated_manage_company_name != submission_info["affiliated_manage_company_name"]:
+                raise ValidationError("鸿雪/合作伙伴管理员不可为其他管理公司申请客户公司")
+
         if ClientApprovalSlip.objects.filter(affiliated_client_company_name=submission_info["name"]).exists():
             raise ValidationError("该公司已申请")
 
         validated_data["affiliated_manage_company_name"] = submission_info["affiliated_manage_company_name"]
         validated_data["affiliated_client_company_name"] = submission_info["name"]
-        validated_data["submitter"] = request.user.username
+        validated_data["submitter"] = user.username
         validated_data["submission_datetime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         validated_data["name"] = (f"{submission_info['affiliated_manage_company_name']}申请"
                                   f"给{submission_info['name']}培训服务")
@@ -56,12 +61,6 @@ class ClientApprovalSlipCreateSerializer(serializers.ModelSerializer):
 
 class ClientApprovalSlipPartialUpdateSerializer(serializers.ModelSerializer):
     status = ChoiceField(choices=ClientApprovalSlip.Status.choices)
-
-    # todo: 临时代码
-    def to_internal_value(self, data):
-        if "status" in data and data["status"] == "approval":
-            data["status"] = ClientApprovalSlip.Status.AGREED
-        return super().to_internal_value(data)
 
     class Meta:
         model = ClientApprovalSlip

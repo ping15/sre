@@ -59,7 +59,7 @@ class InstructorCalendarSerializer(serializers.Serializer):
 class InstructorRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Instructor
-        exclude = ["id", "hours_taught", "is_partnered"]
+        exclude = ["id", "hours_taught", "is_partnered", "last_login"]
 
 
 class InstructorFilterConditionSerializer(serializers.Serializer):

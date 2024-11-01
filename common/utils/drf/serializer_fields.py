@@ -9,6 +9,7 @@ from django.utils.html import escape
 from rest_framework import serializers
 
 from common.utils.cipher import cipher
+from common.utils.file_defense import convert_resource_url
 from common.utils.tools import reverse_dict
 
 T = TypeVar(name="T", bound=Model)
@@ -113,6 +114,14 @@ class CleanedHTMLField(serializers.CharField):
 
     def to_representation(self, value):
         return super().to_representation(escape(value))
+
+
+class ResourceURLField(serializers.CharField):
+    def to_internal_value(self, value):
+        return convert_resource_url(value)
+
+    def to_representation(self, value):
+        return convert_resource_url(value)
 
 
 def get_model_instance_or_raise(model: Type[T], field: str, value: Any) -> T:
