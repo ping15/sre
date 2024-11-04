@@ -7,6 +7,9 @@ def excel_to_list(contents: bytes, mapping: Dict[str, Dict[str, str]]) -> Tuple[
     err_msg = None
     df = pd.read_excel(contents)
 
+    # 将 NaN 替换为空字符串
+    df = df.fillna('')
+
     # 字段名 -> 字段类型
     field_name__field_type: Dict[str, str] = {
         column_mapping["value"]: column_mapping["type"]

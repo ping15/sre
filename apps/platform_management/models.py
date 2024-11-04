@@ -58,7 +58,7 @@ class CourseTemplate(models.Model):
         ("授课", 0),
     ]
 
-    name = models.CharField("课程名称", max_length=32, unique=True)
+    name = models.CharField("课程名称", max_length=128, unique=True)
     level = models.CharField("级别", choices=Level.choices, max_length=32)
     abbreviation = models.CharField("英文缩写", max_length=32)
     num_lessons = models.IntegerField("课时数量")
@@ -112,8 +112,8 @@ class ManageCompany(models.Model):
         DEFAULT = "default", "默认公司"
         PARTNER = "partner", "合作伙伴"
 
-    name = models.CharField("名称", max_length=32, unique=True)
-    email = models.EmailField("邮箱", max_length=32)
+    name = models.CharField("名称", max_length=128, unique=True)
+    email = models.EmailField("邮箱", max_length=256)
     type = models.CharField("类型", choices=Type.choices, max_length=32, default=Type.PARTNER.value,)
 
     @property
@@ -166,7 +166,7 @@ class Administrator(AbstractUser):
         COMPANY_MANAGER = "company_manager", "鸿雪公司管理员"
         PARTNER_MANAGER = "partner_manager", "合作伙伴管理员"
 
-    username = models.CharField("名称", max_length=64, db_index=True)
+    username = models.CharField("名称", max_length=128, db_index=True)
     phone = models.CharField("手机号码", max_length=16, db_index=True, unique=True)
     affiliated_manage_company = models.ForeignKey(
         ManageCompany,
@@ -207,11 +207,11 @@ class Administrator(AbstractUser):
 class Instructor(models.Model):
     """讲师"""
 
-    username = models.CharField("姓名", max_length=64, db_index=True)
+    username = models.CharField("姓名", max_length=128, db_index=True)
     phone = models.CharField("电话", max_length=16, unique=True)
-    email = models.EmailField("邮箱", max_length=64)
-    city = models.CharField("所在城市", max_length=32)
-    company = models.CharField("所在公司", max_length=64)
+    email = models.EmailField("邮箱", max_length=256)
+    city = models.CharField("所在城市", max_length=64)
+    company = models.CharField("所在公司", max_length=256)
     department = models.CharField("部门", max_length=32)
     position = models.CharField("岗位", max_length=32)
     introduction = models.TextField("简介")
@@ -261,25 +261,25 @@ class ClientCompany(models.Model):
         ALIPAY = "alipay", "对公支付宝"
 
     # 基本信息
-    name = models.CharField("客户公司名称", max_length=32, unique=True)
-    contact_person = models.CharField("联系人", max_length=32)
+    name = models.CharField("客户公司名称", max_length=128, unique=True)
+    contact_person = models.CharField("联系人", max_length=128)
     contact_phone = models.CharField("电话", max_length=16)
-    contact_email = models.EmailField("邮箱", max_length=64)
+    contact_email = models.EmailField("邮箱", max_length=256)
     payment_method = models.CharField("参会费支付方式", choices=PaymentMethod.choices, max_length=32)
-    affiliated_manage_company_name = models.CharField("管理公司", max_length=64)
+    affiliated_manage_company_name = models.CharField("管理公司", max_length=128)
 
     # 通讯信息
-    certificate_address = models.CharField("证书收件地址", max_length=128)
-    recipient_name = models.CharField("收件人", max_length=32)
+    certificate_address = models.CharField("证书收件地址", max_length=256)
+    recipient_name = models.CharField("收件人", max_length=128)
     recipient_phone = models.CharField("收件人电话", max_length=16)
 
     # 开票信息
-    invoice_company_name = models.CharField("公司名称", max_length=64)
+    invoice_company_name = models.CharField("公司名称", max_length=128)
     tax_identification_number = models.CharField("纳税人识别号", max_length=32)
     invoice_company_address = models.CharField("单位地址", max_length=128)
     invoice_company_phone = models.CharField("单位电话", max_length=16)
-    bank_name = models.CharField("开户行", max_length=64)
-    bank_account = models.CharField("账号", max_length=32)
+    bank_name = models.CharField("开户行", max_length=128)
+    bank_account = models.CharField("账号", max_length=64)
 
     created_date = models.DateField("创建时间", auto_now_add=True)
 
@@ -330,15 +330,15 @@ class ClientStudent(models.Model):
         MASTER = "master", "硕士研究生"
         DOCTORATE = "doctorate", "博士生"
 
-    username = models.CharField("名称", max_length=64)
+    username = models.CharField("名称", max_length=128)
     gender = models.CharField("性别", max_length=32)
-    id_number = models.CharField("身份证号", max_length=32)
+    id_number = models.CharField("身份证号", max_length=32, blank=True)
     education = models.CharField("学历", choices=Education.choices, max_length=32)
     phone = models.CharField("电话", max_length=16, unique=True)
-    email = models.EmailField("邮箱", max_length=64)
-    affiliated_client_company_name = models.CharField("客户公司", max_length=64)
-    department = models.CharField("部门", max_length=32)
-    position = models.CharField("职位", max_length=32)
+    email = models.EmailField("邮箱", max_length=256, blank=True)
+    affiliated_client_company_name = models.CharField("客户公司", max_length=128)
+    department = models.CharField("部门", max_length=128, blank=True)
+    position = models.CharField("职位", max_length=128, blank=True)
     id_photo = models.JSONField("证件照")
 
     last_login = models.DateTimeField("最后登录时间", blank=True, null=True)
@@ -392,10 +392,10 @@ class ClientApprovalSlip(models.Model):
         AGREED = "agreed", "同意"
         REJECTED = "rejected", "驳回"
 
-    name = models.CharField("标题", max_length=64)
-    affiliated_manage_company_name = models.CharField("管理公司", max_length=32)
-    affiliated_client_company_name = models.CharField("客户公司", max_length=32)
-    submitter = models.CharField("提单人", max_length=32)
+    name = models.CharField("标题", max_length=128)
+    affiliated_manage_company_name = models.CharField("管理公司", max_length=128)
+    affiliated_client_company_name = models.CharField("客户公司", max_length=128)
+    submitter = models.CharField("提单人", max_length=128)
     status = models.CharField("状态", choices=Status.choices, max_length=32, default=Status.PENDING.value)
     submission_datetime = models.DateTimeField("提单时间")
     submission_info = models.JSONField("提交信息", default=dict)
@@ -450,7 +450,7 @@ class Event(models.Model):
         BIWEEKLY = "biweekly", "每两周"
         MONTHLY = "monthly", "每月"
 
-    event_type = models.CharField("事件类型", max_length=50, choices=EventType.choices)
+    event_type = models.CharField("事件类型", max_length=64, choices=EventType.choices)
     freq_type = models.CharField(choices=FreqType.choices, max_length=16, null=True, blank=True)
     freq_interval = models.JSONField(default=list)
     start_date = models.DateField("开始时间")
