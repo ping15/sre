@@ -12,7 +12,10 @@ from apps.platform_management.serialiers.management_company import (
     ManagementCompanyUpdateSerializer,
 )
 from common.utils.drf.modelviewset import ModelViewSet
-from common.utils.drf.permissions import SuperAdministratorPermission
+from common.utils.drf.permissions import (
+    ManageCompanyAdministratorPermission,
+    SuperAdministratorPermission,
+)
 from common.utils.drf.response import Response
 
 
@@ -29,6 +32,9 @@ class ManagementCompanyModelViewSet(ModelViewSet):
         "create": ManagementCompanyCreateSerializer,
         "update": ManagementCompanyUpdateSerializer,
         "partial_update": ManagementCompanyUpdateSerializer,
+    }
+    PERMISSION_MAP = {
+        "retrieve": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
     }
 
     def update(self, request, *args, **kwargs):
