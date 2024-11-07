@@ -93,6 +93,7 @@ class InstructorEnrolment(models.Model):
         NOT_ENROLLED = "not_enrolled", "未报名"
         REJECTED = "rejected", "未聘用"
         TIMEOUT = "timeout", "已过期"
+        REVOKE = "revoke", "已撤销"
 
     instructor = models.ForeignKey(
         Instructor,

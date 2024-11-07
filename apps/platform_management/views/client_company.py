@@ -30,7 +30,10 @@ class ClientCompanyModelViewSet(ModelViewSet):
         "update": ClientCompanyUpdateSerializer,
     }
     PERMISSION_MAP = {
+        "list": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
         "retrieve": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
+        "update": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
+        "destroy": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
         "choices": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
     }
 
@@ -48,9 +51,9 @@ class ClientCompanyModelViewSet(ModelViewSet):
         client_company: ClientCompany = self.get_object()
 
         with transaction.atomic():
-            response = super().update(request, *args, **kwargs)
             if "name" in self.request.data:
                 ClientCompany.sync_name(client_company.name, self.request.data["name"])
+            response = super().update(request, *args, **kwargs)
 
         return response
 

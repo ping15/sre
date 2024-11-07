@@ -19,17 +19,23 @@ SUCCESS_STATUS = "0"
 
 
 # todo: 临时短信api，等资源下来后替换
-def send_sms(phone, sms_code):
+def send_sms(phone, msg):
+    """发送短信"""
     smsapi = "http://api.smsbao.com/"
     # 短信平台账号
     user = settings.SMS_USERNAME
     # 短信平台密码
     password = settings.SMS_PASSWORD
     # 要发送的短信内容
-    content = f'【SRE培训学习中心】{sms_code}为您的登录验证码，请于1分钟内填写，如非本人操作，请忽略本短信。'
+    content = msg
     data = urllib.parse.urlencode({'u': user, 'p': password, 'm': phone, 'c': content})
     send_url = smsapi + 'sms?' + data
     response = urllib.request.urlopen(send_url)
     status = response.read().decode('utf-8')
 
     return status
+
+
+def send_login_message(phone, sms_code):
+    """发送登录验证码短信"""
+    send_sms(phone, f'【SRE培训学习中心】{sms_code}为您的登录验证码，请于1分钟内填写，如非本人操作，请忽略本短信。')

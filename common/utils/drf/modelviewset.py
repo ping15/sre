@@ -1,6 +1,8 @@
 import os
-from typing import Any, List
+from typing import Any, Dict, List
 
+from django.db import transaction
+from django.db.models import QuerySet
 from django.http import FileResponse, Http404
 from rest_framework import serializers, status
 from rest_framework.decorators import action
@@ -80,6 +82,49 @@ class ModelViewSet(DRFModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED, instance=serializer.instance)
+
+    def create_for_user(self, model, request, update_serializer=None, create_serializer=None, *args, **kwargs):
+        update_serializer = update_serializer or self.ACTION_MAP["update"]
+        create_serializer = create_serializer or self.ACTION_MAP["create"]
+
+        initial_data = request.data
+        if not isinstance(initial_data, list):
+            return super().create(request, *args, **kwargs)
+
+        objs_to_create, objs_to_update = [], []
+        try:
+            phones: List[str] = [obj["phone"] for obj in initial_data]
+        except KeyError:
+            return Response(result=False, err_msg="未传入手机号")
+
+        # 已存在的模型实例列表
+        existing_objs: QuerySet[model] = model.objects.filter(phone__in=phones)
+        # 手机号 -> 已存在的模型实例
+        phone_to_obj: Dict[str, model] = {obj.phone: obj for obj in existing_objs}
+        # 需要更新的字段
+        update_fields = [field.name for field in model._meta.fields if field.name != "id"]
+        for obj_info in initial_data:
+            phone = obj_info["phone"]
+
+            if phone in phone_to_obj:
+                # 字段更新
+                obj: model = phone_to_obj[phone]
+                serializer = update_serializer(instance=obj, data=obj_info)
+                serializer.is_valid(raise_exception=True)
+                for attr, value in serializer.validated_data.items():
+                    setattr(obj, attr, value)
+                objs_to_update.append(obj)
+            else:
+                # 创建实例
+                serializer = create_serializer(data=obj_info)
+                serializer.is_valid(raise_exception=True)
+                objs_to_create.append(model(**serializer.validated_data))
+
+        with transaction.atomic():
+            model.objects.bulk_update(objs_to_update, update_fields)
+            model.objects.bulk_create(objs_to_create)
+
+        return Response(status=status.HTTP_201_CREATED, instance=objs_to_create + objs_to_update)
 
     def update(self, request, *args, **kwargs):
         return Response(super().update(request, *args, **kwargs).data)

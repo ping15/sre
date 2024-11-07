@@ -19,6 +19,7 @@ class TrainingClass(models.Model):
         PREPARING = "preparing", "筹备中"
         IN_PROGRESS = "in_progress", "开课中"
         COMPLETED = "completed", "已结课"
+        CANCELLED = "cancelled", "已取消"
 
     class ClassMode(models.TextChoices):
         ONLINE = "online", "线上课"

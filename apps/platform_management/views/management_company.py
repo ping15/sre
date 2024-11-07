@@ -8,6 +8,7 @@ from apps.platform_management.models import ManageCompany
 from apps.platform_management.serialiers.management_company import (
     ManagementCompanyCreateSerializer,
     ManagementCompanyListSerializer,
+    ManagementCompanyRetrieveSerializer,
     ManagementCompanyUpdateSerializer,
 )
 from common.utils.drf.modelviewset import ModelViewSet
@@ -24,6 +25,7 @@ class ManagementCompanyModelViewSet(ModelViewSet):
     filter_class = ManagementCompanyFilterClass
     ACTION_MAP = {
         "list": ManagementCompanyListSerializer,
+        "retrieve": ManagementCompanyRetrieveSerializer,
         "create": ManagementCompanyCreateSerializer,
         "update": ManagementCompanyUpdateSerializer,
         "partial_update": ManagementCompanyUpdateSerializer,

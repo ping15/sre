@@ -94,14 +94,14 @@ class EventHandler:
                 continue
 
             if event_type == Event.EventType.ONE_TIME_UNAVAILABILITY.value:
-                cls._mark_unavailable(blank_calendar, event, current_date)
+                cls._marking_unavailable(blank_calendar, event, current_date)
 
             elif event_type == Event.EventType.RECURRING_UNAVAILABILITY.value:
                 if cls.is_current_date_in_rule(current_date, event):
-                    cls._mark_unavailable(blank_calendar, event, current_date)
+                    cls._marking_unavailable(blank_calendar, event, current_date)
 
     @classmethod
-    def _mark_unavailable(cls, blank_calendar: Dict[str, dict], event: Event, current_date: date):
+    def _marking_unavailable(cls, blank_calendar: Dict[str, dict], event: Event, current_date: date):
         blank_calendar[format_date(current_date)]["is_available"] = False
         blank_calendar[format_date(current_date)]["rules"].append(cls.build_event_data(event))
 

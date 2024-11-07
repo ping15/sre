@@ -1,10 +1,8 @@
-from typing import Dict, List
+from typing import List
 
 from dateutil.relativedelta import relativedelta
-from django.db import transaction
 from django.db.models import Count, QuerySet
 from django.db.models.functions import TruncMonth
-from rest_framework import status
 from rest_framework.decorators import action
 
 from apps.platform_management.filters.client_student import ClientStudentFilterClass
@@ -36,7 +34,7 @@ from common.utils.global_constants import AppModule
 class ClientStudentModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission | ManageCompanyAdministratorPermission]
     serializer_class = ClientStudentCreateSerializer
-    queryset = ClientStudent.objects.all()
+    queryset = ClientStudent.objects.all().select_related()
     enable_batch_import = True
     batch_import_template_path = "common/utils/excel_parser/templates/客户学员批量导入模板.xlsx"
     batch_import_mapping = CLIENT_STUDENT_EXCEL_MAPPING
@@ -54,44 +52,7 @@ class ClientStudentModelViewSet(ModelViewSet):
     }
 
     def create(self, request, *args, **kwargs):
-        students_to_create, students_to_update, initial_data = [], [], request.data
-        if not isinstance(initial_data, list):
-            return super().create(request, *args, **kwargs)
-
-        try:
-            phones: List[str] = [student_info["phone"] for student_info in initial_data]
-        except KeyError:
-            return Response(result=False, err_msg="未传入手机号")
-
-        # 已存在的学生
-        existing_students: QuerySet[ClientStudent] = ClientStudent.objects.filter(phone__in=phones)
-        # 手机号 -> 已存在的学生
-        phone_to_student: Dict[str, ClientStudent] = {student.phone: student for student in existing_students}
-        # 需要更新的字段
-        update_fields = [field.name for field in ClientStudent._meta.fields if field.name != "id"]
-
-        for student_info in initial_data:
-            phone = student_info["phone"]
-
-            if phone in phone_to_student:
-                # 学员信息更新
-                student: ClientStudent = phone_to_student[phone]
-                serializer = ClientStudentUpdateSerializer(instance=student, data=student_info)
-                serializer.is_valid(raise_exception=True)
-                for attr, value in serializer.validated_data.items():
-                    setattr(student, attr, value)
-                students_to_update.append(student)
-            else:
-                # 学员创建
-                serializer = ClientStudentCreateSerializer(data=student_info)
-                serializer.is_valid(raise_exception=True)
-                students_to_create.append(ClientStudent(**serializer.validated_data))
-
-        with transaction.atomic():
-            ClientStudent.objects.bulk_update(students_to_update, update_fields)
-            ClientStudent.objects.bulk_create(students_to_create)
-
-        return Response(status=status.HTTP_201_CREATED)
+        return self.create_for_user(ClientStudent, request, *args, **kwargs)
 
     def get_queryset(self) -> QuerySet["ClientStudent"]:
         queryset: QuerySet["ClientStudent"] = super().get_queryset()

@@ -13,9 +13,10 @@ class Response(DRFResponse):
         result=True,
         err_msg="",
         instance=None,
+        code=0,
     ):
         self.instance = instance
-        response_data = {"result": result, "err_msg": err_msg, "data": data}
+        response_data = {"result": result, "err_msg": err_msg, "data": data, "code": code}
         super().__init__(
             data=response_data,
             status=status,

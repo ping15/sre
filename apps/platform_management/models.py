@@ -357,6 +357,10 @@ class ClientStudent(models.Model):
         return self.affiliated_manage_company.name
 
     @property
+    def affiliated_manage_company_id(self) -> int:
+        return self.affiliated_manage_company.id
+
+    @property
     def is_anonymous(self) -> bool:
         return False
 

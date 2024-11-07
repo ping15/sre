@@ -29,6 +29,9 @@ class AdministratorModelViewSet(ModelViewSet):
         "create": AdministratorCreateSerializer,
     }
 
+    def create(self, request, *args, **kwargs):
+        return super().create_for_user(Administrator, request, *args, **kwargs)
+
     @action(methods=["GET"], detail=False)
     def filter_condition(self, request, *args, **kwargs):
         return Response(

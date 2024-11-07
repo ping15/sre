@@ -1,6 +1,7 @@
 from itertools import chain
 from typing import Dict, List, Union
 
+from rest_framework import serializers
 from rest_framework.exceptions import (
     ErrorDetail,
     NotAuthenticated,
@@ -54,3 +55,11 @@ def handler_error_details(
     err_msg = err_msg[:100] + "..." if len(err_msg) > 100 else err_msg
 
     return err_msg
+
+
+class TrainingClassScheduleConflictError(serializers.ValidationError):
+    status_code = 10000
+    default_detail = '培训班出现排期冲突'
+
+    def __init__(self, detail=None, code=None):
+        self.detail = detail or self.default_detail

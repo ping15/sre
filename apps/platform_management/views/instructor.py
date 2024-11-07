@@ -53,6 +53,9 @@ class InstructorModelViewSet(ModelViewSet):
         "filter_condition": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
     }
 
+    def create(self, request, *args, **kwargs):
+        return super().create_for_user(Instructor, request, *args, **kwargs)
+
     def destroy(self, request, *args, **kwargs):
         instructor: Instructor = self.get_object()
         if instructor.is_partnered:

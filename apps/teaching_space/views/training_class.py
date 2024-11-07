@@ -3,6 +3,7 @@ import math
 import os
 from typing import List
 
+from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
 from django.http import FileResponse
@@ -21,7 +22,7 @@ from apps.platform_management.models import (
 )
 from apps.platform_management.serialiers.client_student import (
     ClientStudentCreateSerializer,
-    ClientStudentListSerializer,
+    ClientStudentUpdateSerializer,
 )
 from apps.teaching_space.filters.training_class import TrainingClassFilterClass
 from apps.teaching_space.models import TrainingClass
@@ -36,9 +37,11 @@ from apps.teaching_space.serializers.training_class import (
     TrainingClassRemoveStudentSerializer,
     TrainingClassRetrieveSerializer,
     TrainingClassSelectInstructorSerializer,
+    TrainingClassStudentsSerializer,
     TrainingClassUpdateSerializer,
 )
 from common.utils import global_constants
+from common.utils.drf.exceptions import TrainingClassScheduleConflictError
 from common.utils.drf.modelviewset import ModelViewSet
 from common.utils.drf.permissions import (
     ManageCompanyAdministratorPermission,
@@ -47,6 +50,7 @@ from common.utils.drf.permissions import (
 from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import TRAINING_CLASS_SCORE_EXCEL_MAPPING
 from common.utils.excel_parser.parser import excel_to_list
+from common.utils.sms import send_sms
 
 
 class TrainingClassModelViewSet(ModelViewSet):
@@ -55,20 +59,34 @@ class TrainingClassModelViewSet(ModelViewSet):
     filter_class = TrainingClassFilterClass
     http_method_names = ["get", "post", "put", "patch"]
     ACTION_MAP = {
+        # region ModelViewSet
         "list": TrainingClassListSerializer,
         "create": TrainingClassCreateSerializer,
         "retrieve": TrainingClassRetrieveSerializer,
         "update": TrainingClassUpdateSerializer,
         "partial_update": TrainingClassUpdateSerializer,
+        # endregion
+
+        # region 指定讲师
         "designate_instructor": TrainingClassDesignateInstructorSerializer,
+        "instructor_event": TrainingClassInstructorEventSerializer,
+        # endregion
+
+        # region 发布广告
         "publish_advertisement": TrainingClassPublishAdvertisementSerializer,
         "advertisement": TrainingClassAdvertisementSerializer,
         "select_instructor": TrainingClassSelectInstructorSerializer,
-        "instructor_event": TrainingClassInstructorEventSerializer,
-        "analyze_score": TrainingClassAnalyzeScoreSerializer,
+        # endregion
+
+        # region 学员
         "remove_student": TrainingClassRemoveStudentSerializer,
-        "students": ClientStudentListSerializer,
+        "students": TrainingClassStudentsSerializer,
         "add_students": ClientStudentCreateSerializer,
+        # endregion
+
+        # region 满意度调查
+        "analyze_score": TrainingClassAnalyzeScoreSerializer,
+        # endregion
     }
 
     def get_queryset(self):
@@ -80,6 +98,16 @@ class TrainingClassModelViewSet(ModelViewSet):
 
         return queryset
 
+    # region ModelViewSet
+    def update(self, request, *args, **kwargs):
+        try:
+            return super().update(request, *args, **kwargs)
+
+        except TrainingClassScheduleConflictError as e:
+            return Response(result=False, err_msg=e.detail, code=e.status_code)
+    # endregion
+
+    # region 学员
     @action(detail=True, methods=["GET"])
     def students(self, request, *args, **kwargs):
         """客户学员"""
@@ -87,7 +115,11 @@ class TrainingClassModelViewSet(ModelViewSet):
         training_class: TrainingClass = get_object_or_404(
             TrainingClass, **{self.lookup_field: self.kwargs[lookup_url_kwarg]})
 
-        client_students = ClientStudentFilterClass(request.GET, queryset=training_class.client_students).qs
+        # client_students = ClientStudentFilterClass(request.GET, queryset=training_class.client_students).qs
+
+        client_students = ClientStudentFilterClass(
+            request.GET, queryset=training_class.client_students.prefetch_related("training_classes")
+        ).qs
         return self.paginate_response(self.get_serializer(client_students, many=True).data)
 
     @action(detail=True, methods=["POST"])
@@ -95,7 +127,14 @@ class TrainingClassModelViewSet(ModelViewSet):
         """添加学员"""
         training_class: TrainingClass = self.get_object()
         with transaction.atomic():
-            response = super().create(request, *args, **kwargs)
+            response = super().create_for_user(
+                ClientStudent,
+                request,
+                update_serializer=ClientStudentUpdateSerializer,
+                create_serializer=ClientStudentCreateSerializer,
+                *args,
+                **kwargs
+            )
 
             # 将该学员添加到培训班中
             new_client_students = response.instance if isinstance(response.instance, list) else [response.instance]
@@ -109,7 +148,9 @@ class TrainingClassModelViewSet(ModelViewSet):
         client_students: QuerySet[ClientStudent] = self.validated_data["client_students"]
         training_class.client_students.remove(*client_students)
         return Response()
+    # endregion
 
+    # region 指定讲师
     @action(detail=True, methods=["GET"])
     def instructor_event(self, request, *args, **kwargs):
         """讲师事项"""
@@ -228,7 +269,7 @@ class TrainingClassModelViewSet(ModelViewSet):
             return Response(result=False, err_msg="该培训班已开课，不可移除")
 
         with transaction.atomic():
-            # 当讲师同意时，会产生相应的日程，移除讲师时需将日程清除
+            # 当讲师同意时，会产生相应的日程，移除讲师时需将日程清除，并通知讲师
             if training_class.instructor and instructor_event.status == InstructorEvent.Status.AGREED:
                 # 把该培训班的该讲师的日程取消
                 Event.objects.filter(
@@ -237,6 +278,13 @@ class TrainingClassModelViewSet(ModelViewSet):
                 # 讲师事项状态由[已同意]转成[已被移除]
                 instructor_event.status = InstructorEvent.Status.REMOVED
                 instructor_event.save()
+
+                # 通知讲师
+                self._notify_instructor(
+                    instructor=instructor_event.instructor,
+                    notify_message=f"尊敬的讲师，您好！感谢您之前同意参与[{training_class.name}]的授课。"
+                                   "由于安排调整，我们需要重新指定讲师。对此给您带来的不便，我们深表歉意。非常感谢您的理解与支持！"
+                )
 
             # 取消培训班的讲师
             training_class.instructor = None
@@ -276,7 +324,9 @@ class TrainingClassModelViewSet(ModelViewSet):
             training_class.save()
 
         return Response()
+    # endregion
 
+    # region 发布广告
     @action(detail=True, methods=["POST"])
     def publish_advertisement(self, request, *args, **kwargs):
         """发布广告"""
@@ -288,9 +338,13 @@ class TrainingClassModelViewSet(ModelViewSet):
         if training_class.publish_type != TrainingClass.PublishType.NONE:
             return Response(result=False, err_msg="该培训班不处于未发布状态")
 
-        # 如果报名截止时间大于等于当前时间，不可发布广告
+        # 如果报名截止时间小于等于当前时间，不可发布广告
         if validated_data["deadline_datetime"] <= now:
             return Response(result=False, err_msg="报名截止时间小于等于当前时间，不可发布广告")
+
+        # 如果报名截止时间大于开课时间，不可发布广告
+        if validated_data["deadline_datetime"].date() > training_class.start_date:
+            return Response(result=False, err_msg="报名截止时间大于开课时间，不可发布广告")
 
         # 如果开课时间大于等于当前时间，不可发布广告
         if training_class.start_date <= now.date():
@@ -356,8 +410,6 @@ class TrainingClassModelViewSet(ModelViewSet):
     def select_instructor(self, request, *args, **kwargs):
         """从报名表中选择讲师"""
         validated_data = self.validated_data
-
-        # 寻找培训班的广告的报名状况
         training_class: TrainingClass = self.get_object()
 
         if training_class.publish_type != TrainingClass.PublishType.PUBLISH_ADVERTISEMENT:
@@ -365,11 +417,11 @@ class TrainingClassModelViewSet(ModelViewSet):
 
         instructor_enrolments: QuerySet[InstructorEnrolment] = training_class.advertisement.instructor_enrolments.all()
 
-        # 检查所有的状态是否为pending
+        # 检查所有的状态是否为[代聘用]
         if not all(enrolment.status == InstructorEnrolment.Status.PENDING for enrolment in instructor_enrolments):
             return Response(result=False, err_msg="存在非待聘用状态")
 
-        # 检查 instructor_enrolment_id 是否在 instructor_enrolments 中
+        # 检查是否有该讲师报名记录
         try:
             selected_enrolment: InstructorEnrolment = instructor_enrolments.get(
                 id=validated_data["instructor_enrolment_id"])
@@ -377,14 +429,13 @@ class TrainingClassModelViewSet(ModelViewSet):
             return Response(result=False, err_msg="不存在该报名记录")
 
         with transaction.atomic():
-            # 更新状态，被选中的讲师状态为[ACCEPTED]，其他讲师为[REJECTED]
+            # 更新状态，被选中的讲师状态为[已聘用]，其他讲师为[未聘用]
             for enrolment in instructor_enrolments:
                 enrolment.status = (
                     InstructorEnrolment.Status.ACCEPTED
                     if enrolment.id == selected_enrolment
                     else InstructorEnrolment.Status.REJECTED
                 )
-
                 enrolment.save()
 
             # 指定培训班的讲师
@@ -396,8 +447,46 @@ class TrainingClassModelViewSet(ModelViewSet):
 
         return Response()
 
+    @action(detail=True, methods=["POST"])
+    def revoke_advertisement(self, request, *args, **kwargs):
+        """撤销广告"""
+        training_class: TrainingClass = self.get_object()
+
+        if training_class.publish_type != TrainingClass.PublishType.PUBLISH_ADVERTISEMENT:
+            return Response(result=False, err_msg="该培训班未处于[发布广告]")
+
+        if training_class.status != TrainingClass.Status.PREPARING:
+            return Response(result=False, err_msg="该培训班状态未处于[筹备中]")
+
+        with transaction.atomic():
+            # 通知讲师
+            instructor_enrolments = InstructorEnrolment.objects.filter(advertisement__training_class=training_class)
+            for instructor_enrolment in instructor_enrolments.filter(status=InstructorEnrolment.Status.PENDING):
+                self._notify_instructor(
+                    instructor=instructor_enrolment.instructor,
+                    notify_message=f"尊敬的讲师，您好！您参与的[{training_class.name}]广告已撤销。如有疑问，请随时联系。"
+                )
+
+            # 如果该培训班存在排期，清除排期，并通知讲师
+            self._cancel_schedule_and_notify_instructor(
+                training_class=training_class,
+                notify_message=f"尊敬的讲师，您好！您参与的[{training_class.name}]广告已撤销，相关排期已清除。如有疑问，请随时联系。"
+            )
+
+            # 培训班发布类型为[未发布]
+            training_class.publish_type = TrainingClass.PublishType.NONE
+            training_class.instructor = None
+            training_class.save()
+
+            # 讲师报名单据的状态修改为[已撤销]
+            instructor_enrolments.update(status=InstructorEnrolment.Status.REVOKE)
+
+    # endregion
+
+    # region 其他
     @action(detail=False, methods=["GET"])
     def filter_condition(self, request, *args, **kwargs):
+        """筛选条件"""
         return Response([
             {"id": "name", "name": "培训班名称", "children": []},
             {"id": "instructor_name", "name": "讲师", "children": []},
@@ -405,6 +494,7 @@ class TrainingClassModelViewSet(ModelViewSet):
 
     @action(detail=False, methods=["GET"])
     def mapping(self, request, *args, **kwargs):
+        """培训班映射常量"""
         return Response({
             "status": self.transform_choices(TrainingClass.Status.choices),
             "class_mode": self.transform_choices(TrainingClass.ClassMode.choices),
@@ -413,8 +503,33 @@ class TrainingClassModelViewSet(ModelViewSet):
             "education": self.transform_choices(ClientStudent.Education.choices),
         })
 
+    @action(detail=True, methods=["POST"])
+    def cancel_training_class(self, request, *args, **kwargs):
+        """取消培训班"""
+        training_class: TrainingClass = self.get_object()
+
+        with transaction.atomic():
+            # 如果培训班状态为[已结课]，不可取消
+            if training_class.status == TrainingClass.Status.COMPLETED:
+                return Response(result=False, err_msg="该培训班的状态为[已结课]，不可取消")
+
+            # 培训班状态修改为[已取消]
+            training_class.status = TrainingClass.Status.CANCELLED
+            training_class.save()
+
+            # 如果该培训班存在排期，清除排期，并通知讲师
+            self._cancel_schedule_and_notify_instructor(
+                training_class=training_class,
+                notify_message=f"您好，您参与的培训班[{training_class.name}]已被取消，相关排期已从您的日程中移除。如有疑问，请联系管理员。"
+            )
+
+        return Response()
+    # endregion
+
+    # region 满意度调查
     @action(methods=["GET"], detail=False)
     def score_template(self, request, *args, **kwargs):
+        """问卷星Excel数据模板"""
         return FileResponse(
             open(global_constants.TRAINING_CLASS_SCORE_TEMPLATE_PATH, "rb"),
             as_attachment=True,
@@ -423,6 +538,7 @@ class TrainingClassModelViewSet(ModelViewSet):
 
     @action(methods=["POST"], detail=True)
     def analyze_score(self, request, *args, **kwargs):
+        """问卷星数据分析"""
         training_class: TrainingClass = self.get_object()
 
         # 如果培训班没有排期，直接返回
@@ -473,3 +589,21 @@ class TrainingClassModelViewSet(ModelViewSet):
             )
 
         return Response()
+    # endregion
+
+    # region 私有函数
+    def _cancel_schedule_and_notify_instructor(self, training_class: TrainingClass, notify_message: str):
+        """清除培训班排期，通知对应的讲师"""
+        for event in Event.objects.filter(event_type=Event.EventType.CLASS_SCHEDULE, training_class=training_class):
+            # 通知讲师
+            self._notify_instructor(event.instructor, notify_message)
+
+            # 清除排期
+            event.delete()
+
+    @staticmethod
+    def _notify_instructor(instructor: Instructor, notify_message: str):
+        """通知讲师"""
+        if settings.ENABLE_NOTIFY_SMS:
+            send_sms(instructor.phone, notify_message)
+    # endregion

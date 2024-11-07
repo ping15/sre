@@ -37,3 +37,9 @@ class ManagementCompanyPartialUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ManageCompany
         fields = "__all__"
+
+
+class ManagementCompanyRetrieveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ManageCompany
+        exclude = ["id"]

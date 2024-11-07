@@ -2,7 +2,6 @@ from dateutil.relativedelta import relativedelta
 from rest_framework import serializers
 
 from apps.platform_management.models import Administrator, ClientCompany, ClientStudent
-from apps.teaching_space.serializers.training_class import TrainingClassListSerializer
 from common.utils.drf.serializer_fields import (
     ChoiceField,
     MonthYearField,
@@ -24,6 +23,9 @@ class ResourceInfoSerializer(serializers.Serializer):
 
 
 class ClientStudentListSerializer(serializers.ModelSerializer):
+    class TrainingClassListSerializer(serializers.Serializer):
+        name = serializers.CharField()
+
     affiliated_client_company_id = serializers.ReadOnlyField(source="affiliated_client_company.id")
     training_classes = serializers.ListSerializer(child=TrainingClassListSerializer(), label="已上课程")
 
@@ -84,6 +86,9 @@ class ClientStudentUpdateSerializer(serializers.ModelSerializer, BasicSerializer
 
 
 class ClientStudentRetrieveSerializer(serializers.ModelSerializer):
+    class TrainingClassListSerializer(serializers.Serializer):
+        name = serializers.CharField()
+
     training_classes = serializers.ListSerializer(child=TrainingClassListSerializer(), label="已上课程")
 
     class Meta:

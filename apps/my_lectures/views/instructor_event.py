@@ -78,8 +78,8 @@ class InstructorEventModelViewSet(ModelViewSet):
             if validated_data["status"] == InstructorEvent.Status.AGREED.value:
                 # 修改开课时间，优先使用可预约时间，如果没有默认使用培训班开课时间
                 training_class: TrainingClass = instructor_event.training_class
-                training_class.start_date = instructor_event.start_date
-                training_class.save()
+                # training_class.start_date = instructor_event.start_date
+                # training_class.save()
 
                 # 新增日程
                 EventHandler.create_event(

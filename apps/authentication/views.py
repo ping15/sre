@@ -52,7 +52,7 @@ class AuthenticationViewSet(GenericViewSet):
             return Response(result=False, err_msg="不存在该手机号的用户")
 
         lock_id = f"lock:sms:{phone}"
-        lock = cache.add(lock_id, "lock", timeout=60)  # Lock expires in 60 seconds
+        lock = cache.add(lock_id, "lock", timeout=60)
 
         if not lock:
             return Response(
@@ -63,7 +63,7 @@ class AuthenticationViewSet(GenericViewSet):
         if not settings.ENABLE_SMS:
             sms_code = ''.join(random.choices('0123456789', k=6))
 
-            sms_status: str = sms.send_sms(phone, sms_code)
+            sms_status: str = sms.send_login_message(phone, sms_code)
             if sms_status != sms.SUCCESS_STATUS:
                 return Response(result=False, err_msg=f"短信发送失败: {sms.status_mapping.get(sms_status, '未知错误')}")
 

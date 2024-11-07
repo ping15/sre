@@ -22,6 +22,15 @@ class PropertyFilter(django_filters.CharFilter):
                 ]
             )
 
+        elif self.lookup_expr == "exact":
+            return qs.filter(
+                id__in=[
+                    instance.id
+                    for instance in qs
+                    if value == str(getattr(instance, self.field_name))
+                ]
+            )
+
         return qs
 
     def get_q_object(self, qs, value):

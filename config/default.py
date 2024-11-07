@@ -221,8 +221,9 @@ DJANGO_CELERY_BEAT_TZ_AWARE = False
 # django_filters默认lookup_expr
 FILTERS_DEFAULT_LOOKUP_EXPR = "icontains"
 
-# 是否启用SMS，不启用默认值为666666
+# 是否启用SMS
 ENABLE_SMS = bool(os.environ.get("ENABLE_SMS", False))
+ENABLE_NOTIFY_SMS = bool(os.environ.get("ENABLE_NOTIFY_SMS", False))
 SMS_USERNAME = os.environ.get("SMS_USERNAME", "")
 SMS_PASSWORD = os.environ.get("SMS_PASSWORD", "")
 
