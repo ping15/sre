@@ -13,6 +13,9 @@ class PropertyFilter(django_filters.CharFilter):
     """
 
     def filter(self, qs, value):
+        if not value:
+            return qs
+
         if self.lookup_expr == "icontains":
             return qs.filter(
                 id__in=[

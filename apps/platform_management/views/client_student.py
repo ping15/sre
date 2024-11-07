@@ -6,12 +6,7 @@ from django.db.models.functions import TruncMonth
 from rest_framework.decorators import action
 
 from apps.platform_management.filters.client_student import ClientStudentFilterClass
-from apps.platform_management.models import (
-    Administrator,
-    ClientCompany,
-    ClientStudent,
-    ManageCompany,
-)
+from apps.platform_management.models import Administrator, ClientStudent, ManageCompany
 from apps.platform_management.serialiers.client_student import (
     ClientStudentBatchImportSerializer,
     ClientStudentCreateSerializer,
@@ -137,22 +132,18 @@ class ClientStudentModelViewSet(ModelViewSet):
         validated_data = self.validated_data
 
         start_date, end_date = validated_data["start_date"], validated_data["end_date"]
-        client_company = validated_data["client_company"]
+        manage_company: ManageCompany = validated_data["affiliated_manage_company"]
 
-        # 寻找属于同个管理公司的其他客户公司
-        client_companies: QuerySet[ClientCompany] = client_company.affiliated_manage_company.client_companies
-
-        return Response(self._handle_statistic(client_companies, start_date, end_date))
+        return Response(self._handle_statistic(manage_company.client_companies, start_date, end_date))
 
     @action(methods=["GET"], detail=False)
     def statistic_client_students(self, request, *args, **kwargs):
         validated_data = self.validated_data
 
         start_date, end_date = validated_data["start_date"], validated_data["end_date"]
+        manage_company: ManageCompany = validated_data["affiliated_manage_company"]
 
-        client_students: QuerySet[ClientStudent] = self.filter_queryset(self.get_queryset())
-
-        return Response(self._handle_statistic(client_students, start_date, end_date))
+        return Response(self._handle_statistic(manage_company.students, start_date, end_date))
 
     @staticmethod
     def _handle_statistic(queryset, start_date, end_date):

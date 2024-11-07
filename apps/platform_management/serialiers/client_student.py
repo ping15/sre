@@ -1,9 +1,15 @@
 from dateutil.relativedelta import relativedelta
 from rest_framework import serializers
 
-from apps.platform_management.models import Administrator, ClientCompany, ClientStudent
+from apps.platform_management.models import (
+    Administrator,
+    ClientCompany,
+    ClientStudent,
+    ManageCompany,
+)
 from common.utils.drf.serializer_fields import (
     ChoiceField,
+    ModelInstanceField,
     MonthYearField,
     ResourceURLField,
     UniqueCharField,
@@ -115,11 +121,11 @@ class ClientStudentBatchImportSerializer(
 class ClientStudentStatisticSerializer(serializers.Serializer):
     start_date = MonthYearField(label="开始时间")
     end_date = MonthYearField(time_delta=relativedelta(months=1, days=-1), label="结束时间")
-    affiliated_client_company = serializers.IntegerField(label="客户公司id")
+    affiliated_manage_company = ModelInstanceField(model=ManageCompany, label="管理公司id")
 
-    def validate(self, attrs):
-        attrs["client_company"] = get_model_instance_or_raise(ClientCompany, "id", attrs["affiliated_client_company"])
-        return attrs
+    # def validate(self, attrs):
+    #     attrs["client_company"] = get_model_instance_or_raise(ClientCompany, "id", attrs["affiliated_client_company"])
+    #     return attrs
 
 
 class ClientStudentFilterConditionSerializer(serializers.Serializer):

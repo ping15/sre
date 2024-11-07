@@ -35,6 +35,7 @@ class ManagementCompanyModelViewSet(ModelViewSet):
     }
     PERMISSION_MAP = {
         "retrieve": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
+        "update": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
     }
 
     def update(self, request, *args, **kwargs):

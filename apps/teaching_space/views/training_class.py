@@ -120,6 +120,7 @@ class TrainingClassModelViewSet(ModelViewSet):
         client_students = ClientStudentFilterClass(
             request.GET, queryset=training_class.client_students.prefetch_related("training_classes")
         ).qs
+        print(self.get_serializer(client_students, many=True).data)
         return self.paginate_response(self.get_serializer(client_students, many=True).data)
 
     @action(detail=True, methods=["POST"])

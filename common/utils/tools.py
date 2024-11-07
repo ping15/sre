@@ -32,14 +32,11 @@ def query_debugger(func):
         query_count = len(connection.queries)
 
         # 打印或记录详细信息
-        print(f"Function `{func.__name__}` executed in {elapsed_time:.2f}s")
-        print(f"Total queries: {query_count}")
+        print(f"函数 `{func.__name__}` 执行时间 {elapsed_time:.2f}s")
+        print(f"全部DB查询次数: {query_count}")
         for query in connection.queries:
             print(f"SQL: {query['sql']} | Time: {query['time']}")
 
         return result
 
     return inner
-
-
-# def cache_representation(func)
