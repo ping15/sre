@@ -1,10 +1,11 @@
 from django.db import transaction
+from django.db.models import QuerySet
 from rest_framework.decorators import action
 
 from apps.platform_management.filters.management_company import (
     ManagementCompanyFilterClass,
 )
-from apps.platform_management.models import ManageCompany
+from apps.platform_management.models import Administrator, ManageCompany
 from apps.platform_management.serialiers.management_company import (
     ManagementCompanyCreateSerializer,
     ManagementCompanyListSerializer,
@@ -36,7 +37,17 @@ class ManagementCompanyModelViewSet(ModelViewSet):
     PERMISSION_MAP = {
         "retrieve": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
         "update": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
+        "partial_update": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
     }
+
+    def get_queryset(self):
+        queryset: QuerySet[ManageCompany] = super().get_queryset()
+
+        user: Administrator = self.request.user
+        if not user.is_super_administrator:
+            return queryset.filter(name=user.affiliated_manage_company_name)
+
+        return queryset
 
     def update(self, request, *args, **kwargs):
         manage_company: ManageCompany = self.get_object()

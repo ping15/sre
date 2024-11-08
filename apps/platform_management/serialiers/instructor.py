@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.platform_management.models import Instructor
+from apps.platform_management.serialiers.client_student import ResourceInfoSerializer
 from common.utils.drf.serializer_fields import ChoiceField, UniqueCharField
 from common.utils.drf.serializer_validator import (
     BasicSerializerValidator,
@@ -28,6 +29,7 @@ class InstructorListSerializer(serializers.ModelSerializer):
 
 class InstructorCreateSerializer(serializers.ModelSerializer, PhoneCreateSerializerValidator, BasicSerializerValidator):
     phone = UniqueCharField(label="讲师手机号码", max_length=16)
+    id_photo = ResourceInfoSerializer(label="资源信息", default={})
 
     class Meta:
         model = Instructor
@@ -35,6 +37,8 @@ class InstructorCreateSerializer(serializers.ModelSerializer, PhoneCreateSeriali
 
 
 class InstructorUpdateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
+    id_photo = ResourceInfoSerializer(label="资源信息", default={})
+
     def save(self, **kwargs):
         if not self.initial_data["phone"] == self.instance.phone:
             PhoneCreateSerializerValidator.validate_phone(self.initial_data["phone"])
@@ -46,6 +50,8 @@ class InstructorUpdateSerializer(serializers.ModelSerializer, BasicSerializerVal
 
 
 class InstructorPartialUpdateSerializer(serializers.ModelSerializer):
+    id_photo = ResourceInfoSerializer(label="资源信息", default={})
+
     class Meta:
         model = Instructor
         fields = "__all__"
