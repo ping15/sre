@@ -102,10 +102,6 @@ class ModelInstanceField(serializers.IntegerField):
 
     def to_representation(self, value):
         return value
-        # 确保输出的是模型实例
-        # if isinstance(value, self.model):
-        #     return super().to_representation(value.pk)
-        # return value
 
 
 class CleanedHTMLField(serializers.CharField):

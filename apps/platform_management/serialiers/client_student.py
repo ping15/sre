@@ -7,6 +7,7 @@ from apps.platform_management.models import (
     ClientStudent,
     ManageCompany,
 )
+from common.utils import global_constants
 from common.utils.drf.serializer_fields import (
     ChoiceField,
     ModelInstanceField,
@@ -26,6 +27,10 @@ class ResourceInfoSerializer(serializers.Serializer):
     file_key = serializers.CharField(label="文件标识符")
     file_name = serializers.CharField(label="文件名")
     url = ResourceURLField(label="文件路径")
+
+    def to_representation(self, instance):
+        instance["url"] = f"{global_constants.DOWNLOAD_URL}?file_key={instance['file_key']}"
+        return super().to_representation(instance)
 
 
 class ClientStudentListSerializer(serializers.ModelSerializer):
