@@ -1,13 +1,15 @@
 import datetime
+from decimal import Decimal
 from typing import List
 
 import django_filters
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 
 from apps.my_lectures.handles.event import EventHandler
-from apps.platform_management.models import CourseTemplate, Instructor
+from apps.platform_management.models import CourseTemplate, Event, Instructor
 from common.utils import global_constants
 from common.utils.drf.filters import BaseFilterSet, DynamicRangeFilter, PropertyFilter
+from common.utils.tools import query_debugger
 
 
 class InstructorFilterClass(BaseFilterSet):
@@ -20,23 +22,36 @@ class InstructorFilterClass(BaseFilterSet):
     is_partnered = django_filters.BooleanFilter("is_partnered", label="是否合作", lookup_expr="exact")
 
     @staticmethod
-    def filter_availability_date(queryset: QuerySet["Instructor"], name: str, today: datetime.date):
+    @query_debugger
+    def filter_availability_date(queryset: QuerySet["Instructor"], name: str, start_date: datetime.date):
         instructor_ids: List = []
+        end_date: datetime.date = start_date + datetime.timedelta(days=global_constants.CLASS_DAYS - 1)
+
+        # 解除合作的讲师不考虑可预约时间
+        queryset = queryset.filter(is_partnered=True)
+
+        # 没有任何时间的讲师一定可以预约
+        event_instructor_ids = Event.objects.filter(
+            Q(start_date__lte=end_date) & (Q(end_date__gte=start_date) | Q(end_date__isnull=True))
+        ).values_list("instructor_id", flat=True)
         for instructor in queryset:
+            if instructor.id not in event_instructor_ids:
+                instructor_ids.append(instructor.id)
+                continue
+
             if EventHandler.is_instructor_idle(
-                instructor=instructor,
-                start_date=today,
-                end_date=today + datetime.timedelta(days=global_constants.CLASS_DAYS - 1)
+                    instructor=instructor,
+                    start_date=start_date,
+                    end_date=end_date
             ):
                 instructor_ids.append(instructor.id)
 
         return queryset.filter(id__in=instructor_ids)
 
     @staticmethod
-    def filter_course_id(queryset: QuerySet["Instructor"], name: str, course_id: int):
+    def filter_course_id(queryset: QuerySet["Instructor"], name: str, course_id: Decimal):
         try:
-            course_name = CourseTemplate.objects.get(id=course_id).name
-            return queryset.filter(teachable_courses__contains=[course_name])
+            return queryset.filter(teachable_courses__contains=[int(course_id)])
 
         except (CourseTemplate.DoesNotExist, CourseTemplate.MultipleObjectsReturned):
             return queryset

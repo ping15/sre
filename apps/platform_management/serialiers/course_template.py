@@ -51,10 +51,11 @@ class CourseTemplateUpdateSerializer(serializers.ModelSerializer):
         allow_null=True
     )
 
-    def validate(self, attrs):
-        if attrs["status"] == CourseTemplate.Status.PREPARATION and attrs["class_count"] > 5:
+    def update(self, instance, validated_data):
+        if validated_data["status"] == CourseTemplate.Status.PREPARATION and validated_data["class_count"] > 5:
             raise serializers.ValidationError("[准备期]课程授课次数不能超过5次")
-        return attrs
+
+        return super().update(instance, validated_data)
 
     class Meta:
         model = CourseTemplate

@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 
 class Command(BaseCommand):
-    help = 'Ensures the database exists and then runs migrations'
+    help = 'migrate迁移文件，如果数据库不存在将自动创建'
 
     def handle(self, *args, **kwargs):
         self.ensure_database_exists()

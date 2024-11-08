@@ -120,6 +120,22 @@ class ResourceURLField(serializers.CharField):
         return convert_resource_url(value)
 
 
+class ListSerializer(serializers.ListSerializer):
+    def __init__(self, *args, **kwargs):
+        child = kwargs.pop("child", None)
+
+        if isinstance(child, dict):
+            class ChildSerializer(serializers.Serializer):
+                pass
+
+            for key, field in child.items():
+                ChildSerializer._declared_fields[key] = field
+            child = ChildSerializer()
+
+        kwargs["child"] = child
+        super().__init__(*args, **kwargs)
+
+
 def get_model_instance_or_raise(model: Type[T], field: str, value: Any) -> T:
     try:
         return model.objects.get(**{field: value})

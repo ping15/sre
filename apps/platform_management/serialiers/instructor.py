@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.platform_management.models import Instructor
+from apps.platform_management.models import CourseTemplate, Instructor
 from apps.platform_management.serialiers.client_student import ResourceInfoSerializer
 from common.utils.drf.serializer_fields import ChoiceField, UniqueCharField
 from common.utils.drf.serializer_validator import (
@@ -39,10 +39,19 @@ class InstructorCreateSerializer(serializers.ModelSerializer, PhoneCreateSeriali
 class InstructorUpdateSerializer(serializers.ModelSerializer, BasicSerializerValidator):
     id_photo = ResourceInfoSerializer(label="资源信息", default={})
 
-    def save(self, **kwargs):
+    def update(self, instance, validated_data):
+        # 修改后的手机号和原来的相同，不需要校验手机号唯一性
         if not self.initial_data["phone"] == self.instance.phone:
             PhoneCreateSerializerValidator.validate_phone(self.initial_data["phone"])
-        super().save(**kwargs)
+
+        course_name_to_id = {course["name"]: course["id"] for course in CourseTemplate.objects.values("name", "id")}
+        validated_data["teachable_courses"] = [
+            course_name_to_id[course_name]
+            for course_name in validated_data.get("teachable_courses", [])
+            if course_name in course_name_to_id
+        ]
+
+        return super().update(instance, validated_data)
 
     class Meta:
         model = Instructor
@@ -63,6 +72,21 @@ class InstructorCalendarSerializer(serializers.Serializer):
 
 
 class InstructorRetrieveSerializer(serializers.ModelSerializer):
+    def to_representation(self, instance):
+        instructor_info: dict = super().to_representation(instance)
+
+        course_id_to_name = {course["id"]: course["name"] for course in CourseTemplate.objects.values("name", "id")}
+        instructor_info["teachable_courses"] = [
+            course_id_to_name[course_id]
+            for course_id in instructor_info["teachable_courses"]
+            if course_id in course_id_to_name
+        ]
+
+        return instructor_info
+
+    def validate(self, attrs):
+        return super().validate(attrs)
+
     class Meta:
         model = Instructor
         exclude = ["id", "hours_taught", "is_partnered", "last_login"]

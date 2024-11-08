@@ -3,8 +3,7 @@ import binascii
 import mimetypes
 import uuid
 
-from django.core.files.base import ContentFile
-from django.core.files.uploadedfile import UploadedFile
+from django.core.files.uploadedfile import SimpleUploadedFile, UploadedFile
 from django.http import FileResponse
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -17,7 +16,7 @@ from apps.platform_management.serialiers.attachment import (
 from common.utils import global_constants
 from common.utils.cos import cos_client
 from common.utils.drf.response import Response
-from common.utils.file_defense import clean_text_file, scan_file
+from common.utils.file_defense import clean_text_file
 
 
 class FileUploadDownloadView(generics.GenericAPIView):
@@ -63,21 +62,18 @@ class FileUploadDownloadView(generics.GenericAPIView):
         if mime_type is None:
             return Response(result=False, err_msg="Could not determine file type.")
 
-        # 扫描文件以检测病毒
-        try:
-            scan_file(uploaded_file)
-        except Exception as e:
-            return Response(result=False, err_msg=str(e))
-
         # 清洗文件内容
         # 这里只对文本文件进行清洗，二进制文件的处理需要具体工具
         if mime_type.startswith('text/'):
-            print(f"uploaded_file.name={uploaded_file.name}")
             uploaded_file.seek(0)
             file_content = uploaded_file.read().decode('utf-8', errors='ignore')
             cleaned_content = clean_text_file(file_content)
-            # 如果需要，可以将清理后的内容写回文件
-            uploaded_file = ContentFile(cleaned_content.encode('utf-8'))
+            # uploaded_file = ContentFile(content=cleaned_content.encode('utf-8'))
+            uploaded_file = SimpleUploadedFile(
+                uploaded_file.name,
+                cleaned_content.encode('utf-8'),
+                content_type=uploaded_file.content_type
+            )
 
         file_key = str(uuid.uuid4()) + '_' + base64.urlsafe_b64encode(validated_data["file"].name.encode()).decode()
         response: dict = cos_client.upload_file_by_fp(uploaded_file, file_key)

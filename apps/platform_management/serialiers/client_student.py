@@ -10,6 +10,7 @@ from apps.platform_management.models import (
 from common.utils import global_constants
 from common.utils.drf.serializer_fields import (
     ChoiceField,
+    ListSerializer,
     ModelInstanceField,
     MonthYearField,
     ResourceURLField,
@@ -26,7 +27,7 @@ from common.utils.global_constants import AppModule
 class ResourceInfoSerializer(serializers.Serializer):
     file_key = serializers.CharField(label="文件标识符")
     file_name = serializers.CharField(label="文件名")
-    url = ResourceURLField(label="文件路径")
+    url = ResourceURLField(label="文件路径", required=False)
 
     def to_representation(self, instance):
         instance["url"] = f"{global_constants.DOWNLOAD_URL}?file_key={instance['file_key']}"
@@ -34,11 +35,13 @@ class ResourceInfoSerializer(serializers.Serializer):
 
 
 class ClientStudentListSerializer(serializers.ModelSerializer):
-    class TrainingClassListSerializer(serializers.Serializer):
-        name = serializers.CharField()
-
     affiliated_client_company_id = serializers.ReadOnlyField(source="affiliated_client_company.id")
-    training_classes = serializers.ListSerializer(child=TrainingClassListSerializer(), label="已上课程")
+    training_classes = ListSerializer(
+        child={
+            "name": serializers.CharField()
+        },
+        label="已上课程"
+    )
 
     class Meta:
         model = ClientStudent
@@ -56,9 +59,6 @@ class ClientStudentCreateSerializer(
 
     def to_internal_value(self, data):
         return super().to_internal_value(data)
-
-    def validate(self, attrs):
-        return attrs
 
     def create(self, validated_data):
         # 非超级管理员不可创建其他管理公司下面客户公司的学员
@@ -97,20 +97,19 @@ class ClientStudentUpdateSerializer(serializers.ModelSerializer, BasicSerializer
 
 
 class ClientStudentRetrieveSerializer(serializers.ModelSerializer):
-    class TrainingClassListSerializer(serializers.Serializer):
-        name = serializers.CharField()
-
-    training_classes = serializers.ListSerializer(child=TrainingClassListSerializer(), label="已上课程")
+    training_classes = ListSerializer(
+        child={
+            "name": serializers.CharField(label="培训班名称")
+        },
+        label="已上课程"
+    )
 
     class Meta:
         model = ClientStudent
         exclude = ["last_login"]
 
 
-class ClientStudentBatchImportSerializer(
-    serializers.ModelSerializer,
-    BasicSerializerValidator
-):
+class ClientStudentBatchImportSerializer(serializers.ModelSerializer, BasicSerializerValidator):
     education = ChoiceField(label="学历", choices=ClientStudent.Education.choices)
     phone = serializers.CharField(label="学员手机号码", max_length=16)
 
@@ -127,10 +126,6 @@ class ClientStudentStatisticSerializer(serializers.Serializer):
     start_date = MonthYearField(label="开始时间")
     end_date = MonthYearField(time_delta=relativedelta(months=1, days=-1), label="结束时间")
     affiliated_manage_company = ModelInstanceField(model=ManageCompany, label="管理公司id")
-
-    # def validate(self, attrs):
-    #     attrs["client_company"] = get_model_instance_or_raise(ClientCompany, "id", attrs["affiliated_client_company"])
-    #     return attrs
 
 
 class ClientStudentFilterConditionSerializer(serializers.Serializer):

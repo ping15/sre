@@ -53,6 +53,9 @@ class InstructorModelViewSet(ModelViewSet):
         "filter_condition": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
     }
 
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
     def create(self, request, *args, **kwargs):
         return super().create_for_user(Instructor, request, *args, **kwargs)
 
