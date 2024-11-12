@@ -117,6 +117,7 @@ class TrainingClassUpdateSerializer(serializers.ModelSerializer):
 
                     # 培训班的发布类型修改为[未发布]
                     training_class.publish_type = TrainingClass.PublishType.NONE
+                    training_class.instructor = None
                     training_class.save()
 
                 else:

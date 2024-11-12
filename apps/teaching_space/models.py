@@ -91,6 +91,7 @@ class TrainingClass(models.Model):
 
     @property
     def target_client_company_name(self) -> str:
+        """客户公司名称"""
         return self.target_client_company.name
 
     @property

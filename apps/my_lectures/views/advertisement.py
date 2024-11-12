@@ -89,7 +89,7 @@ class AdvertisementViewSet(ModelViewSet):
                 # 截至时间
                 "deadline_datetime": ad.deadline_datetime.strftime("%Y-%m-%d %H:%M"),
                 # 广告状态
-                "status": status,
+                "status": InstructorEnrolment.Status.REVOKE if ad.is_revoked else status,
                 # 报名人数
                 "enrolment_count": ad.enrolment_count,
             })

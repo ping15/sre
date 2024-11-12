@@ -139,6 +139,7 @@ class TrainingClassModelViewSet(ModelViewSet):
 
             # 将该学员添加到培训班中
             new_client_students = response.instance if isinstance(response.instance, list) else [response.instance]
+
             training_class.client_students.add(*new_client_students)
         return response
 
@@ -479,8 +480,12 @@ class TrainingClassModelViewSet(ModelViewSet):
             training_class.instructor = None
             training_class.save()
 
-            # 讲师报名单据的状态修改为[已撤销]
-            instructor_enrolments.update(status=InstructorEnrolment.Status.REVOKE)
+            # 广告单据修改为[已撤销]状态
+            advertisement: Advertisement = training_class.advertisement
+            advertisement.is_revoked = True
+            advertisement.save()
+
+        return Response()
 
     # endregion
 

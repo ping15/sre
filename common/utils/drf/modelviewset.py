@@ -13,6 +13,7 @@ from common.utils.drf.filters import BaseFilterSet
 from common.utils.drf.pagination import PageNumberPagination
 from common.utils.drf.response import Response
 from common.utils.excel_parser.parser import excel_to_list
+from common.utils.tools import query_debugger
 
 
 class BatchImportSerializer(serializers.Serializer):
@@ -83,6 +84,7 @@ class ModelViewSet(DRFModelViewSet):
         self.perform_create(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED, instance=serializer.instance)
 
+    @query_debugger
     def create_for_user(self, model, request, update_serializer=None, create_serializer=None, *args, **kwargs):
         update_serializer = update_serializer or self.ACTION_MAP["update"]
         create_serializer = create_serializer or self.ACTION_MAP["create"]
@@ -121,8 +123,10 @@ class ModelViewSet(DRFModelViewSet):
                 objs_to_create.append(model(**serializer.validated_data))
 
         with transaction.atomic():
-            model.objects.bulk_update(objs_to_update, update_fields)
-            model.objects.bulk_create(objs_to_create)
+            model.objects.bulk_update(objs_to_update, update_fields, batch_size=500)
+            model.objects.bulk_create(objs_to_create, batch_size=500)
+
+        objs_to_create = list(model.objects.filter(phone__in=[obj.phone for obj in objs_to_create]))
 
         return Response(status=status.HTTP_201_CREATED, instance=objs_to_create + objs_to_update)
 

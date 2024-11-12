@@ -78,6 +78,7 @@ class Advertisement(models.Model):
     enrolment_count = models.IntegerField("报名人数", default=0)
     deadline_datetime = models.DateTimeField("报名截至时间")
     location = models.CharField("开课地点", max_length=255)
+    is_revoked = models.BooleanField("是否已撤销", default=False)
 
     class Meta:
         verbose_name = "广告"
