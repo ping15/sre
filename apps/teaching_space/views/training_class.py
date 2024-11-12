@@ -463,11 +463,14 @@ class TrainingClassModelViewSet(ModelViewSet):
         with transaction.atomic():
             # 通知讲师
             instructor_enrolments = InstructorEnrolment.objects.filter(advertisement__training_class=training_class)
-            for instructor_enrolment in instructor_enrolments.filter(status=InstructorEnrolment.Status.PENDING):
+            for instructor_enrolment in instructor_enrolments:
                 self._notify_instructor(
                     instructor=instructor_enrolment.instructor,
                     notify_message=f"尊敬的讲师，您好！您参与的[{training_class.name}]广告已撤销。如有疑问，请随时联系。"
                 )
+
+            # 删除讲师报名单据
+            instructor_enrolments.delete()
 
             # 如果该培训班存在排期，清除排期，并通知讲师
             self._cancel_schedule_and_notify_instructor(
@@ -514,20 +517,52 @@ class TrainingClassModelViewSet(ModelViewSet):
         """取消培训班"""
         training_class: TrainingClass = self.get_object()
 
-        with transaction.atomic():
-            # 如果培训班状态为[已结课]，不可取消
-            if training_class.status == TrainingClass.Status.COMPLETED:
-                return Response(result=False, err_msg="该培训班的状态为[已结课]，不可取消")
+        # 如果培训班状态为[已结课]，不可取消
+        if training_class.status == TrainingClass.Status.COMPLETED:
+            return Response(result=False, err_msg="该培训班的状态为[已结课]，不可取消")
 
+        with transaction.atomic():
             # 培训班状态修改为[已取消]
             training_class.status = TrainingClass.Status.CANCELLED
             training_class.save()
 
-            # 如果该培训班存在排期，清除排期，并通知讲师
-            self._cancel_schedule_and_notify_instructor(
-                training_class=training_class,
-                notify_message=f"您好，您参与的培训班[{training_class.name}]已被取消，相关排期已从您的日程中移除。如有疑问，请联系管理员。"
-            )
+            # 如果指定了讲师，讲师的单据状态修改为[已撤销]，并通知讲师
+            if training_class.publish_type == TrainingClass.PublishType.DESIGNATE_INSTRUCTOR:
+                InstructorEvent.objects.filter(instructor=training_class.instructor).update(
+                    status=InstructorEvent.Status.REVOKE)
+
+                # 通知讲师
+                self._notify_instructor(
+                    instructor=training_class.instructor,
+                    notify_message=f"尊敬的讲师，您好！您参与的[{training_class.name}]培训班已撤销。如有疑问，请随时联系。"
+                )
+
+            # 如果发布了广告，广告的状态修改为[已撤销]，并通知已经报名的讲师
+            elif training_class.publish_type == TrainingClass.PublishType.PUBLISH_ADVERTISEMENT:
+                advertisement: Advertisement = training_class.advertisement
+                advertisement.is_revoked = True
+                advertisement.save()
+
+                # 通知讲师
+                instructor_enrolments = InstructorEnrolment.objects.filter(advertisement__training_class=training_class)
+                for instructor in instructor_enrolments:
+                    self._notify_instructor(
+                        instructor=instructor,
+                        notify_message=f"尊敬的讲师，您好！您参与的[{training_class.name}]广告已撤销。如有疑问，请随时联系。"
+                    )
+
+                # 清除讲师报名单据
+                instructor_enrolments.delete()
+
+            # 如果说培训班状态为[未开课]，将排期取消
+            if training_class.status == TrainingClass.Status.PREPARING:
+                Event.objects.filter(instructor=training_class.instructor).delete()
+
+                # 通知讲师
+                self._notify_instructor(
+                    instructor=training_class.instructor,
+                    notify_message=f"尊敬的讲师，您好！您参与的[{training_class.name}]培训班已撤销，相关排期已清除。如有疑问，请随时联系。"
+                )
 
         return Response()
     # endregion

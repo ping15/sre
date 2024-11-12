@@ -16,6 +16,7 @@ class InstructorEvent(models.Model):
         REMOVED = "removed", "已指定其他讲师"
         TIMEOUT = "timeout", "已超时"
         FINISHED = "finished", "已完成"
+        REVOKE = "revoke", "已撤销"
 
         @classmethod
         def get_pending_statuses(cls) -> List:
