@@ -528,8 +528,9 @@ class TrainingClassModelViewSet(ModelViewSet):
 
             # 如果指定了讲师，讲师的单据状态修改为[已撤销]，并通知讲师
             if training_class.publish_type == TrainingClass.PublishType.DESIGNATE_INSTRUCTOR:
-                InstructorEvent.objects.filter(instructor=training_class.instructor).update(
-                    status=InstructorEvent.Status.REVOKE)
+                InstructorEvent.objects.filter(
+                    instructor=training_class.instructor, training_class=training_class
+                ).update(status=InstructorEvent.Status.REVOKE)
 
                 # 通知讲师
                 self._notify_instructor(
