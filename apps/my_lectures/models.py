@@ -10,6 +10,7 @@ from common.utils import global_constants
 class InstructorEvent(models.Model):
     """讲师事项"""
     class Status(models.TextChoices):
+        # 这里加减状态下面的方法也要调整
         PENDING = "pending", "待处理"
         AGREED = "agreed", "已同意"
         REJECTED = "rejected", "已拒绝"
@@ -26,7 +27,7 @@ class InstructorEvent(models.Model):
         @classmethod
         def get_completed_statuses(cls) -> List:
             """[已办事项]状态列表"""
-            return [cls.AGREED, cls.REJECTED, cls.REMOVED, cls.FINISHED]
+            return [cls.AGREED, cls.REJECTED, cls.REMOVED, cls.FINISHED, cls.REVOKE]
 
         @classmethod
         def get_handle_choices(cls):

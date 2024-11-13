@@ -27,6 +27,7 @@ class AdministratorModelViewSet(ModelViewSet):
     ACTION_MAP = {
         "list": AdministratorListSerializer,
         "create": AdministratorCreateSerializer,
+        "update": AdministratorUpdateSerializer,
     }
 
     def create(self, request, *args, **kwargs):
