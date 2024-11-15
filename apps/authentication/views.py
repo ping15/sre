@@ -60,7 +60,7 @@ class AuthenticationViewSet(GenericViewSet):
                 status=status.HTTP_429_TOO_MANY_REQUESTS,
             )
 
-        if not settings.ENABLE_SMS:
+        if settings.ENABLE_SMS:
             sms_code = ''.join(random.choices('0123456789', k=6))
 
             sms_status: str = sms.send_login_message(phone, sms_code)
