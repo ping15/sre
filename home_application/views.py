@@ -22,7 +22,8 @@ def home(request):
     首页
     """
     context = {
-        "BK_API_HOST": os.environ.get("BK_API_HOST", "")
+        "BK_API_HOST": os.environ.get("BK_API_HOST", ""),
+        "BK_EXAM_HOST": os.environ.get("BK_EXAM_HOST", ""),
     }
     return render(request, "home_application/index.html", context=context)
 
