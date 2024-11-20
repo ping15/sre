@@ -24,6 +24,7 @@ from common.utils import global_constants
 from common.utils.drf.exceptions import TrainingClassScheduleConflictError
 from common.utils.drf.serializer_fields import ChoiceField, ModelInstanceField
 from common.utils.drf.serializer_validator import BasicSerializerValidator
+from exam_system.models import ExamStudent
 
 
 # region ModelViewSet
@@ -201,4 +202,15 @@ class TrainingClassStudentsSerializer(serializers.ModelSerializer):
 class TrainingClassAnalyzeScoreSerializer(serializers.Serializer):
     """问卷星数据分析"""
     file = serializers.FileField(label="文件")
+# endregion
+
+
+# region 学员成绩
+class TrainingCLassGradesSerializer(serializers.ModelSerializer):
+    start_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+
+    class Meta:
+        model = ExamStudent
+        fields = ["start_time", "exam_info", "student_name", "password"]
+
 # endregion

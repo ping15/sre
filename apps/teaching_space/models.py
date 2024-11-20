@@ -71,6 +71,7 @@ class TrainingClass(models.Model):
     creator = models.CharField("创建人", max_length=32, default="")
 
     questionnaire_qr_code = models.JSONField("问卷二维码", default=dict)
+    passing_score = models.IntegerField("及格总分数线", default=0)
 
     client_students = models.ManyToManyField(
         ClientStudent,

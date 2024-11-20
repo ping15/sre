@@ -51,6 +51,8 @@ from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import TRAINING_CLASS_SCORE_EXCEL_MAPPING
 from common.utils.excel_parser.parser import excel_to_list
 from common.utils.sms import send_sms
+from exam_system.models import ExamArrange, ExamStudent
+from exam_system.tools import ExamSystemTool
 
 
 class TrainingClassModelViewSet(ModelViewSet):
@@ -631,6 +633,26 @@ class TrainingClassModelViewSet(ModelViewSet):
             )
 
         return Response()
+    # endregion
+
+    # region 成绩
+    @action(methods=["GET"], detail=True)
+    def grades(self, request, *args, **kwargs):
+        """查看学员成绩"""
+        training_class: TrainingClass = self.get_object()
+
+        try:
+            # 查找所有该培训班所有已提交的学生成绩单
+            exam_students: QuerySet[ExamStudent] = ExamStudent.objects.filter(
+                exam_id__in=ExamArrange.objects.filter(
+                    training_center_id=training_class.id).values_list("id", flat=True),
+                is_commit=1,
+            )
+        except ExamArrange.DoesNotExist:
+            return Response(result=False, err_msg="该培训班未安排考试")
+
+        return self.paginate_response(ExamSystemTool.build_exam_students(exam_students))
+
     # endregion
 
     # region 私有函数

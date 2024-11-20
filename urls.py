@@ -33,6 +33,7 @@ urlpatterns = [
     url(r"^api/platform_management/", include("apps.platform_management.urls")),
     url(r"^api/teaching_space/", include("apps.teaching_space.urls")),
     url(r"^api/my_lectures/", include("apps.my_lectures.urls")),
+    url(r"^api/my_learning/", include("apps.my_learning.urls")),
     # url(r"^swagger/", swagger_schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     # url(r"^redoc/", swagger_schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
