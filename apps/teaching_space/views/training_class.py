@@ -1,6 +1,8 @@
 import datetime
 import math
 import os
+import random
+from collections import defaultdict
 from typing import List
 
 from django.conf import settings
@@ -31,6 +33,7 @@ from apps.teaching_space.serializers.training_class import (
     TrainingClassAnalyzeScoreSerializer,
     TrainingClassCreateSerializer,
     TrainingClassDesignateInstructorSerializer,
+    TrainingCLassGradesSerializer,
     TrainingClassInstructorEventSerializer,
     TrainingClassListSerializer,
     TrainingClassPublishAdvertisementSerializer,
@@ -52,7 +55,6 @@ from common.utils.excel_parser.mapping import TRAINING_CLASS_SCORE_EXCEL_MAPPING
 from common.utils.excel_parser.parser import excel_to_list
 from common.utils.sms import send_sms
 from exam_system.models import ExamArrange, ExamStudent
-from exam_system.tools import ExamSystemTool
 
 
 class TrainingClassModelViewSet(ModelViewSet):
@@ -645,13 +647,25 @@ class TrainingClassModelViewSet(ModelViewSet):
             # 查找所有该培训班所有已提交的学生成绩单
             exam_students: QuerySet[ExamStudent] = ExamStudent.objects.filter(
                 exam_id__in=ExamArrange.objects.filter(
-                    training_center_id=training_class.id).values_list("id", flat=True),
+                    training_class_id=training_class.id).values_list("id", flat=True),
                 is_commit=1,
             )
         except ExamArrange.DoesNotExist:
             return Response(result=False, err_msg="该培训班未安排考试")
 
-        return self.paginate_response(ExamSystemTool.build_exam_students(exam_students))
+        union_student_grades = defaultdict(list)
+        for grade in TrainingCLassGradesSerializer(exam_students, many=True).data:
+            union_student_grades[f"{grade.pop('student_name')}(-|-|-){grade.pop('password')}"].append(grade)
+
+        return self.paginate_response([
+            {
+                "student_name": student_key.split("(-|-|-)")[0],
+                "grades": grades,
+                "score": 0,
+                "is_pass": random.choice([True, False]),
+            }
+            for student_key, grades in union_student_grades.items()
+        ])
 
     # endregion
 

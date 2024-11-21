@@ -85,7 +85,7 @@ class ExamArrange(BaseModel):
     status = models.IntegerField()
     exam_type = models.CharField(max_length=255, blank=True, null=True)
     pass_grade = models.FloatField()
-    training_center_id = models.IntegerField()
+    training_class_id = models.IntegerField()
     subject = models.ForeignKey('Subject', models.DO_NOTHING)
 
     class Meta:
@@ -142,7 +142,7 @@ class ExamStudent(BaseModel):
                 # "exam_type": exam.exam_type,
                 # "pass_grade": exam.pass_grade,
                 "subject_name": exam.subject.display_name,
-                # "training_center_id": exam.training_center_id,
+                "training_class_id": exam.training_class_id,
             }
         except ExamArrange.DoesNotExist:
             return {}

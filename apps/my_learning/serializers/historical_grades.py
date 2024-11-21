@@ -4,8 +4,8 @@ from exam_system.models import ExamStudent
 
 
 class HistoricalGradesListSerializer(serializers.ModelSerializer):
-    # exam_info = serializers.ReadOnlyField()
+    start_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
 
     class Meta:
         model = ExamStudent
-        fields = ["start_time", "exam_info", "student_name", "is_commit"]
+        fields = ["start_time", "exam_info"]
