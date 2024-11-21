@@ -1,4 +1,8 @@
+from typing import Optional
+
 from django.db import models
+
+from apps.teaching_space.models import TrainingClass
 
 
 class ExamSystemManager(models.Manager):
@@ -146,6 +150,36 @@ class ExamStudent(BaseModel):
             }
         except ExamArrange.DoesNotExist:
             return {}
+
+    @property
+    def exam_arrange(self) -> Optional[ExamArrange]:
+        try:
+            return ExamArrange.objects.get(id=self.exam_id)
+        except Exception: # noqa
+            return None
+
+    @property
+    def exam_title(self):
+        return self.exam_arrange.title if self.exam_arrange else ""
+
+    @property
+    def training_class(self) -> Optional[TrainingClass]:
+        try:
+            return TrainingClass.objects.get(id=self.exam_arrange.training_class_id)
+        except Exception: # noqa
+            return None
+
+    @property
+    def training_class_name(self) -> str:
+        return self.training_class.name if self.training_class else ""
+
+    @property
+    def subject(self) -> Optional["Subject"]:
+        return self.exam_arrange.subject if self.exam_arrange else None
+
+    @property
+    def subject_name(self) -> str:
+        return self.subject.display_name if self.subject else ""
 
     class Meta:
         managed = False
