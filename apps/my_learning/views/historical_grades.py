@@ -2,7 +2,7 @@ from rest_framework.decorators import action
 
 from apps.platform_management.models import ClientStudent
 from common.utils.drf.modelviewset import ModelViewSet
-from common.utils.drf.permissions import StudentPermission
+from common.utils.drf.permissions import StudentPermission, SuperAdministratorPermission
 from common.utils.drf.response import Response
 from exam_system.models import ExamStudent
 
@@ -11,6 +11,10 @@ class HistoricalGradesApiView(ModelViewSet):
     permission_classes = [StudentPermission]
     queryset = ExamStudent.objects.all()
     http_method_names = ["get"]
+
+    PERMISSION_MAP = {
+        "filter_condition": [StudentPermission | SuperAdministratorPermission],
+    }
 
     # region 列表
     def list(self, request, *args, **kwargs):

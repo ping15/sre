@@ -199,8 +199,8 @@ class ModelViewSet(DRFModelViewSet):
             {
                 "training_class_name": training_class_id_to_name.get(training_class_id, ""),
                 "grades": grades,
-                "score": random.choice([random.randint(0, 100), None]),
-                "is_pass": random.choice([True, False, None]),
+                "score": sum(grade["exam_info"]["score"] for grade in grades) if len(grades) >= 2 else None,
+                "is_pass": random.choice([True, False]) if len(grades) >= 2 else None,
             }
             for training_class_id, grades in training_class_id_to_grades.items()
         ]

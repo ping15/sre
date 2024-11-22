@@ -1,3 +1,4 @@
+import random
 from typing import Optional
 
 from django.db import models
@@ -147,6 +148,7 @@ class ExamStudent(BaseModel):
                 # "pass_grade": exam.pass_grade,
                 "subject_name": exam.subject.display_name,
                 "training_class_id": exam.training_class_id,
+                "score": random.randint(0, 50),
             }
         except ExamArrange.DoesNotExist:
             return {}

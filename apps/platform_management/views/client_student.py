@@ -147,7 +147,7 @@ class ClientStudentModelViewSet(ModelViewSet):
 
         return Response(self._handle_statistic(manage_company.students, start_date, end_date))
 
-    @action(methods=["POST"], detail=False)
+    @action(methods=["GET"], detail=False)
     def history_grades(self, request, *args, **kwargs):
         validated_data = self.validated_data
 
