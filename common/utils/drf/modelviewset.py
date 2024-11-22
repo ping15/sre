@@ -1,19 +1,28 @@
 import os
+import random
+from collections import defaultdict
+from datetime import datetime
 from typing import Any, Dict, List
 
 from django.db import transaction
 from django.db.models import QuerySet
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, QueryDict
 from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet as DRFModelViewSet
 
+from apps.my_learning.serializers.historical_grades import (
+    HistoricalGradesListSerializer,
+)
+from apps.platform_management.models import ClientStudent
+from apps.teaching_space.models import TrainingClass
 from common.utils.cos import cos_client
 from common.utils.drf.filters import BaseFilterSet
 from common.utils.drf.pagination import PageNumberPagination
 from common.utils.drf.response import Response
 from common.utils.excel_parser.parser import excel_to_list
 from common.utils.tools import query_debugger
+from exam_system.models import ExamStudent
 
 
 class BatchImportSerializer(serializers.Serializer):
@@ -55,20 +64,7 @@ class ModelViewSet(DRFModelViewSet):
     def get_serializer_class(self):
         return self.ACTION_MAP.get(self.action, self.serializer_class)  # noqa
 
-    @property
-    def validated_data(self):
-        data = self.request.query_params if self.request.method == "GET" else self.request.data
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        return serializer.validated_data
-
-    def paginate_response(self, datas: List[Any]) -> Response:
-        return self.get_paginated_response(self.paginate_queryset(datas))
-
-    @staticmethod
-    def transform_choices(choices):
-        return [{"id": value, "name": label} for value, label in choices]
-
+    # region 增删改查
     def list(self, request, *args, **kwargs):
         if PageNumberPagination.page_size_query_param not in self.request.query_params:
             return Response(self.get_serializer(self.filter_queryset(self.get_queryset()), many=True).data)
@@ -135,7 +131,9 @@ class ModelViewSet(DRFModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         return Response(super().destroy(request, *args, **kwargs).data, status=status.HTTP_200_OK)
+    # endregion
 
+    # region 批量导入
     @action(methods=["POST"], detail=False)
     def batch_import(self, request, *args, **kwargs):
         """批量导入"""
@@ -167,3 +165,84 @@ class ModelViewSet(DRFModelViewSet):
             as_attachment=True,
             filename=os.path.basename(self.batch_import_template_path),
         )
+    # endregion
+
+    # region 私有函数
+    @property
+    def validated_data(self):
+        data = self.request.query_params if self.request.method == "GET" else self.request.data
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        return serializer.validated_data
+
+    def paginate_response(self, datas: List[Any]) -> Response:
+        return self.get_paginated_response(self.paginate_queryset(datas))
+
+    @staticmethod
+    def transform_choices(choices):
+        return [{"id": value, "name": label} for value, label in choices]
+
+    def build_student_grades_response(self, student: ClientStudent, query_params: QueryDict):
+        # 当前考生所有已考过的历史成绩
+        exam_students = ExamStudent.objects.filter(student_name=student.username, password=student.phone, is_commit=1)
+
+        # 培训班id相同的聚合在一起
+        training_class_id_to_grades, training_class_ids = defaultdict(list), set()
+        for grade in HistoricalGradesListSerializer(exam_students, many=True).data:
+            training_class_id_to_grades[grade["exam_info"]["training_class_id"]].append(grade)
+            training_class_ids.add(grade["exam_info"].pop("training_class_id"))
+
+        training_class_id_to_name = {tc.id: tc.name for tc in TrainingClass.objects.filter(id__in=training_class_ids)}
+
+        # 添加额外数据并组装
+        grade_infos: List[dict] = [
+            {
+                "training_class_name": training_class_id_to_name.get(training_class_id, ""),
+                "grades": grades,
+                "score": random.choice([random.randint(0, 100), None]),
+                "is_pass": random.choice([True, False, None]),
+            }
+            for training_class_id, grades in training_class_id_to_grades.items()
+        ]
+
+        # 筛选
+        grade_infos = self._filter_grades(grade_infos, query_params)
+        return self.get_paginated_response(self.paginate_queryset(grade_infos))
+
+    @staticmethod
+    def _filter_grades(grade_infos: List[dict], query_params: QueryDict) -> List[dict]:
+        """筛选学员成绩"""
+
+        training_class_name = query_params.get("training_class_name")
+        exam_title = query_params.get("exam_title")
+        start_datetime_before = query_params.get("start_datetime_before")
+        start_datetime_after = query_params.get("start_datetime_after")
+
+        if not any([training_class_name, exam_title, start_datetime_before, start_datetime_after]):
+            return grade_infos
+
+        filtered_grades = []
+        for grade_info in grade_infos:
+            # 筛选培训班名称
+            if training_class_name and training_class_name in grade_info["training_class_name"]:
+                filtered_grades.append(grade_info)
+                continue
+
+            # 只要有一个符合则整个展示
+            for grade_detail in grade_info["grades"]:
+                # 筛选考试名称
+                if exam_title and exam_title in grade_detail["exam_info"]["title"]:
+                    filtered_grades.append(grade_info)
+                    break
+
+                # 筛选开考时间
+                start_time: str = grade_detail["start_time"]
+                if start_time and start_datetime_after and start_datetime_before:
+                    if datetime.fromisoformat(start_datetime_after) <= datetime.fromisoformat(start_time) \
+                            <= datetime.fromisoformat(start_datetime_before):
+                        filtered_grades.append(grade_info)
+                        break
+
+        return filtered_grades
+
+    # endregion

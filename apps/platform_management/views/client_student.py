@@ -11,6 +11,7 @@ from apps.platform_management.serialiers.client_student import (
     ClientStudentBatchImportSerializer,
     ClientStudentCreateSerializer,
     ClientStudentFilterConditionSerializer,
+    ClientStudentHistoryGradesSerializer,
     ClientStudentListSerializer,
     ClientStudentRetrieveSerializer,
     ClientStudentStatisticSerializer,
@@ -44,6 +45,7 @@ class ClientStudentModelViewSet(ModelViewSet):
         "statistic_client_companies": ClientStudentStatisticSerializer,
         "statistic_client_students": ClientStudentStatisticSerializer,
         "filter_condition": ClientStudentFilterConditionSerializer,
+        "history_grades": ClientStudentHistoryGradesSerializer,
     }
 
     def create(self, request, *args, **kwargs):
@@ -145,6 +147,13 @@ class ClientStudentModelViewSet(ModelViewSet):
 
         return Response(self._handle_statistic(manage_company.students, start_date, end_date))
 
+    @action(methods=["POST"], detail=False)
+    def history_grades(self, request, *args, **kwargs):
+        validated_data = self.validated_data
+
+        return self.build_student_grades_response(student=validated_data["client_student"], query_params=request.data)
+
+    # region 私有函数
     @staticmethod
     def _handle_statistic(queryset, start_date, end_date):
         # 截取日期到月份级别并聚合统计
@@ -175,3 +184,4 @@ class ClientStudentModelViewSet(ModelViewSet):
                 for month in months
             ],
         }
+    # endregion

@@ -130,3 +130,7 @@ class ClientStudentStatisticSerializer(serializers.Serializer):
 
 class ClientStudentFilterConditionSerializer(serializers.Serializer):
     module = ChoiceField(label="模块", choices=AppModule.choices, default=AppModule.PLATFORM_MANAGEMENT.value)
+
+
+class ClientStudentHistoryGradesSerializer(serializers.Serializer):
+    client_student = ModelInstanceField(model=ClientStudent, label="客户学员id")
