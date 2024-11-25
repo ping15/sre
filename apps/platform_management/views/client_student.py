@@ -151,7 +151,10 @@ class ClientStudentModelViewSet(ModelViewSet):
     def history_grades(self, request, *args, **kwargs):
         validated_data = self.validated_data
 
-        return self.build_student_grades_response(student=validated_data["client_student"], query_params=request.data)
+        return self.build_student_grades_response(
+            student=validated_data["client_student"],
+            query_params=request.query_params
+        )
 
     # region 私有函数
     @staticmethod

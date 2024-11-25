@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 @colorize.colorize_func
 def print_hello(*args, **kwargs):
     logger.info("EXECUTE ------------> print_hello")
-    print(type(args[0]))
     print(f"args: {args}, kwargs: {kwargs}")
 
 
