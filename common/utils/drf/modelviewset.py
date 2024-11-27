@@ -1,5 +1,4 @@
 import os
-import random
 from collections import defaultdict
 from datetime import datetime
 from typing import Any, Dict, List
@@ -184,7 +183,10 @@ class ModelViewSet(DRFModelViewSet):
 
     def build_student_grades_response(self, student: ClientStudent, query_params: QueryDict):
         # 当前考生所有已考过的历史成绩
-        exam_students = ExamStudent.objects.filter(student_name=student.username, password=student.phone, is_commit=1)
+        exam_students = ExamStudent.objects.filter(student_name=student.exam_system_username, is_commit=1)
+
+        # 只需要已发布的考试成绩
+        exam_students = [student for student in exam_students if student.is_published]
 
         # 培训班id相同的聚合在一起
         training_class_id_to_grades, training_class_ids = defaultdict(list), set()
@@ -200,7 +202,7 @@ class ModelViewSet(DRFModelViewSet):
                 "training_class_name": training_class_id_to_name.get(training_class_id, ""),
                 "grades": grades,
                 "score": sum(grade["exam_info"]["score"] for grade in grades) if len(grades) >= 2 else None,
-                "is_pass": random.choice([True, False]) if len(grades) >= 2 else None,
+                "is_pass": sum(grade["exam_info"]["score"] for grade in grades) >= 60 if len(grades) >= 2 else None,
             }
             for training_class_id, grades in training_class_id_to_grades.items()
         ]

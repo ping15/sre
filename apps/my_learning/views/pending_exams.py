@@ -13,5 +13,5 @@ class PendingExamsApiView(APIView):
         user: ClientStudent = self.request.user
         return Response({
             "pending_exam_count": ExamStudent.objects.filter(
-                student_name=user.username, password=user.phone, is_commit=0).count()
+                student_name=user.exam_system_username, is_commit=0).count()
         })

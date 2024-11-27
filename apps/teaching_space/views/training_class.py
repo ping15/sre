@@ -1,7 +1,6 @@
 import datetime
 import math
 import os
-import random
 from collections import defaultdict
 from typing import List
 
@@ -654,17 +653,53 @@ class TrainingClassModelViewSet(ModelViewSet):
 
         union_student_grades = defaultdict(list)
         for grade in TrainingCLassGradesSerializer(exam_students, many=True).data:
-            union_student_grades[f"{grade.pop('student_name')}(-|-|-){grade.pop('password')}"].append(grade)
+            union_student_grades[grade.pop('student_name')].append(grade)
 
         return self.paginate_response([
             {
-                "student_name": student_key.split("(-|-|-)")[0],
+                "student_name": student_key,
                 "grades": grades,
-                "score": 0,
-                "is_pass": random.choice([True, False]),
+                "score": sum(grade["score"] for grade in grades) if len(grades) >= 2 else None,
+                "is_pass": sum(grade["score"] for grade in grades) >= 60 if len(grades) >= 2 else None,
             }
             for student_key, grades in union_student_grades.items()
         ])
+        # return self.paginate_response([
+        #     [
+        #         {
+        #             "student_name": "sre-18138128034",
+        #             "grades": [
+        #                 {
+        #                     "start_time": "2024-11-27 18:02:51",
+        #                     "exam_info": {
+        #                         "title": "L3-理论考试",
+        #                         "subject_name": "理论知识",
+        #                         "training_class_id": 76,
+        #                         "score": 21
+        #                     }
+        #                 }
+        #             ],
+        #             "score": 0,
+        #             "is_pass": False
+        #         },
+        #         {
+        #             "student_name": "sre-18138128034",
+        #             "grades": [
+        #                 {
+        #                     "start_time": "2024-11-27 18:02:51",
+        #                     "exam_info": {
+        #                         "title": "L3-实践技能",
+        #                         "subject_name": "实践技能",
+        #                         "training_class_id": 76,
+        #                         "score": 13
+        #                     }
+        #                 }
+        #             ],
+        #             "score": 0,
+        #             "is_pass": True
+        #         }
+        #     ]
+        # ])
 
     # endregion
 

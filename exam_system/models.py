@@ -1,7 +1,8 @@
-import random
+import json
 from typing import Optional
 
 from django.db import models
+from django.db.models import Sum
 
 from apps.teaching_space.models import TrainingClass
 
@@ -125,33 +126,45 @@ class ExamStudent(BaseModel):
     is_super_pass = models.IntegerField()
 
     @property
+    def answer_ids_dict(self):
+        """
+        将答案对应关系缓存起来, 防止每次都需要读取一次
+        :return: {
+            '题目ID': '答案ID'
+        }
+        """
+        if getattr(self, '_answer_ids', None) is None:
+            self._answer_ids = json.loads(self.answer_ids)
+
+        return self._answer_ids
+
+    @property
+    def grade(self):
+        # 遍历所有的习题对应答案
+        answer_list = [answer_id for answer_id in list(self.answer_ids_dict.values())]
+        score = ExamGrade.objects.filter(id__in=answer_list).aggregate(Sum('grade'))
+
+        return score['grade__sum'] if score['grade__sum'] else 0
+
+    @property
     def exam_info(self):
         try:
             exam: ExamArrange = ExamArrange.objects.get(id=self.exam_id)
             return {
                 "title": exam.title,
-                # "description": exam.description,
-                # "paper_id": exam.paper_id,
-                # "info": exam.info,
-                # "ip": exam.ip,
-                # "student": exam.student,
-                # "start_time": exam.start_time,
-                # "end_time": exam.end_time,
-                # "address": exam.address,
-                # "notice": exam.notice,
-                # "creator": exam.creator,
-                # "newer": exam.newer,
-                # "create_time": exam.create_time,
-                # "update_time": exam.update_time,
-                # "status": exam.status,
-                # "exam_type": exam.exam_type,
-                # "pass_grade": exam.pass_grade,
                 "subject_name": exam.subject.display_name,
                 "training_class_id": exam.training_class_id,
-                "score": random.randint(0, 50),
+                "score": self.grade,
             }
         except ExamArrange.DoesNotExist:
             return {}
+
+    @property
+    def is_published(self) -> bool:
+        try:
+            return bool(self.exam_arrange.notice)
+        except Exception: # noqa
+            return False
 
     @property
     def exam_arrange(self) -> Optional[ExamArrange]:
