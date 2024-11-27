@@ -37,7 +37,7 @@ class TrainingClassSerializer(serializers.ModelSerializer):
 class TrainingClassListSerializer(serializers.ModelSerializer):
     class Meta:
         model = TrainingClass
-        fields = ["id", "name", "status", "student_count", "instructor_name"]
+        fields = ["id", "name", "status", "student_count", "instructor_name", "is_published"]
 
 
 class TrainingClassRetrieveSerializer(serializers.ModelSerializer):
@@ -213,4 +213,11 @@ class TrainingCLassGradesSerializer(serializers.ModelSerializer):
         model = ExamStudent
         fields = ["start_time", "exam_info", "student_name", "password"]
 
+
+# endregion
+
+
+# region 成绩
+class TrainingClassModifyThresholdSerializer(serializers.Serializer):
+    passing_score = serializers.IntegerField(label="分数线")
 # endregion

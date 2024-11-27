@@ -138,6 +138,14 @@ class TrainingClass(models.Model):
 
         return 0
 
+    @property
+    def is_published(self) -> bool:
+        from exam_system.models import ExamArrange
+
+        # todo: 暂时显示科目数量大于等于2
+        return ExamArrange.objects.filter(training_class_id=self.id).count() >= 2 and \
+            not ExamArrange.objects.filter(training_class_id=self.id, notice=False).exists()
+
     def __str__(self):
         return self.name
 

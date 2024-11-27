@@ -35,6 +35,7 @@ from apps.teaching_space.serializers.training_class import (
     TrainingCLassGradesSerializer,
     TrainingClassInstructorEventSerializer,
     TrainingClassListSerializer,
+    TrainingClassModifyThresholdSerializer,
     TrainingClassPublishAdvertisementSerializer,
     TrainingClassRemoveStudentSerializer,
     TrainingClassRetrieveSerializer,
@@ -53,7 +54,7 @@ from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import TRAINING_CLASS_SCORE_EXCEL_MAPPING
 from common.utils.excel_parser.parser import excel_to_list
 from common.utils.sms import send_sms
-from exam_system.models import ExamArrange, ExamStudent
+from exam_system.models import ExamArrange, ExamGrade, ExamStudent
 
 
 class TrainingClassModelViewSet(ModelViewSet):
@@ -89,6 +90,10 @@ class TrainingClassModelViewSet(ModelViewSet):
 
         # region 满意度调查
         "analyze_score": TrainingClassAnalyzeScoreSerializer,
+        # endregion
+
+        # region 成绩
+        "modify_threshold": TrainingClassModifyThresholdSerializer,
         # endregion
     }
 
@@ -701,6 +706,39 @@ class TrainingClassModelViewSet(ModelViewSet):
         #     ]
         # ])
 
+    @action(methods=["POST"], detail=True)
+    def publish_grades(self, request, *args, **kwargs):
+        """开放考生查询"""
+        training_class: TrainingClass = self.get_object()
+        now = datetime.datetime.now()
+
+        # 对于每一场考试, 如果未到达考试结束时间, 且存在已答题未评分的题目, 则不可发布成绩
+        for exam in ExamArrange.objects.filter(training_class_id=training_class.id):
+            if exam.end_time.replace(tzinfo=None) < now.replace(tzinfo=None):
+                return Response(result=False, err_msg=f"考试[{exam.title}]未到达考试结束时间")
+
+            if ExamGrade.objects.filter(exam_id=exam.id, is_check=False).exists():
+                return Response(result=False, err_msg=f"考试[{exam.title}]存在考题未评分")
+
+        # 将该培训班所有考试公布
+        ExamArrange.objects.filter(training_class_id=training_class.id).update(notice=True)
+
+        return Response()
+
+    @action(methods=["POST"], detail=True)
+    def modify_threshold(self, request, *args, **kwargs):
+        """修改分数线"""
+        validated_data = self.validated_data
+        training_class: TrainingClass = self.get_object()
+
+        if training_class.is_published:
+            return Response(result=False, err_msg="改培训班成绩已发布,不可修改分数线")
+
+        # 修改分数线
+        training_class.passing_score = validated_data["passing_score"]
+        training_class.save()
+
+        return Response()
     # endregion
 
     # region 私有函数
