@@ -15,6 +15,7 @@ from apps.my_learning.serializers.historical_grades import (
 )
 from apps.platform_management.models import ClientStudent
 from apps.teaching_space.models import TrainingClass
+from common.utils import global_constants
 from common.utils.cos import cos_client
 from common.utils.drf.filters import BaseFilterSet
 from common.utils.drf.pagination import PageNumberPagination
@@ -194,18 +195,29 @@ class ModelViewSet(DRFModelViewSet):
             training_class_id_to_grades[grade["exam_info"]["training_class_id"]].append(grade)
             training_class_ids.add(grade["exam_info"].pop("training_class_id"))
 
-        training_class_id_to_name = {tc.id: tc.name for tc in TrainingClass.objects.filter(id__in=training_class_ids)}
+        # id -> TrainingClass obj
+        training_class_id_to_obj: Dict[int, TrainingClass] = {
+            tc.id: tc for tc in TrainingClass.objects.filter(id__in=training_class_ids)
+        }
 
         # 添加额外数据并组装
-        grade_infos: List[dict] = [
-            {
-                "training_class_name": training_class_id_to_name.get(training_class_id, ""),
+        grade_infos: List[dict] = []
+        for training_class_id, grades in training_class_id_to_grades.items():
+            if training_class_id not in training_class_id_to_obj:
+                continue
+
+            # 计算总分, sum(各科分数 ✖ 百分比)
+            score = sum(
+                grade["exam_info"]["score"] * global_constants.subject_percentage[grade["exam_info"]["subject_name"]]
+                for grade in grades
+            )
+
+            grade_infos.append({
+                "training_class_name": training_class_id_to_obj[training_class_id].name,
                 "grades": grades,
-                "score": sum(grade["exam_info"]["score"] for grade in grades) if len(grades) >= 2 else None,
-                "is_pass": sum(grade["exam_info"]["score"] for grade in grades) >= 60 if len(grades) >= 2 else None,
-            }
-            for training_class_id, grades in training_class_id_to_grades.items()
-        ]
+                "is_pass": score >= training_class_id_to_obj[training_class_id].passing_score
+                if len(grades) == len(global_constants.subject_titles) else None,
+            })
 
         # 筛选
         grade_infos = self._filter_grades(grade_infos, query_params)

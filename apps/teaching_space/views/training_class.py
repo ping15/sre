@@ -650,61 +650,40 @@ class TrainingClassModelViewSet(ModelViewSet):
             # 查找所有该培训班所有已提交的学生成绩单
             exam_students: QuerySet[ExamStudent] = ExamStudent.objects.filter(
                 exam_id__in=ExamArrange.objects.filter(
-                    training_class_id=training_class.id).values_list("id", flat=True),
+                    training_class_id=training_class.id,
+                    subject__display_name__in=global_constants.subject_titles
+                ).values_list("id", flat=True),
+
                 is_commit=1,
             )
         except ExamArrange.DoesNotExist:
             return Response(result=False, err_msg="该培训班未安排考试")
 
+        # 根据学生名聚合考试
         union_student_grades = defaultdict(list)
         for grade in TrainingCLassGradesSerializer(exam_students, many=True).data:
             union_student_grades[grade.pop('student_name')].append(grade)
 
-        return self.paginate_response([
-            {
+        # 计算分数, 判断是否通过考试
+        grade_infos: List[dict] = []
+        for student_key, grades in union_student_grades.items():
+            # 是否完成考试并全部批卷
+            is_finished: bool = len(grades) == len(global_constants.subject_titles)
+
+            # 计算总分, sum(各科分数 ✖ 百分比)
+            score = sum(
+                grade["exam_info"]["score"] * global_constants.subject_percentage[grade["exam_info"]["subject_name"]]
+                for grade in grades
+            )
+
+            grade_infos.append({
                 "student_name": student_key,
                 "grades": grades,
-                "score": sum(grade["score"] for grade in grades) if len(grades) >= 2 else None,
-                "is_pass": sum(grade["score"] for grade in grades) >= 60 if len(grades) >= 2 else None,
-            }
-            for student_key, grades in union_student_grades.items()
-        ])
-        # return self.paginate_response([
-        #     [
-        #         {
-        #             "student_name": "sre-18138128034",
-        #             "grades": [
-        #                 {
-        #                     "start_time": "2024-11-27 18:02:51",
-        #                     "exam_info": {
-        #                         "title": "L3-理论考试",
-        #                         "subject_name": "理论知识",
-        #                         "training_class_id": 76,
-        #                         "score": 21
-        #                     }
-        #                 }
-        #             ],
-        #             "score": 0,
-        #             "is_pass": False
-        #         },
-        #         {
-        #             "student_name": "sre-18138128034",
-        #             "grades": [
-        #                 {
-        #                     "start_time": "2024-11-27 18:02:51",
-        #                     "exam_info": {
-        #                         "title": "L3-实践技能",
-        #                         "subject_name": "实践技能",
-        #                         "training_class_id": 76,
-        #                         "score": 13
-        #                     }
-        #                 }
-        #             ],
-        #             "score": 0,
-        #             "is_pass": True
-        #         }
-        #     ]
-        # ])
+                "score": score if is_finished else None,
+                "is_pass": score >= training_class.passing_score if is_finished else None,
+            })
+
+        return self.paginate_response(grade_infos)
 
     @action(methods=["POST"], detail=True)
     def publish_grades(self, request, *args, **kwargs):
@@ -712,16 +691,25 @@ class TrainingClassModelViewSet(ModelViewSet):
         training_class: TrainingClass = self.get_object()
         now = datetime.datetime.now()
 
+        if training_class.is_published:
+            return Response(result=False, err_msg="该培训班成绩已发布")
+
         # 对于每一场考试, 如果未到达考试结束时间, 且存在已答题未评分的题目, 则不可发布成绩
         for exam in ExamArrange.objects.filter(training_class_id=training_class.id):
-            if exam.end_time.replace(tzinfo=None) < now.replace(tzinfo=None):
+            if exam.end_time.replace(tzinfo=None) > now.replace(tzinfo=None):
                 return Response(result=False, err_msg=f"考试[{exam.title}]未到达考试结束时间")
 
             if ExamGrade.objects.filter(exam_id=exam.id, is_check=False).exists():
                 return Response(result=False, err_msg=f"考试[{exam.title}]存在考题未评分")
 
-        # 将该培训班所有考试公布
-        ExamArrange.objects.filter(training_class_id=training_class.id).update(notice=True)
+        # 该培训班所有考试
+        exam_arranges = ExamArrange.objects.filter(training_class_id=training_class.id)
+        with transaction.atomic():
+            # 将该培训班所有考试公布
+            exam_arranges.update(notice=True)
+
+            # 将考生中未提交的自动提交
+            ExamStudent.objects.filter(exam_id__in=exam_arranges.values_list("id", flat=True)).update(is_commit=True)
 
         return Response()
 
@@ -732,7 +720,7 @@ class TrainingClassModelViewSet(ModelViewSet):
         training_class: TrainingClass = self.get_object()
 
         if training_class.is_published:
-            return Response(result=False, err_msg="改培训班成绩已发布,不可修改分数线")
+            return Response(result=False, err_msg="该培训班成绩已发布,不可修改分数线")
 
         # 修改分数线
         training_class.passing_score = validated_data["passing_score"]

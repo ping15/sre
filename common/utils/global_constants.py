@@ -42,3 +42,12 @@ TRAINING_CLASS_SCORE_TEMPLATE_PATH = "common/utils/excel_parser/templates/培训
 
 # 默认管理公司名称
 DEFAULT_MANAGE_COMPANY = "鸿雪公司"
+
+# 考试系统科目
+subject_titles = ["理论知识", "实践技能"]
+subject_percentage = {
+    "理论知识": 0.7,
+    "实践技能": 0.3,
+}
+assert sum(subject_percentage.values()) == 1
+assert sorted(subject_titles) == sorted(list(subject_percentage.keys()))
