@@ -150,5 +150,6 @@ class TrainingClass(models.Model):
         return self.name
 
     class Meta:
+        ordering = ["-id"]
         verbose_name = "培训班"
         verbose_name_plural = verbose_name

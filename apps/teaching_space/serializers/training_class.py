@@ -67,7 +67,7 @@ class TrainingClassCreateSerializer(serializers.ModelSerializer, BasicSerializer
             raise serializers.ValidationError("非超级管理员不可创建其他管理公司下面客户公司的培训班")
 
         validated_data["creator"] = user.username
-        validated_data["client_students"] = target_client_company.students
+        # validated_data["client_students"] = target_client_company.students
         return super().create(validated_data)
 
     class Meta:
