@@ -126,6 +126,11 @@ class ExamStudent(BaseModel):
     is_super_pass = models.IntegerField()
 
     @property
+    def phone(self) -> str:
+        """sre-xxx"""
+        return self.student_name.split("-")[1]
+
+    @property
     def answer_ids_dict(self):
         """
         将答案对应关系缓存起来, 防止每次都需要读取一次

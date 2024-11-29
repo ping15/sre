@@ -13,7 +13,7 @@ class PendingExamsApiView(APIView):
 
     def get(self, request, *args, **kwargs):
         user: ClientStudent = self.request.user
-        exam_students = ExamStudent.objects.filter(student_name=user.exam_system_username, is_commit=0)
+        exam_students = ExamStudent.objects.filter(student_name=user.exam_username, is_commit=0)
         pending_exam_count: int = 0
         now: datetime.datetime = datetime.datetime.now(datetime.timezone.utc)
 

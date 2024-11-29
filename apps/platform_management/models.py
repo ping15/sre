@@ -381,8 +381,8 @@ class ClientStudent(models.Model):
         return True
 
     @property
-    def exam_system_username(self):
-        return f"sre-{self.phone}"
+    def exam_username(self):
+        return self.phone
 
     def __str__(self):
         return self.username

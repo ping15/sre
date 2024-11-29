@@ -660,13 +660,19 @@ class TrainingClassModelViewSet(ModelViewSet):
             return Response(result=False, err_msg="该培训班未安排考试")
 
         # 根据学生名聚合考试
-        union_student_grades = defaultdict(list)
+        union_student_grades, exam_usernames = defaultdict(list), set()
         for grade in TrainingCLassGradesSerializer(exam_students, many=True).data:
-            union_student_grades[grade.pop('student_name')].append(grade)
+            exam_usernames.add(grade["student_name"])
+            union_student_grades[grade.pop("student_name")].append(grade)
+
+        # 【考试系统用户名】 -> 【SRE系统用户名】
+        exam_username_to_sre_username = {
+            user.phone: user.username for user in ClientStudent.objects.filter(phone__in=exam_usernames)
+        }
 
         # 计算分数, 判断是否通过考试
         grade_infos: List[dict] = []
-        for student_key, grades in union_student_grades.items():
+        for exam_username, grades in union_student_grades.items():
             # 是否完成考试并全部批卷
             is_finished: bool = len(grades) == len(global_constants.subject_titles)
 
@@ -677,7 +683,7 @@ class TrainingClassModelViewSet(ModelViewSet):
             )
 
             grade_infos.append({
-                "student_name": student_key,
+                "student_name": exam_username_to_sre_username[exam_username],
                 "grades": grades,
                 "score": score if is_finished else None,
                 "is_pass": score >= training_class.passing_score if is_finished else None,
@@ -693,6 +699,10 @@ class TrainingClassModelViewSet(ModelViewSet):
 
         if training_class.is_published:
             return Response(result=False, err_msg="该培训班成绩已发布")
+
+        if ExamArrange.objects.filter(training_class_id=training_class.id).count() != \
+                len(global_constants.subject_titles):
+            return Response(result=False, err_msg=f"{global_constants.subject_titles}需要安排")
 
         # 对于每一场考试, 如果未到达考试结束时间, 且存在已答题未评分的题目, 则不可发布成绩
         for exam in ExamArrange.objects.filter(training_class_id=training_class.id):

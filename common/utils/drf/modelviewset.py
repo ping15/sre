@@ -184,7 +184,7 @@ class ModelViewSet(DRFModelViewSet):
 
     def build_student_grades_response(self, student: ClientStudent, query_params: QueryDict):
         # 当前考生所有已考过的历史成绩
-        exam_students = ExamStudent.objects.filter(student_name=student.exam_system_username, is_commit=1)
+        exam_students = ExamStudent.objects.filter(student_name=student.exam_username, is_commit=1)
 
         # 只需要已发布的考试成绩
         exam_students = [student for student in exam_students if student.is_published]
