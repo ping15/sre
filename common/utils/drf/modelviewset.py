@@ -92,6 +92,7 @@ class ModelViewSet(DRFModelViewSet):
         objs_to_create, objs_to_update = [], []
         try:
             phones: List[str] = [obj["phone"] for obj in initial_data]
+
         except KeyError:
             return Response(result=False, err_msg="未传入手机号")
 
@@ -146,6 +147,13 @@ class ModelViewSet(DRFModelViewSet):
 
         # 解析excel
         datas, err_msg = excel_to_list(response["Body"].read(None), self.batch_import_mapping)
+
+        # 表格中如果存在手机号字段，不允许手机号重复
+        if datas and "phone" in datas[0]:
+            phones: List[str] = [data["phone"] for data in datas]
+            if len(phones) != len(set(phones)):
+                return Response(result=False, err_msg="Excel数据中存在重复手机号")
+
         if err_msg:
             return Response(result=False, err_msg=err_msg)
 

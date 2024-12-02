@@ -62,6 +62,10 @@ class TrainingClassCreateSerializer(serializers.ModelSerializer, BasicSerializer
         user: Administrator = self.context["request"].user
         target_client_company: ClientCompany = validated_data["target_client_company"]
 
+        # 客户公司名 + 课程名 + 期数 唯一
+        self.assert_unique(target_client_company, validated_data["course"], validated_data["session_number"])
+
+        # 非超级管理员不可创建其他管理公司下面客户公司的培训班
         affiliated_manage_company: ManageCompany = target_client_company.affiliated_manage_company
         if not user.is_super_administrator and user.affiliated_manage_company != affiliated_manage_company:
             raise serializers.ValidationError("非超级管理员不可创建其他管理公司下面客户公司的培训班")
@@ -69,6 +73,17 @@ class TrainingClassCreateSerializer(serializers.ModelSerializer, BasicSerializer
         validated_data["creator"] = user.username
         # validated_data["client_students"] = target_client_company.students
         return super().create(validated_data)
+
+    @staticmethod
+    def assert_unique(target_client_company: TrainingClass, course: CourseTemplate, session_number: str):
+        """客户公司名 + 课程名 + 期数 唯一"""
+
+        if TrainingClass.objects.filter(
+            target_client_company=target_client_company,
+            course=course,
+            session_number=session_number,
+        ).exists():
+            raise serializers.ValidationError(f"{target_client_company.name}-{course.name}-{session_number}已存在")
 
     class Meta:
         model = TrainingClass
@@ -79,13 +94,11 @@ class TrainingClassUpdateSerializer(serializers.ModelSerializer):
     force_update = serializers.BooleanField(label="是否强制更新", default=False)
 
     def update(self, training_class: TrainingClass, validated_data):
-        """
         # 1. 如果修改了开课时间，且此时培训班并没有排期，则直接修改
         # 2. 如果修改了开课时间，且此时培训班存在排期，且修改后的时间和讲师日程或不可用时间不冲突，
-             则直接修改，且原有排期开课时间修改为新的开课时间
+        #      则直接修改，且原有排期开课时间修改为新的开课时间
         # 3. 如果修改了开课时间，且此时培训班存在排期，且修改后的时间和讲师日程或不可用时间冲突，
-             则不可修改，如果force_update为True强制更新，则情况原有的排期清除
-        """
+        #      则不可修改，如果force_update为True强制更新，则情况原有的排期清除
         if "start_date" in validated_data and training_class.start_date != validated_data["start_date"]:
             force_update = validated_data.get("force_update", False)
             start_date = validated_data["start_date"]
@@ -127,6 +140,15 @@ class TrainingClassUpdateSerializer(serializers.ModelSerializer):
             except Event.DoesNotExist:
                 # 培训班没有排期
                 pass
+
+        # 如果课程，课程后缀出现变动，需要判断
+        if training_class.course != validated_data["course"] or \
+                training_class.session_number != validated_data["session_number"]:
+
+            # 客户公司名 + 课程名 + 期数 唯一
+            TrainingClassCreateSerializer.assert_unique(
+                validated_data["target_client_company"], validated_data["course"], validated_data["session_number"]
+            )
 
         return super().update(training_class, validated_data)
 
