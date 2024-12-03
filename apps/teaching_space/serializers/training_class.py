@@ -1,5 +1,6 @@
 import datetime
 
+import pytz
 from rest_framework import serializers
 
 from apps.my_lectures.handles.event import EventHandler
@@ -229,7 +230,7 @@ class TrainingClassAnalyzeScoreSerializer(serializers.Serializer):
 
 # region 学员成绩
 class TrainingCLassGradesSerializer(serializers.ModelSerializer):
-    start_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    start_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", default_timezone=pytz.utc)
 
     class Meta:
         model = ExamStudent
