@@ -31,6 +31,7 @@ class ClientCompanyModelViewSet(ModelViewSet):
     }
     PERMISSION_MAP = {
         "list": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
+        "create": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
         "retrieve": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
         "update": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
         "destroy": [SuperAdministratorPermission | ManageCompanyAdministratorPermission],
