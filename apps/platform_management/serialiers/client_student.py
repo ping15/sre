@@ -30,8 +30,9 @@ class ResourceInfoSerializer(serializers.Serializer):
     url = ResourceURLField(label="文件路径", required=False)
 
     def to_representation(self, instance):
-        instance["url"] = f"{global_constants.DOWNLOAD_URL}?file_key={instance['file_key']}"
-        return super().to_representation(instance)
+        if "file_key" in instance:
+            instance["url"] = f"{global_constants.DOWNLOAD_URL}?file_key={instance['file_key']}"
+        return instance
 
 
 class ClientStudentListSerializer(serializers.ModelSerializer):

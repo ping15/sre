@@ -173,9 +173,10 @@ class TrainingClassModelViewSet(ModelViewSet):
 
         instructor_event: InstructorEvent = training_class.instructor_event.last()
 
-        # 如果该单据已经过了[截至时间]且处于[待处理]则超时了
+        # 如果该单据为[邀请上课]，且已经过了[截至时间]且处于[待处理]则超时了
         deadline_date: datetime.date = instructor_event.start_date or training_class.start_date
         if all([
+            instructor_event.event_type == InstructorEvent.EventType.INVITE_TO_CLASS,
             instructor_event.status != InstructorEvent.Status.TIMEOUT,
             instructor_event.status == InstructorEvent.Status.PENDING,
             deadline_date <= datetime.datetime.now().date()

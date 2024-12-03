@@ -69,7 +69,14 @@ class ClientCompanyModelViewSet(ModelViewSet):
 
     @action(methods=["GET"], detail=False)
     def choices(self, request, *args, **kwargs):
+        user: Administrator = request.user
+
+        if user.is_super_administrator:
+            client_companies: QuerySet["ClientCompany"] = ClientCompany.objects.all()
+        else:
+            client_companies: QuerySet["ClientCompany"] = user.affiliated_manage_company.client_companies
+
         return Response([
             {"id": client_company.id, "name": client_company.name}
-            for client_company in ClientCompany.objects.all()
+            for client_company in client_companies
         ])

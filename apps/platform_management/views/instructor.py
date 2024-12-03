@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 
 from apps.my_lectures.handles.event import EventHandler
+from apps.my_lectures.models import InstructorEvent
 from apps.platform_management.filters.instructor import (
     InstructorFilterClass,
     InstructorTaughtCoursesFilterClass,
@@ -122,7 +123,9 @@ class InstructorModelViewSet(ModelViewSet):
 
         taught_courses: List[Dict[str:str]] = []
         training_classes: QuerySet[TrainingClass] = instructor.training_classes.filter(
-            status=TrainingClass.Status.COMPLETED
+            status=TrainingClass.Status.COMPLETED,
+            instructor_event__event_type=InstructorEvent.EventType.POST_CLASS_REVIEW,
+            instructor_event__status=InstructorEvent.Status.FINISHED,
         )
 
         for instance in training_classes:
@@ -135,7 +138,7 @@ class InstructorModelViewSet(ModelViewSet):
                 }
             )
 
-        return self.get_paginated_response(self.paginate_queryset(taught_courses))
+        return self.paginate_response(taught_courses)
 
     @action(methods=["GET"], detail=False)
     def filter_condition(self, request, *args, **kwargs):

@@ -38,11 +38,12 @@ class AdministratorCreateSerializer(serializers.ModelSerializer, PhoneCreateSeri
         default_manage_company: str = global_constants.DEFAULT_MANAGE_COMPANY
 
         # 公司选择[鸿雪公司]时角色不能选择[合作伙伴管理员]
-        # 公司选择非[鸿雪公司]时角色不能选择[鸿雪公司管理员]
         if affiliated_manage_company.name == default_manage_company and role == Administrator.Role.PARTNER_MANAGER:
             raise serializers.ValidationError(f"公司选择[{default_manage_company}]时角色不能选择[合作伙伴管理员]")
-        elif affiliated_manage_company.name != default_manage_company and role == Administrator.Role.COMPANY_MANAGER:
-            raise serializers.ValidationError(f"公司选择非[{default_manage_company}]时角色不能选择[鸿雪公司管理员]")
+
+        # 公司选择非[鸿雪公司]时角色只能选择[合作伙伴管理员]
+        elif affiliated_manage_company.name != default_manage_company and role != Administrator.Role.PARTNER_MANAGER:
+            raise serializers.ValidationError(f"公司选择非[{default_manage_company}]时角色只能选择[合作伙伴管理员]")
 
         return super().validate(attrs)
 

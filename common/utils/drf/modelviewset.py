@@ -74,11 +74,11 @@ class ModelViewSet(DRFModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         return Response(super().retrieve(request, *args, **kwargs).data)
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, many=True if isinstance(request.data, list) else False)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, instance=serializer.instance)
+    # def create(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data, many=True if isinstance(request.data, list) else False)
+    #     serializer.is_valid(raise_exception=True)
+    #     self.perform_create(serializer)
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED, instance=serializer.instance)
 
     @query_debugger
     def create_for_user(self, model, request, update_serializer=None, create_serializer=None, *args, **kwargs):
@@ -87,7 +87,7 @@ class ModelViewSet(DRFModelViewSet):
 
         initial_data = request.data
         if not isinstance(initial_data, list):
-            return self.create(request, *args, **kwargs)
+            return super().create(request, *args, **kwargs)
 
         objs_to_create, objs_to_update = [], []
         try:
