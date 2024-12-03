@@ -35,10 +35,10 @@ app.conf.beat_schedule = {
     #     'args': ()
     # },
 
-    # 每两分钟检查一次考试
+    # 每1分钟检查一次考试
     'detect_exam_end_time': {
         'task': 'apps.teaching_space.tasks.detect_exam_end_time',
-        'schedule': schedule(run_every=timedelta(minutes=2)),
+        'schedule': schedule(run_every=timedelta(minutes=1)),
         'args': ()
     },
 }
