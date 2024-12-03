@@ -685,7 +685,7 @@ class TrainingClassModelViewSet(ModelViewSet):
             grade_infos.append({
                 "student_name": exam_username_to_sre_username[exam_username],
                 "grades": grades,
-                "score": score if is_finished else None,
+                "score": round(score, 1) if is_finished else None,
                 "is_pass": score >= training_class.passing_score if is_finished else None,
             })
 

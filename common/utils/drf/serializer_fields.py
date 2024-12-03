@@ -109,7 +109,7 @@ class CleanedHTMLField(serializers.CharField):
         return super().to_internal_value(escape(value))
 
     def to_representation(self, value):
-        return super().to_representation(escape(value))
+        return super().to_representation(value)
 
 
 class ResourceURLField(serializers.CharField):

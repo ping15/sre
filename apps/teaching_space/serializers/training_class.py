@@ -143,8 +143,8 @@ class TrainingClassUpdateSerializer(serializers.ModelSerializer):
                 pass
 
         # 如果课程，课程后缀出现变动，需要判断
-        if training_class.course != validated_data["course"] or \
-                training_class.session_number != validated_data["session_number"]:
+        if training_class.course != validated_data.get("course", training_class.course) or \
+                training_class.session_number != validated_data.get("session_number", training_class.session_number):
 
             # 客户公司名 + 课程名 + 期数 唯一
             TrainingClassCreateSerializer.assert_unique(

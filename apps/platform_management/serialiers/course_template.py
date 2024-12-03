@@ -63,11 +63,11 @@ class CourseTemplateUpdateSerializer(serializers.ModelSerializer):
 
 
 class CourseTemplateCreateSerializer(CourseTemplateUpdateSerializer):
-    material_content = CleanedHTMLField()
-    target_students = CleanedHTMLField()
-    learning_objectives = CleanedHTMLField()
-    learning_benefits = CleanedHTMLField()
-    course_content = CleanedHTMLField()
+    material_content = CleanedHTMLField(allow_blank=True)
+    target_students = CleanedHTMLField(allow_blank=True)
+    learning_objectives = CleanedHTMLField(allow_blank=True)
+    learning_benefits = CleanedHTMLField(allow_blank=True)
+    course_content = CleanedHTMLField(allow_blank=True)
     name = UniqueCharField(label="课程", max_length=32)
 
 

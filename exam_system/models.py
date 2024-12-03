@@ -149,7 +149,7 @@ class ExamStudent(BaseModel):
         answer_list = [answer_id for answer_id in list(self.answer_ids_dict.values())]
         score = ExamGrade.objects.filter(id__in=answer_list).aggregate(Sum('grade'))
 
-        return score['grade__sum'] if score['grade__sum'] else 0
+        return round(score['grade__sum'], 1) if score['grade__sum'] else 0
 
     @property
     def exam_info(self):
