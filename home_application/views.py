@@ -10,13 +10,13 @@ Unless required by applicable law or agreed to in writing, software distributed 
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
+import json
 import os
 
+from django.http import JsonResponse
 from django.shortcuts import render
 
 
-# 开发框架中通过中间件默认是需要登录态的，如有不需要登录的，可添加装饰器login_exempt
-# 装饰器引入 from blueapps.account.decorators import login_exempt
 def home(request):
     """
     首页
@@ -28,15 +28,13 @@ def home(request):
     return render(request, "home_application/index.html", context=context)
 
 
-def dev_guide(request):
-    """
-    开发指引
-    """
-    return render(request, "home_application/dev_guide.html")
+def view_error_log(request):
+    try:
+        with open('error_log.json', 'r') as f:
+            errors = json.load(f)  # 直接加载整个 JSON 对象
+    except FileNotFoundError:
+        errors = {}
+    except json.JSONDecodeError:
+        errors = {}
 
-
-def contact(request):
-    """
-    联系页
-    """
-    return render(request, "home_application/contact.html")
+    return JsonResponse(errors, safe=False)

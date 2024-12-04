@@ -35,13 +35,13 @@ def handler_error_details(
             ErrorDetail,
             Dict[str, List[ErrorDetail]]
         ]],
-        ErrorDetail
+        ErrorDetail,
     ]
 ) -> str:
     if isinstance(details, dict):
         details = list(chain.from_iterable(
-            [f"{key} -> {v}" for v in value] if isinstance(value, list) else [f"{key} -> {value}"]
-            for key, value in details.items()
+            [v for v in value] if isinstance(value, list) else [value]
+            for _, value in details.items()
         ))
 
     elif isinstance(details, ErrorDetail):

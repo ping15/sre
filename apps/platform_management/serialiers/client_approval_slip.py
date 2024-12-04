@@ -3,7 +3,11 @@ import datetime
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from apps.platform_management.models import Administrator, ClientApprovalSlip
+from apps.platform_management.models import (
+    Administrator,
+    ClientApprovalSlip,
+    ClientCompany,
+)
 from apps.platform_management.serialiers.client_company import (
     ClientCompanyCreateSerializer,
 )
@@ -22,19 +26,19 @@ class ClientApprovalSlipCreateSerializer(serializers.ModelSerializer):
     submission_info = ClientCompanyCreateSerializer(label="客户公司申请信息")
 
     def to_internal_value(self, data):
-        return super().to_internal_value({
-            "submission_info": data,
-            "status": ClientApprovalSlip.Status.PENDING.value,
-        })
+        if ClientCompany.objects.filter(name=data.get("name", "")).exists():
+            raise ValidationError({"name": "该客户公司已存在"})
+
+        return super().to_internal_value({"submission_info": data, "status": ClientApprovalSlip.Status.PENDING})
 
     def create(self, validated_data):
         request = self.context.get("request")
         submission_info = validated_data["submission_info"]
 
         user: Administrator = request.user
-        if not user.is_super_administrator:
-            if user.affiliated_manage_company_name != submission_info["affiliated_manage_company_name"]:
-                raise ValidationError("鸿雪/合作伙伴管理员不可为其他管理公司申请客户公司")
+        if not user.is_super_administrator and user.affiliated_manage_company_name != \
+                submission_info["affiliated_manage_company_name"]:
+            raise ValidationError("鸿雪/合作伙伴管理员不可为其他管理公司申请客户公司")
 
         if ClientApprovalSlip.objects.filter(affiliated_client_company_name=submission_info["name"]).exists():
             raise ValidationError("该公司已申请")
