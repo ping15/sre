@@ -200,7 +200,7 @@ SECRET_KEY = "django-insecure-35imlrk$%wnuqejyqayeh1#=))b+9ovtqoqu*zhtr0@4=)4&t7
 ROOT_URLCONF = "urls"
 
 # AUTH_USER_MODEL = "platform_management.Manager"
-AUTH_USER_MODEL = 'platform_management.Administrator'
+# AUTH_USER_MODEL = 'platform_management.Administrator'
 
 SITE_ID = 1
 
