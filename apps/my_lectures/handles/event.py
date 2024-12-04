@@ -300,7 +300,6 @@ class EventHandler:
         return True
 
     @classmethod
-    # @query_debugger
     def is_instructor_idle(cls, instructor: Instructor, start_date: date, end_date: date) -> bool:
         """在期间内该讲师是否都有空闲时间"""
         rule_events: QuerySet["Event"] = instructor.events.filter(event_type__in=Event.EventType.rule_types)

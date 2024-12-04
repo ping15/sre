@@ -30,7 +30,7 @@ from common.utils.global_constants import AppModule
 class ClientStudentModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission | ManageCompanyAdministratorPermission]
     serializer_class = ClientStudentCreateSerializer
-    queryset = ClientStudent.objects.all().select_related()
+    queryset = ClientStudent.objects.prefetch_related('training_classes__course')
     enable_batch_import = True
     batch_import_template_path = "common/utils/excel_parser/templates/客户学员批量导入模板.xlsx"
     batch_import_mapping = CLIENT_STUDENT_EXCEL_MAPPING

@@ -9,7 +9,6 @@ from apps.my_lectures.handles.event import EventHandler
 from apps.platform_management.models import CourseTemplate, Event, Instructor
 from common.utils import global_constants
 from common.utils.drf.filters import BaseFilterSet, DynamicRangeFilter, PropertyFilter
-from common.utils.tools import query_debugger
 
 
 class InstructorFilterClass(BaseFilterSet):
@@ -22,7 +21,6 @@ class InstructorFilterClass(BaseFilterSet):
     is_partnered = django_filters.BooleanFilter("is_partnered", label="是否合作", lookup_expr="exact")
 
     @staticmethod
-    @query_debugger
     def filter_availability_date(queryset: QuerySet["Instructor"], name: str, start_date: datetime.date):
         instructor_ids: List = []
         end_date: datetime.date = start_date + datetime.timedelta(days=global_constants.CLASS_DAYS - 1)

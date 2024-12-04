@@ -21,7 +21,6 @@ from common.utils.drf.filters import BaseFilterSet
 from common.utils.drf.pagination import PageNumberPagination
 from common.utils.drf.response import Response
 from common.utils.excel_parser.parser import excel_to_list
-from common.utils.tools import query_debugger
 from exam_system.models import ExamStudent
 
 
@@ -74,13 +73,6 @@ class ModelViewSet(DRFModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         return Response(super().retrieve(request, *args, **kwargs).data)
 
-    # def create(self, request, *args, **kwargs):
-    #     serializer = self.get_serializer(data=request.data, many=True if isinstance(request.data, list) else False)
-    #     serializer.is_valid(raise_exception=True)
-    #     self.perform_create(serializer)
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED, instance=serializer.instance)
-
-    @query_debugger
     def create_for_user(self, model, request, update_serializer=None, create_serializer=None, *args, **kwargs):
         update_serializer = update_serializer or self.ACTION_MAP["update"]
         create_serializer = create_serializer or self.ACTION_MAP["create"]

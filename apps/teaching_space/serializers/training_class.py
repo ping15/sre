@@ -76,7 +76,7 @@ class TrainingClassCreateSerializer(serializers.ModelSerializer, BasicSerializer
         return super().create(validated_data)
 
     @staticmethod
-    def assert_unique(target_client_company: TrainingClass, course: CourseTemplate, session_number: str):
+    def assert_unique(target_client_company: ClientCompany, course: CourseTemplate, session_number: str):
         """客户公司名 + 课程名 + 期数 唯一"""
 
         if TrainingClass.objects.filter(
@@ -230,7 +230,7 @@ class TrainingClassAnalyzeScoreSerializer(serializers.Serializer):
 
 # region 学员成绩
 class TrainingCLassGradesSerializer(serializers.ModelSerializer):
-    start_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", default_timezone=pytz.utc)
+    start_time = serializers.DateTimeField(label="开考时间", format="%Y-%m-%d %H:%M:%S", default_timezone=pytz.utc)
 
     class Meta:
         model = ExamStudent
@@ -242,5 +242,5 @@ class TrainingCLassGradesSerializer(serializers.ModelSerializer):
 
 # region 成绩
 class TrainingClassModifyThresholdSerializer(serializers.Serializer):
-    passing_score = serializers.IntegerField(label="分数线")
+    passing_score = serializers.IntegerField(label="分数线", min_value=0, max_value=100)
 # endregion
