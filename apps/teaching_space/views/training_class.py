@@ -701,8 +701,10 @@ class TrainingClassModelViewSet(ModelViewSet):
         if training_class.is_published:
             return Response(result=False, err_msg="该培训班成绩已发布")
 
-        if ExamArrange.objects.filter(training_class_id=training_class.id).count() != \
-                len(global_constants.subject_titles):
+        if ExamArrange.objects.filter(
+            training_class_id=training_class.id,
+            subject__display_name__in=global_constants.subject_titles
+        ).count() != len(global_constants.subject_titles):
             return Response(result=False, err_msg=f"{global_constants.subject_titles}需要安排")
 
         # 对于每一场考试, 如果未到达考试结束时间, 且存在已答题未评分的题目, 则不可发布成绩
