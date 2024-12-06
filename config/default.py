@@ -211,6 +211,10 @@ COS_SECRET_KEY = os.environ.get("COS_SECRET_KEY", "")
 COS_REGION = os.environ.get("COS_REGION", "")
 COS_BUCKET = os.environ.get("COS_BUCKET", "")
 
+# 短信配置
+SMS_SECRET_ID = os.environ.get("SMS_SECRET_ID", "")
+SMS_SECRET_KEY = os.environ.get("SMS_SECRET_KEY", "")
+
 # Celery配置
 CELERY_BROKER_URL = (f"redis://{os.environ.get('REDIS_HOST', 'localhost')}:"
                      f"{os.environ.get('REDIS_PORT', '6379')}/{os.environ.get('REDIS_DB_INDEX', '0')}")

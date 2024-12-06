@@ -21,6 +21,10 @@ def check_bucket(func):
 
 
 class CosClient:
+    """
+    COS SDK
+    """
+
     def __init__(
         self,
         secret_id: str,

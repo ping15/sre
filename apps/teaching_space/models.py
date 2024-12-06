@@ -72,6 +72,7 @@ class TrainingClass(models.Model):
 
     questionnaire_qr_code = models.JSONField("问卷二维码", default=dict)
     passing_score = models.IntegerField("及格总分数线", default=0)
+    is_published = models.BooleanField("是否发布成绩", default=False)
 
     client_students = models.ManyToManyField(
         ClientStudent,
@@ -138,13 +139,13 @@ class TrainingClass(models.Model):
 
         return 0
 
-    @property
-    def is_published(self) -> bool:
-        from exam_system.models import ExamArrange
-
-        # todo: 暂时显示科目数量大于等于2
-        return ExamArrange.objects.filter(training_class_id=self.id).count() >= 2 and \
-            not ExamArrange.objects.filter(training_class_id=self.id, notice=False).exists()
+    # @property
+    # def is_published(self) -> bool:
+    #     from exam_system.models import ExamArrange
+    #
+    #     # todo: 暂时显示科目数量大于等于2
+    #     return ExamArrange.objects.filter(training_class_id=self.id).count() >= 2 and \
+    #         not ExamArrange.objects.filter(training_class_id=self.id, notice=False).exists()
 
     def __str__(self):
         return self.name

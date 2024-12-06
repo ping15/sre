@@ -707,19 +707,25 @@ class TrainingClassModelViewSet(ModelViewSet):
         ).count() != len(global_constants.subject_titles):
             return Response(result=False, err_msg=f"{global_constants.subject_titles}需要安排")
 
-        # 对于每一场考试, 如果未到达考试结束时间, 且存在已答题未评分的题目, 则不可发布成绩
+        # 对于每一场考试, 下面任何一种情况出现, 则不可发布成绩
         for exam in ExamArrange.objects.filter(training_class_id=training_class.id):
+            # 如果未到达考试结束时间, 不可发布成绩
             if exam.end_time.replace(tzinfo=None) > now.replace(tzinfo=None):
                 return Response(result=False, err_msg=f"考试[{exam.title}]未到达考试结束时间")
 
+            # 存在已答题未评分的题目, 不可发布成绩
             if ExamGrade.objects.filter(exam_id=exam.id, is_check=False).exists():
                 return Response(result=False, err_msg=f"考试[{exam.title}]存在考题未评分")
+
+            # 存在成绩未公示, 不可发布成绩
+            if not exam.notice:
+                return Response(result=False, err_msg=f"考试[{exam.title}]未公示")
 
         # 该培训班所有考试
         exam_arranges = ExamArrange.objects.filter(training_class_id=training_class.id)
         with transaction.atomic():
-            # 将该培训班所有考试公布
-            exam_arranges.update(notice=True)
+            # 培训班状态为已发布
+            training_class.is_published = True
 
             # 将考生中未提交的自动提交
             ExamStudent.objects.filter(exam_id__in=exam_arranges.values_list("id", flat=True)).update(is_commit=True)

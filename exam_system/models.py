@@ -94,6 +94,13 @@ class ExamArrange(BaseModel):
     training_class_id = models.IntegerField()
     subject = models.ForeignKey('Subject', models.DO_NOTHING)
 
+    @property
+    def training_class(self) -> Optional[TrainingClass]:
+        try:
+            return TrainingClass.objects.get(id=self.training_class_id)
+        except TrainingClass.DoesNotExist:
+            return None
+
     class Meta:
         managed = False
         db_table = 'home_application_examarrange'
@@ -167,7 +174,7 @@ class ExamStudent(BaseModel):
     @property
     def is_published(self) -> bool:
         try:
-            return bool(self.exam_arrange.notice)
+            return self.exam_arrange.training_class.is_published
         except Exception: # noqa
             return False
 
