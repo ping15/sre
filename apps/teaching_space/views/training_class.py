@@ -726,6 +726,7 @@ class TrainingClassModelViewSet(ModelViewSet):
         with transaction.atomic():
             # 培训班状态为已发布
             training_class.is_published = True
+            training_class.save()
 
             # 将考生中未提交的自动提交
             ExamStudent.objects.filter(exam_id__in=exam_arranges.values_list("id", flat=True)).update(is_commit=True)
