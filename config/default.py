@@ -214,6 +214,8 @@ COS_BUCKET = os.environ.get("COS_BUCKET", "")
 # 短信配置
 SMS_SECRET_ID = os.environ.get("SMS_SECRET_ID", "")
 SMS_SECRET_KEY = os.environ.get("SMS_SECRET_KEY", "")
+SMS_APP_ID = os.environ.get("SMS_APP_ID", "")
+SMS_SIGN_NAME = os.environ.get("SMS_SIGN_NAME", "")
 
 # Celery配置
 CELERY_BROKER_URL = (f"redis://{os.environ.get('REDIS_HOST', 'localhost')}:"

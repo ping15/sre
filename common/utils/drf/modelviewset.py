@@ -187,7 +187,10 @@ class ModelViewSet(DRFModelViewSet):
         exam_students = ExamStudent.objects.filter(student_name=student.exam_username, is_commit=1)
 
         # 只需要已发布的考试成绩
-        exam_students = [student for student in exam_students if student.is_published]
+        exam_students = [
+            student for student in exam_students
+            if student.is_published and student.exam_arrange.subject.display_name in global_constants.subject_titles
+        ]
 
         # 培训班id相同的聚合在一起
         training_class_id_to_grades, training_class_ids = defaultdict(list), set()
