@@ -2,12 +2,15 @@ import datetime
 import logging
 from typing import List
 
+from django.conf import settings
 from django.db.models import QuerySet
 
+from apps.my_lectures.models import InstructorEvent
 from apps.teaching_space.models import TrainingClass
 from celery_app import app
 from common.utils import colorize
-from exam_system.models import ExamStudent
+from common.utils.sms import sms_client
+from exam_system.models import ExamArrange, ExamStudent
 
 logger = logging.getLogger(__name__)
 
@@ -70,3 +73,44 @@ def detect_exam_end_time(func):
         update_exam_students, fields=["is_commit", "start_time", "completion_time"], batch_size=500)
 
     logger.info(f"共有{len(update_exam_students)}个学生自动提交")
+
+
+@app.task(bind=True)
+@colorize.colorize_func
+def notify_student_take_exam(func):
+    """提前两天通知考生参加考试"""
+
+    for exam in ExamArrange.objects.filter(start_time=datetime.datetime.now() - datetime.timedelta(days=2)):
+        sms_client.send_sms(
+            phone_numbers=[student.phone for student in ExamStudent.objects.filter(exam_id=exam.id)],
+            # "尊敬的学员，您好！您参与的课程[{1}]即将考试，考试时间为{2}。请访问以下网址进行考试：{3}。如有疑问，请随时联系。"
+            template_id="2322925",
+            template_params=[
+                # 培训班名称
+                exam.training_class.name,
+                # 开考时间
+                exam.start_time,
+                # 我的考试路由
+                settings.EXAM_SYSTEM_HOST + "/student/auto_exams/"
+            ]
+        )
+
+
+@app.task(bind=True)
+@colorize.colorize_func
+def notify_teacher_confirm_schedule(func):
+    """通知讲师确认课程安排"""
+    for instructor_event in InstructorEvent.objects.filter(
+        # 两天前
+        start_date=(datetime.datetime.now() - datetime.timedelta(days=2)).date(),
+        # 邀请讲课
+        event_type=InstructorEvent.EventType.INVITE_TO_CLASS,
+        # 未处理
+        status=InstructorEvent.Status.PENDING,
+    ):
+        sms_client.send_sms(
+            phone_numbers=[instructor_event.training_class.instructor.phone],
+            # "尊敬的讲师，您好！请您即日起在两天内确认课程[{1}]的安排。如有疑问，请随时联系。"
+            template_id="2322922",
+            template_params=[instructor_event.training_class.name],
+        )

@@ -53,7 +53,7 @@ from common.utils.drf.permissions import (
 from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import TRAINING_CLASS_SCORE_EXCEL_MAPPING
 from common.utils.excel_parser.parser import excel_to_list
-from common.utils.sms import send_sms
+from common.utils.sms import send_sms, sms_client
 from exam_system.models import ExamArrange, ExamGrade, ExamStudent
 
 
@@ -434,7 +434,8 @@ class TrainingClassModelViewSet(ModelViewSet):
         # 检查是否有该讲师报名记录
         try:
             selected_enrolment: InstructorEnrolment = instructor_enrolments.get(
-                id=validated_data["instructor_enrolment_id"])
+                id=validated_data["instructor_enrolment_id"]
+            )
         except InstructorEnrolment.DoesNotExist:
             return Response(result=False, err_msg="不存在该报名记录")
 
@@ -443,7 +444,7 @@ class TrainingClassModelViewSet(ModelViewSet):
             for enrolment in instructor_enrolments:
                 enrolment.status = (
                     InstructorEnrolment.Status.ACCEPTED
-                    if enrolment.id == selected_enrolment
+                    if enrolment == selected_enrolment
                     else InstructorEnrolment.Status.REJECTED
                 )
                 enrolment.save()
@@ -451,6 +452,14 @@ class TrainingClassModelViewSet(ModelViewSet):
             # 指定培训班的讲师
             training_class.instructor = selected_enrolment.instructor
             training_class.save()
+
+            # 通知讲师
+            sms_client.send_sms(
+                phone_numbers=[selected_enrolment.instructor.phone],
+                # "尊敬的讲师，您好！恭喜您被选为[{1}]课程的讲师。请确认相关安排。如有疑问，请随时联系。"
+                template_id="2322923",
+                template_params=[training_class.name]
+            )
 
             # 给选中的讲师安排日程
             EventHandler.create_event(training_class=training_class, event_type=Event.EventType.CLASS_SCHEDULE.value)
