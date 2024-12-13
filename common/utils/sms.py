@@ -104,7 +104,7 @@ class SMSClient:
             self.client = None
             self.error_msg = e
 
-    def send_sms(self, phone_numbers: List[str], template_id: str, template_params: List[str]):
+    def send_sms(self, phone_numbers: List[str], template_id: str, template_params: List[str]) -> List[str]:
         """
         发送短信
         :param phone_numbers: 手机列表

@@ -4,6 +4,7 @@ from typing import List
 
 from django.conf import settings
 from django.db.models import QuerySet
+from django.utils import timezone
 
 from apps.my_lectures.models import InstructorEvent
 from apps.teaching_space.models import TrainingClass
@@ -79,27 +80,41 @@ def detect_exam_end_time(func):
 @colorize.colorize_func
 def notify_student_take_exam(func):
     """提前两天通知考生参加考试"""
+    errors: List[str] = []
 
-    for exam in ExamArrange.objects.filter(start_time=datetime.datetime.now() - datetime.timedelta(days=2)):
-        sms_client.send_sms(
-            phone_numbers=[student.phone for student in ExamStudent.objects.filter(exam_id=exam.id)],
-            # "尊敬的学员，您好！您参与的课程[{1}]即将考试，考试时间为{2}。请访问以下网址进行考试：{3}。如有疑问，请随时联系。"
-            template_id="2322925",
-            template_params=[
-                # 培训班名称
-                exam.training_class.name,
-                # 开考时间
-                exam.start_time,
-                # 我的考试路由
-                settings.EXAM_SYSTEM_HOST + "/student/auto_exams/"
-            ]
-        )
+    # 这里考试系统的开考时间有八小时的时间差
+    now: datetime.datetime = timezone.now() + datetime.timedelta(hours=8)
+    for exam in ExamArrange.objects.filter(start_time__range=[now, now + datetime.timedelta(days=2)]):
+        if settings.DEBUG:
+            errors += sms_client.send_sms(
+                phone_numbers=[student.phone for student in ExamStudent.objects.filter(exam_id=exam.id)],
+                # "尊敬的学员，您好！您参与的课程[{1}]即将考试，考试时间为{2}。请访问以下网址进行考试：{3}。如有疑问，请随时联系。"
+                template_id="2322925",
+                # template_id="2322918",
+                template_params=[
+                    # 培训班名称
+                    exam.training_class.name,
+                    # 开考时间
+                    exam.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    # 我的考试路由
+                    settings.EXAM_SYSTEM_HOST
+                ]
+            )
+        else:
+            logger.info(f"模拟给{[student.phone for student in ExamStudent.objects.filter(exam_id=exam.id)]}"
+                        f"发送短信，参与课程: {exam.training_class.name}, "
+                        f"考试时间: {exam.start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+
+    if errors:
+        logger.info(f"发送短信出现异常: {errors}")
 
 
 @app.task(bind=True)
 @colorize.colorize_func
 def notify_teacher_confirm_schedule(func):
     """通知讲师确认课程安排"""
+    errors: List[str] = []
+
     for instructor_event in InstructorEvent.objects.filter(
         # 两天前
         start_date=(datetime.datetime.now() - datetime.timedelta(days=2)).date(),
@@ -108,9 +123,16 @@ def notify_teacher_confirm_schedule(func):
         # 未处理
         status=InstructorEvent.Status.PENDING,
     ):
-        sms_client.send_sms(
-            phone_numbers=[instructor_event.training_class.instructor.phone],
-            # "尊敬的讲师，您好！请您即日起在两天内确认课程[{1}]的安排。如有疑问，请随时联系。"
-            template_id="2322922",
-            template_params=[instructor_event.training_class.name],
-        )
+        if not settings.DEBUG:
+            errors += sms_client.send_sms(
+                phone_numbers=[instructor_event.training_class.instructor.phone],
+                # "尊敬的讲师，您好！请您即日起在两天内确认课程[{1}]的安排。如有疑问，请随时联系。"
+                template_id="2322922",
+                template_params=[instructor_event.training_class.name],
+            )
+        else:
+            logger.info(f"模拟给[{instructor_event.training_class.instructor.username}]发送短信，"
+                        f"确认课程[{instructor_event.training_class.name}]")
+
+    if errors:
+        logger.info(f"发送短信出现异常: {errors}")

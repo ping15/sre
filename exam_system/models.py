@@ -135,7 +135,7 @@ class ExamStudent(BaseModel):
     @property
     def phone(self) -> str:
         """sre-xxx"""
-        return self.student_name.split("-")[1]
+        return self.student_name
 
     @property
     def answer_ids_dict(self):
