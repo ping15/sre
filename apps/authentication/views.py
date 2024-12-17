@@ -1,4 +1,5 @@
 import random
+from typing import List
 
 from django.conf import settings
 from django.contrib.auth import logout
@@ -11,9 +12,9 @@ from rest_framework.viewsets import GenericViewSet
 
 from apps.authentication.serializers import LoginSerializer, SMSSerializer
 from apps.platform_management.models import Administrator, ClientStudent, Instructor
-from common.utils import sms
 from common.utils.auth import SMS_KEY, login
 from common.utils.drf.response import Response
+from common.utils.sms import sms_client
 
 
 class AuthenticationViewSet(GenericViewSet):
@@ -63,9 +64,13 @@ class AuthenticationViewSet(GenericViewSet):
         if settings.ENABLE_SMS:
             sms_code = ''.join(random.choices('0123456789', k=6))
 
-            sms_status: str = sms.send_login_message(phone, sms_code)
-            if sms_status != sms.SUCCESS_STATUS:
-                return Response(result=False, err_msg=f"短信发送失败: {sms.status_mapping.get(sms_status, '未知错误')}")
+            errors: List[str] = sms_client.send_sms(
+                phone_numbers=[phone],
+                template_id="2329148",
+                template_params=[sms_code],
+            )
+            if errors:
+                return Response(result=False, err_msg=errors)
 
             cache.set(f"{SMS_KEY}:{phone}", sms_code, timeout=60)
 

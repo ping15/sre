@@ -1,8 +1,6 @@
 from typing import List
 
 from django.conf import settings
-
-# from django.conf import settings
 from tencentcloud.common import credential
 from tencentcloud.common.exception import TencentCloudSDKException
 from tencentcloud.common.profile.client_profile import ClientProfile
@@ -11,42 +9,13 @@ from tencentcloud.sms.v20210111 import models
 from tencentcloud.sms.v20210111 import sms_client as tencent_sms_client
 from tencentcloud.sms.v20210111.models import SendStatus
 
-status_mapping = {
-    '0': '短信发送成功',
-    '-1': '参数不全',
-    '-2': '服务器空间不支持,请确认支持curl或者fsocket,联系您的空间商解决或者更换空间',
-    '30': '密码错误',
-    '40': '账号不存在',
-    '41': '余额不足',
-    '42': '账户已过期',
-    '43': 'IP地址限制',
-    '50': '内容含有敏感词'
-}
 
-SUCCESS_STATUS = "0"
-
-
-# todo: 临时短信api，等资源下来后替换
 def send_sms(phone, msg):
     """发送短信"""
-#     smsapi = "http://api.smsbao.com/"
-#     # 短信平台账号
-#     user = settings.SMS_USERNAME
-#     # 短信平台密码
-#     password = settings.SMS_PASSWORD
-#     # 要发送的短信内容
-#     content = msg
-#     data = urllib.parse.urlencode({'u': user, 'p': password, 'm': phone, 'c': content})
-#     send_url = smsapi + 'sms?' + data
-#     response = urllib.request.urlopen(send_url)
-#     status = response.read().decode('utf-8')
-#
-#     return status
 
 
 def send_login_message(phone, sms_code):
     """发送登录验证码短信"""
-#     send_sms(phone, f'【SRE培训学习中心】{sms_code}为您的登录验证码，请于1分钟内填写，如非本人操作，请忽略本短信。')
 
 
 class SMSClient:
@@ -55,15 +24,16 @@ class SMSClient:
     """
 
     TEMPLATE_ID_TO_TEMPLATE = {
-        "2322925": "尊敬的学员，您好！您参与的课程[{1}]即将考试，考试时间为{2}。请访问以下网址进行考试：{3}。如有疑问，请随时联系。",
-        "2322924": "尊敬的讲师，您好！您参与的[{1}]课程已撤销。如有疑问，请随时联系。",
-        "2322923": "尊敬的讲师，您好！恭喜您被选为[{1}]课程的讲师。请确认相关安排。如有疑问，请随时联系。",
-        "2322922": "尊敬的讲师，您好！请您即日起在两天内确认课程[{1}]的安排。如有疑问，请随时联系。",
-        "2322920": "尊敬的讲师，您好！由于安排调整，您负责的课程[{1}]被撤销。如有疑问，请随时联系。",
-        "2322919": "尊敬的讲师，您好！您负责的课程[{1}]开课时间已修改。由于您在该时间段已登记不可用时间，"
-                   "我们将另行指定讲师。如有疑问，请随时联系",
-        "2322918": "尊敬的讲师，您好！您负责的课程[{1}]开课时间已修改，时间由{2}调整为{3}。如有疑问，请随时联系。",
-        "2322916": "尊敬的讲师，您好！由于培训班取消，您参与的[{1}]已被取消。如有疑问，请随时联系。",
+        "2330588": "尊敬的讲师，您好！由于培训班取消，您参与的[{1}]已被取消。如有疑问，请随时联系。",
+        "2330587": "尊敬的讲师，您好！您负责的培训班[{1}]开始时间已修改，时间由{2}调整为{3}。如有疑问，请随时联系。",
+        "2330586": "尊敬的讲师，您好！您负责的培训班[{1}]开始时间已修改。由于您在该时间段已登记不可用时间，我们将另行指定讲师。如有疑问，请随时联系。",
+        "2330585": "尊敬的讲师，您好！由于安排调整，您负责的培训班[{1}]被撤销。如有疑问，请随时联系。",
+        "2330584": "尊敬的讲师，您好！请您即日起在两天内确认培训班[{1}]的安排。如有疑问，请随时联系。",
+        "2330583": "尊敬的讲师，您好！恭喜您被选为[{1}]培训班的讲师。请确认相关安排。如有疑问，请随时联系。",
+        "2330582": "尊敬的讲师，您好！您参与的[{1}]培训班已撤销。如有疑问，请随时联系。",
+        "2330581": "尊敬的学员，您好！您参与的培训班[{1}]即将考试，考试时间为{2}。请访问以下网址进行考试：{3}。如有疑问，请随时联系。",
+        "2329148": "SRE培训学习中心提醒您，{1}为您的登录验证码，请于1分钟内填写，如非本人操作，请忽略本短信。",
+
     }
 
     def __init__(self, secret_id: str, secret_key: str, sms_app_id: str, sms_sign_name: str):
@@ -114,8 +84,14 @@ class SMSClient:
         python SDK参考 [https://cloud.tencent.com/document/product/382/43196]
         错误码参考 [https://cloud.tencent.com/document/product/382/38780]
         """
+        # if not settings.ENABLE_NOTIFY_SMS:
+        #     return []
+
         if not self.client:
             return [f"无可用sms_client, 检查secret_id和secret_key是否有效, client初始化错误信息: {self.error_msg}"]
+
+        if template_id not in self.TEMPLATE_ID_TO_TEMPLATE:
+            return ["模板id无效"]
 
         req = models.SendSmsRequest()
         req.SmsSdkAppId = self.sms_app_id

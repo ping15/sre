@@ -85,19 +85,14 @@ def notify_student_take_exam(func):
     # 这里考试系统的开考时间有八小时的时间差
     now: datetime.datetime = timezone.now() + datetime.timedelta(hours=8)
     for exam in ExamArrange.objects.filter(start_time__range=[now, now + datetime.timedelta(days=2)]):
-        if settings.DEBUG:
+        if settings.ENABLE_NOTIFY_SMS:
             errors += sms_client.send_sms(
                 phone_numbers=[student.phone for student in ExamStudent.objects.filter(exam_id=exam.id)],
-                # "尊敬的学员，您好！您参与的课程[{1}]即将考试，考试时间为{2}。请访问以下网址进行考试：{3}。如有疑问，请随时联系。"
-                template_id="2322925",
-                # template_id="2322918",
+                template_id="2330581",
                 template_params=[
-                    # 培训班名称
                     exam.training_class.name,
-                    # 开考时间
                     exam.start_time.strftime('%Y-%m-%d %H:%M:%S'),
-                    # 我的考试路由
-                    settings.EXAM_SYSTEM_HOST
+                    "xxx网址"
                 ]
             )
         else:
@@ -115,19 +110,20 @@ def notify_teacher_confirm_schedule(func):
     """通知讲师确认课程安排"""
     errors: List[str] = []
 
+    # 这里考试系统的开考时间有八小时的时间差
+    now: datetime.datetime = timezone.now() + datetime.timedelta(hours=8)
     for instructor_event in InstructorEvent.objects.filter(
-        # 两天前
-        start_date=(datetime.datetime.now() - datetime.timedelta(days=2)).date(),
+        # 两天内
+        start_date__range=[now, now + datetime.timedelta(days=2)],
         # 邀请讲课
         event_type=InstructorEvent.EventType.INVITE_TO_CLASS,
         # 未处理
         status=InstructorEvent.Status.PENDING,
     ):
-        if not settings.DEBUG:
+        if not settings.ENABLE_NOTIFY_SMS:
             errors += sms_client.send_sms(
                 phone_numbers=[instructor_event.training_class.instructor.phone],
-                # "尊敬的讲师，您好！请您即日起在两天内确认课程[{1}]的安排。如有疑问，请随时联系。"
-                template_id="2322922",
+                template_id="2330584",
                 template_params=[instructor_event.training_class.name],
             )
         else:
@@ -136,3 +132,7 @@ def notify_teacher_confirm_schedule(func):
 
     if errors:
         logger.info(f"发送短信出现异常: {errors}")
+
+
+def test():
+    """"""

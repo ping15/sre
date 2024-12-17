@@ -1,6 +1,8 @@
 import datetime
+from typing import List
 
 import pytz
+from django.db import transaction
 from rest_framework import serializers
 
 from apps.my_lectures.handles.event import EventHandler
@@ -25,6 +27,7 @@ from common.utils import global_constants
 from common.utils.drf.exceptions import TrainingClassScheduleConflictError
 from common.utils.drf.serializer_fields import ChoiceField, ModelInstanceField
 from common.utils.drf.serializer_validator import BasicSerializerValidator
+from common.utils.sms import sms_client
 from exam_system.models import ExamStudent
 
 
@@ -95,63 +98,95 @@ class TrainingClassUpdateSerializer(serializers.ModelSerializer):
     force_update = serializers.BooleanField(label="是否强制更新", default=False)
 
     def update(self, training_class: TrainingClass, validated_data):
-        # 1. 如果修改了开课时间，且此时培训班并没有排期，则直接修改
-        # 2. 如果修改了开课时间，且此时培训班存在排期，且修改后的时间和讲师日程或不可用时间不冲突，
-        #      则直接修改，且原有排期开课时间修改为新的开课时间
-        # 3. 如果修改了开课时间，且此时培训班存在排期，且修改后的时间和讲师日程或不可用时间冲突，
-        #      则不可修改，如果force_update为True强制更新，则情况原有的排期清除
-        if "start_date" in validated_data and training_class.start_date != validated_data["start_date"]:
-            force_update = validated_data.get("force_update", False)
-            start_date = validated_data["start_date"]
-            end_date = validated_data["start_date"] + datetime.timedelta(days=global_constants.CLASS_DAYS - 1)
+        with transaction.atomic():
+            # 1. 如果修改了开课时间，且此时培训班并没有排期，则直接修改
+            # 2. 如果修改了开课时间，且此时培训班存在排期，且修改后的时间和讲师日程或不可用时间不冲突，
+            #      则直接修改，且原有排期开课时间修改为新的开课时间
+            # 3. 如果修改了开课时间，且此时培训班存在排期，且修改后的时间和讲师日程或不可用时间冲突，
+            #      则不可修改，如果force_update为True强制更新，则情况原有的排期清除
+            if "start_date" in validated_data and training_class.start_date != validated_data["start_date"]:
+                force_update = validated_data.get("force_update", False)
+                start_date = validated_data["start_date"]
+                end_date = validated_data["start_date"] + datetime.timedelta(days=global_constants.CLASS_DAYS - 1)
 
-            try:
-                schedule_event: Event = Event.objects.get(
-                    event_type=Event.EventType.CLASS_SCHEDULE, training_class=training_class)
+                try:
+                    schedule_event: Event = Event.objects.get(
+                        event_type=Event.EventType.CLASS_SCHEDULE,
+                        training_class=training_class
+                    )
 
-                # 修改后的时间讲师有空，修改排期的开课和结课时间
-                if EventHandler.is_instructor_idle(schedule_event.instructor, start_date, end_date):
-                    schedule_event.start_date = start_date
-                    schedule_event.end_date = end_date
-                    schedule_event.save()
+                    # 修改后的时间讲师有空，修改排期的开课和结课时间
+                    if EventHandler.is_instructor_idle(schedule_event.instructor, start_date, end_date):
+                        # 通知讲师
+                        errors: List[str] = sms_client.send_sms(
+                            phone_numbers=[schedule_event.instructor.phone],
+                            template_id="2330587",
+                            template_params=[
+                                training_class.name,
+                                schedule_event.start_date,
+                                start_date,
+                            ],
+                        )
+                        if errors:
+                            raise serializers.ValidationError(str(errors))
 
-                # 如果排期冲突，且强制更新
-                elif force_update:
-                    # 清空排期
-                    schedule_event.delete()
+                        # 重新调整开课和结课时间
+                        schedule_event.start_date = start_date
+                        schedule_event.end_date = end_date
+                        schedule_event.save()
 
-                    # 如果发布类型为[指定讲师]，将讲师的单据状态修改为[已指定其他讲师]
-                    if training_class.publish_type == TrainingClass.PublishType.DESIGNATE_INSTRUCTOR:
-                        InstructorEvent.objects.filter(training_class=training_class).update(
-                            status=InstructorEvent.Status.REMOVED)
+                    # 如果排期冲突，且强制更新
+                    elif force_update:
+                        # 清空排期
+                        schedule_event.delete()
 
-                    # 如果发布类型为[发布广告]，将讲师报名单据的状态修改为[已撤销]
-                    elif training_class.publish_type == TrainingClass.PublishType.PUBLISH_ADVERTISEMENT:
-                        InstructorEnrolment.objects.filter(advertisement__training_class=training_class).update(
-                            status=InstructorEnrolment.Status.REVOKE)
+                        # 通知讲师
+                        if training_class.instructor:
+                            errors: List[str] = sms_client.send_sms(
+                                phone_numbers=[training_class.instructor.phone],
+                                template_id="2330586",
+                                template_params=[training_class.name]
+                            )
+                            if errors:
+                                raise serializers.ValidationError(str(errors))
 
-                    # 培训班的发布类型修改为[未发布]
-                    training_class.publish_type = TrainingClass.PublishType.NONE
-                    training_class.instructor = None
-                    training_class.save()
+                        # 如果发布类型为[指定讲师]，将讲师的单据状态修改为[已指定其他讲师]
+                        if training_class.publish_type == TrainingClass.PublishType.DESIGNATE_INSTRUCTOR:
+                            InstructorEvent.objects. \
+                                filter(training_class=training_class). \
+                                update(status=InstructorEvent.Status.REMOVED)
 
-                else:
-                    raise TrainingClassScheduleConflictError("修改后的开课时间和原有讲师排期存在冲突")
+                        # 如果发布类型为[发布广告]，将讲师报名单据的状态修改为[已撤销]
+                        elif training_class.publish_type == TrainingClass.PublishType.PUBLISH_ADVERTISEMENT:
+                            InstructorEnrolment.objects. \
+                                filter(advertisement__training_class=training_class). \
+                                update(status=InstructorEnrolment.Status.REVOKE)
 
-            except Event.DoesNotExist:
-                # 培训班没有排期
-                pass
+                        # 培训班的发布类型修改为[未发布]
+                        training_class.publish_type = TrainingClass.PublishType.NONE
+                        training_class.instructor = None
+                        training_class.save()
 
-        # 如果课程，课程后缀出现变动，需要判断
-        if training_class.course != validated_data.get("course", training_class.course) or \
-                training_class.session_number != validated_data.get("session_number", training_class.session_number):
+                    else:
+                        raise TrainingClassScheduleConflictError("修改后的开课时间和原有讲师排期存在冲突")
 
-            # 客户公司名 + 课程名 + 期数 唯一
-            TrainingClassCreateSerializer.assert_unique(
-                validated_data["target_client_company"], validated_data["course"], validated_data["session_number"]
-            )
+                except Event.DoesNotExist:
+                    # 培训班没有排期
+                    pass
 
-        return super().update(training_class, validated_data)
+            # 如果课程，课程后缀出现变动，需要判断
+            if any([
+                training_class.course != validated_data.get("course", training_class.course),
+                training_class.session_number != validated_data.get("session_number", training_class.session_number)
+            ]):
+                # 客户公司名 + 课程名 + 期数 唯一
+                TrainingClassCreateSerializer.assert_unique(
+                    target_client_company=validated_data["target_client_company"],
+                    course=validated_data["course"],
+                    session_number=validated_data["session_number"]
+                )
+
+            return super().update(training_class, validated_data)
 
     class Meta:
         model = TrainingClass

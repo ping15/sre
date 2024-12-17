@@ -4,7 +4,6 @@ import os
 from collections import defaultdict
 from typing import List
 
-from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
 from django.http import FileResponse
@@ -53,7 +52,7 @@ from common.utils.drf.permissions import (
 from common.utils.drf.response import Response
 from common.utils.excel_parser.mapping import TRAINING_CLASS_SCORE_EXCEL_MAPPING
 from common.utils.excel_parser.parser import excel_to_list
-from common.utils.sms import send_sms, sms_client
+from common.utils.sms import sms_client
 from exam_system.models import ExamArrange, ExamGrade, ExamStudent
 
 
@@ -290,11 +289,11 @@ class TrainingClassModelViewSet(ModelViewSet):
                 instructor_event.save()
 
                 # 通知讲师
-                self._notify_instructor(
-                    instructor=instructor_event.instructor,
-                    notify_message=f"尊敬的讲师，您好！感谢您之前同意参与[{training_class.name}]的授课。"
-                                   "由于安排调整，我们需要重新指定讲师。对此给您带来的不便，我们深表歉意。非常感谢您的理解与支持！"
-                )
+                # self._notify_instructor(
+                #     instructor=instructor_event.instructor,
+                #     notify_message=f"尊敬的讲师，您好！感谢您之前同意参与[{training_class.name}]的授课。"
+                #                    "由于安排调整，我们需要重新指定讲师。对此给您带来的不便，我们深表歉意。非常感谢您的理解与支持！"
+                # )
 
             # 取消培训班的讲师
             training_class.instructor = None
@@ -324,6 +323,15 @@ class TrainingClassModelViewSet(ModelViewSet):
             return Response(result=False, err_msg="讲师非待处理不可撤销")
 
         with transaction.atomic():
+            # 通知讲师
+            errors: List[str] = sms_client.send_sms(
+                phone_numbers=[training_class.instructor.phone],
+                template_id="2330585",
+                template_params=[training_class.name],
+            )
+            if errors:
+                return Response(result=False, err_msg=errors)
+
             # 删除讲师代办事件，取消培训班的讲师
             instructor_event.delete()
             training_class.instructor = None
@@ -454,12 +462,13 @@ class TrainingClassModelViewSet(ModelViewSet):
             training_class.save()
 
             # 通知讲师
-            sms_client.send_sms(
+            errors: List[str] = sms_client.send_sms(
                 phone_numbers=[selected_enrolment.instructor.phone],
-                # "尊敬的讲师，您好！恭喜您被选为[{1}]课程的讲师。请确认相关安排。如有疑问，请随时联系。"
-                template_id="2322923",
+                template_id="2330583",
                 template_params=[training_class.name]
             )
+            if errors:
+                return Response(result=False, err_msg=errors)
 
             # 给选中的讲师安排日程
             EventHandler.create_event(training_class=training_class, event_type=Event.EventType.CLASS_SCHEDULE.value)
@@ -480,20 +489,16 @@ class TrainingClassModelViewSet(ModelViewSet):
         with transaction.atomic():
             # 通知讲师
             instructor_enrolments = InstructorEnrolment.objects.filter(advertisement__training_class=training_class)
-            for instructor_enrolment in instructor_enrolments:
-                self._notify_instructor(
-                    instructor=instructor_enrolment.instructor,
-                    notify_message=f"尊敬的讲师，您好！您参与的[{training_class.name}]广告已撤销。如有疑问，请随时联系。"
-                )
+            errors: List[str] = sms_client.send_sms(
+                phone_numbers=[enrolment.instructor.phone for enrolment in instructor_enrolments],
+                template_id="2330582",
+                template_params=[training_class.name],
+            )
+            if errors:
+                return Response(result=False, err_msg=errors)
 
             # 删除讲师报名单据
             instructor_enrolments.delete()
-
-            # 如果该培训班存在排期，清除排期，并通知讲师
-            self._cancel_schedule_and_notify_instructor(
-                training_class=training_class,
-                notify_message=f"尊敬的讲师，您好！您参与的[{training_class.name}]广告已撤销，相关排期已清除。如有疑问，请随时联系。"
-            )
 
             # 培训班发布类型为[未发布]
             training_class.publish_type = TrainingClass.PublishType.NONE
@@ -543,44 +548,46 @@ class TrainingClassModelViewSet(ModelViewSet):
             training_class.status = TrainingClass.Status.CANCELLED
             training_class.save()
 
-            # 如果指定了讲师，讲师的单据状态修改为[已撤销]，并通知讲师
+            # 如果指定了讲师
             if training_class.publish_type == TrainingClass.PublishType.DESIGNATE_INSTRUCTOR:
-                InstructorEvent.objects.filter(
-                    instructor=training_class.instructor, training_class=training_class
-                ).update(status=InstructorEvent.Status.REVOKE)
+                # 讲师的单据状态修改为[已撤销]
+                InstructorEvent.objects. \
+                    filter(instructor=training_class.instructor, training_class=training_class). \
+                    update(status=InstructorEvent.Status.REVOKE)
 
                 # 通知讲师
-                self._notify_instructor(
-                    instructor=training_class.instructor,
-                    notify_message=f"尊敬的讲师，您好！您参与的[{training_class.name}]培训班已撤销。如有疑问，请随时联系。"
+                errors: List[str] = sms_client.send_sms(
+                    phone_numbers=[training_class.instructor.phone],
+                    template_id="2330588",
+                    template_params=[training_class.name],
                 )
+                if errors:
+                    return Response(result=False, err_msg=errors)
 
-            # 如果发布了广告，广告的状态修改为[已撤销]，并通知已经报名的讲师
+            # 如果发布了广告
             elif training_class.publish_type == TrainingClass.PublishType.PUBLISH_ADVERTISEMENT:
+                # 广告的状态修改为[已撤销]
                 advertisement: Advertisement = training_class.advertisement
                 advertisement.is_revoked = True
                 advertisement.save()
 
                 # 通知讲师
                 instructor_enrolments = InstructorEnrolment.objects.filter(advertisement__training_class=training_class)
-                for instructor in instructor_enrolments:
-                    self._notify_instructor(
-                        instructor=instructor,
-                        notify_message=f"尊敬的讲师，您好！您参与的[{training_class.name}]广告已撤销。如有疑问，请随时联系。"
-                    )
+                errors: List[str] = sms_client.send_sms(
+                    phone_numbers=[enrolment.instructor.phone for enrolment in instructor_enrolments],
+                    template_id="2330588",
+                    template_params=[training_class.name],
+                )
+                if errors:
+                    return Response(result=False, err_msg=errors)
 
                 # 清除讲师报名单据
                 instructor_enrolments.delete()
 
-            # 如果说培训班状态为[未开课]，将排期取消
+            # 如果说培训班状态为[未开课]
             if training_class.status == TrainingClass.Status.PREPARING:
+                # 取消排期
                 Event.objects.filter(instructor=training_class.instructor).delete()
-
-                # 通知讲师
-                self._notify_instructor(
-                    instructor=training_class.instructor,
-                    notify_message=f"尊敬的讲师，您好！您参与的[{training_class.name}]培训班已撤销，相关排期已清除。如有疑问，请随时联系。"
-                )
 
         return Response()
     # endregion
@@ -759,18 +766,4 @@ class TrainingClassModelViewSet(ModelViewSet):
     # endregion
 
     # region 私有函数
-    def _cancel_schedule_and_notify_instructor(self, training_class: TrainingClass, notify_message: str):
-        """清除培训班排期，通知对应的讲师"""
-        for event in Event.objects.filter(event_type=Event.EventType.CLASS_SCHEDULE, training_class=training_class):
-            # 通知讲师
-            self._notify_instructor(event.instructor, notify_message)
-
-            # 清除排期
-            event.delete()
-
-    @staticmethod
-    def _notify_instructor(instructor: Instructor, notify_message: str):
-        """通知讲师"""
-        if settings.ENABLE_NOTIFY_SMS:
-            send_sms(instructor.phone, notify_message)
     # endregion
