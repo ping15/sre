@@ -231,9 +231,10 @@ DJANGO_CELERY_BEAT_TZ_AWARE = False
 # django_filters默认lookup_expr
 FILTERS_DEFAULT_LOOKUP_EXPR = "icontains"
 
-# 是否启用SMS
+# SMS相关配置
 ENABLE_SMS = bool(os.environ.get("ENABLE_SMS", False))
 ENABLE_NOTIFY_SMS = bool(os.environ.get("ENABLE_NOTIFY_SMS", False))
+NOTIFY_WHITELIST = os.environ["NOTIFY_WHITELIST"].split(",") if "NOTIFY_WHITELIST" in os.environ else []
 SMS_USERNAME = os.environ.get("SMS_USERNAME", "")
 SMS_PASSWORD = os.environ.get("SMS_PASSWORD", "")
 

@@ -84,8 +84,11 @@ class SMSClient:
         python SDK参考 [https://cloud.tencent.com/document/product/382/43196]
         错误码参考 [https://cloud.tencent.com/document/product/382/38780]
         """
-        # if not settings.ENABLE_NOTIFY_SMS:
-        #     return []
+        if not settings.ENABLE_NOTIFY_SMS:
+            return []
+
+        if settings.NOTIFY_WHITELIST:
+            phone_numbers = [phone for phone in phone_numbers if phone in settings.NOTIFY_WHITELIST]
 
         if not self.client:
             return [f"无可用sms_client, 检查secret_id和secret_key是否有效, client初始化错误信息: {self.error_msg}"]
