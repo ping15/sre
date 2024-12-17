@@ -280,6 +280,15 @@ class TrainingClassModelViewSet(ModelViewSet):
         with transaction.atomic():
             # 当讲师同意时，会产生相应的日程，移除讲师时需将日程清除，并通知讲师
             if training_class.instructor and instructor_event.status == InstructorEvent.Status.AGREED:
+                # 通知讲师
+                errors: List[str] = sms_client.send_sms(
+                    phone_numbers=[training_class.instructor.phone],
+                    template_id="2330585",
+                    template_params=[training_class.name],
+                )
+                if errors:
+                    return Response(result=False, err_msg=str(errors))
+
                 # 把该培训班的该讲师的日程取消
                 Event.objects.filter(
                     event_type=Event.EventType.CLASS_SCHEDULE.value, instructor=training_class.instructor).delete()
@@ -323,15 +332,6 @@ class TrainingClassModelViewSet(ModelViewSet):
             return Response(result=False, err_msg="讲师非待处理不可撤销")
 
         with transaction.atomic():
-            # 通知讲师
-            errors: List[str] = sms_client.send_sms(
-                phone_numbers=[training_class.instructor.phone],
-                template_id="2330585",
-                template_params=[training_class.name],
-            )
-            if errors:
-                return Response(result=False, err_msg=errors)
-
             # 删除讲师代办事件，取消培训班的讲师
             instructor_event.delete()
             training_class.instructor = None
