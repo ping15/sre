@@ -132,7 +132,3 @@ def notify_teacher_confirm_schedule(func):
 
     if errors:
         logger.info(f"发送短信出现异常: {errors}")
-
-
-def test():
-    """"""

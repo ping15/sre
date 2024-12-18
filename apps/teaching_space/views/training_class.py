@@ -598,7 +598,7 @@ class TrainingClassModelViewSet(ModelViewSet):
                 training_class.instructor = None
 
                 # 发布状态为[未发布]
-                training_class.publish_type = None
+                training_class.publish_type = TrainingClass.PublishType.NONE
 
             # 培训班状态修改为[已取消]
             training_class.status = TrainingClass.Status.CANCELLED
