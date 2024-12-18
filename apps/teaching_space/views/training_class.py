@@ -9,6 +9,7 @@ from django.db.models import QuerySet
 from django.http import FileResponse
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import AllowAny
 
 from apps.my_lectures.handles.event import EventHandler
 from apps.my_lectures.models import Advertisement, InstructorEnrolment, InstructorEvent
@@ -41,6 +42,10 @@ from apps.teaching_space.serializers.training_class import (
     TrainingClassSelectInstructorSerializer,
     TrainingClassStudentsSerializer,
     TrainingClassUpdateSerializer,
+)
+from apps.teaching_space.tasks import (
+    notify_student_take_exam,
+    notify_teacher_confirm_schedule,
 )
 from common.utils import global_constants
 from common.utils.drf.exceptions import TrainingClassScheduleConflictError
@@ -297,13 +302,6 @@ class TrainingClassModelViewSet(ModelViewSet):
                 instructor_event.status = InstructorEvent.Status.REMOVED
                 instructor_event.save()
 
-                # 通知讲师
-                # self._notify_instructor(
-                #     instructor=instructor_event.instructor,
-                #     notify_message=f"尊敬的讲师，您好！感谢您之前同意参与[{training_class.name}]的授课。"
-                #                    "由于安排调整，我们需要重新指定讲师。对此给您带来的不便，我们深表歉意。非常感谢您的理解与支持！"
-                # )
-
             # 取消培训班的讲师
             training_class.instructor = None
 
@@ -510,6 +508,9 @@ class TrainingClassModelViewSet(ModelViewSet):
             advertisement.is_revoked = True
             advertisement.save()
 
+            # 排期清除
+            Event.objects.filter(event_type=Event.EventType.CLASS_SCHEDULE, training_class=training_class).delete()
+
         return Response()
 
     # endregion
@@ -544,10 +545,6 @@ class TrainingClassModelViewSet(ModelViewSet):
             return Response(result=False, err_msg="该培训班的状态为[已结课]，不可取消")
 
         with transaction.atomic():
-            # 培训班状态修改为[已取消]
-            training_class.status = TrainingClass.Status.CANCELLED
-            training_class.save()
-
             # 如果指定了讲师
             if training_class.publish_type == TrainingClass.PublishType.DESIGNATE_INSTRUCTOR:
                 # 讲师的单据状态修改为[已撤销]
@@ -555,14 +552,16 @@ class TrainingClassModelViewSet(ModelViewSet):
                     filter(instructor=training_class.instructor, training_class=training_class). \
                     update(status=InstructorEvent.Status.REVOKE)
 
-                # 通知讲师
-                errors: List[str] = sms_client.send_sms(
-                    phone_numbers=[training_class.instructor.phone],
-                    template_id="2330588",
-                    template_params=[training_class.name],
-                )
-                if errors:
-                    return Response(result=False, err_msg=errors)
+                # 如果存在排期
+                if Event.objects.filter(instructor=training_class.instructor, training_class=training_class).exists():
+                    # 通知讲师
+                    errors: List[str] = sms_client.send_sms(
+                        phone_numbers=[training_class.instructor.phone],
+                        template_id="2330588",
+                        template_params=[training_class.name],
+                    )
+                    if errors:
+                        return Response(result=False, err_msg=errors)
 
             # 如果发布了广告
             elif training_class.publish_type == TrainingClass.PublishType.PUBLISH_ADVERTISEMENT:
@@ -585,9 +584,19 @@ class TrainingClassModelViewSet(ModelViewSet):
                 instructor_enrolments.delete()
 
             # 如果说培训班状态为[未开课]
-            if training_class.status == TrainingClass.Status.PREPARING:
+            if training_class.status == TrainingClass.Status.PREPARING and training_class.instructor:
                 # 取消排期
-                Event.objects.filter(instructor=training_class.instructor).delete()
+                Event.objects.filter(instructor=training_class.instructor, training_class=training_class).delete()
+
+                # 培训班讲师为空
+                training_class.instructor = None
+
+                # 发布状态为[未发布]
+                training_class.publish_type = None
+
+            # 培训班状态修改为[已取消]
+            training_class.status = TrainingClass.Status.CANCELLED
+            training_class.save()
 
         return Response()
     # endregion
@@ -767,3 +776,13 @@ class TrainingClassModelViewSet(ModelViewSet):
 
     # region 私有函数
     # endregion
+
+    @action(methods=["GET"], detail=False, permission_classes=[AllowAny])
+    def detect(self, request, *args, **kwargs):
+        notify_teacher_confirm_schedule()
+        return Response()
+
+    @action(methods=["GET"], detail=False, permission_classes=[AllowAny])
+    def detect2(self, request, *args, **kwargs):
+        notify_student_take_exam()
+        return Response()

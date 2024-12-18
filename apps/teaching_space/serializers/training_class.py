@@ -123,8 +123,8 @@ class TrainingClassUpdateSerializer(serializers.ModelSerializer):
                             template_id="2330587",
                             template_params=[
                                 training_class.name,
-                                schedule_event.start_date,
-                                start_date,
+                                schedule_event.start_date.strftime("%Y-%m-%d"),
+                                start_date.strftime("%Y-%m-%d"),
                             ],
                         )
                         if errors:

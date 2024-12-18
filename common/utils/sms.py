@@ -134,6 +134,7 @@ class SMSClient:
             #     "IsoCode": "CN"
             # }
 
+            print(status)
             # Fee代表计费条数, 为 0 代表未计费, 没有正确发送出去
             if status.Fee == 0:
                 errors.append(f"[{status.PhoneNumber}]发送失败, 状态码: {status.Code}, 错误信息: {status.Message}")

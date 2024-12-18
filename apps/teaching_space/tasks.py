@@ -120,7 +120,7 @@ def notify_teacher_confirm_schedule(func):
         # 未处理
         status=InstructorEvent.Status.PENDING,
     ):
-        if not settings.ENABLE_NOTIFY_SMS:
+        if settings.ENABLE_NOTIFY_SMS:
             errors += sms_client.send_sms(
                 phone_numbers=[instructor_event.training_class.instructor.phone],
                 template_id="2330584",
