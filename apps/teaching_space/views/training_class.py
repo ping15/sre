@@ -259,6 +259,15 @@ class TrainingClassModelViewSet(ModelViewSet):
             training_class.publish_type = TrainingClass.PublishType.DESIGNATE_INSTRUCTOR
             training_class.save()
 
+            # 通知讲师
+            errors: List[str] = sms_client.send_sms(
+                phone_numbers=[Instructor.objects.get(id=validated_data["instructor_id"]).phone],
+                template_id="2330584",
+                template_params=[training_class.name]
+            )
+            if errors:
+                return Response(result=False, err_msg=errors)
+
         except IntegrityError:
             return Response(result=False, err_msg="该讲师不存在")
 
