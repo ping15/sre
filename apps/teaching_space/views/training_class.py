@@ -7,6 +7,7 @@ from typing import List
 from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
 from django.http import FileResponse
+from django.utils import timezone
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
@@ -42,10 +43,6 @@ from apps.teaching_space.serializers.training_class import (
     TrainingClassSelectInstructorSerializer,
     TrainingClassStudentsSerializer,
     TrainingClassUpdateSerializer,
-)
-from apps.teaching_space.tasks import (
-    notify_student_take_exam,
-    notify_teacher_confirm_schedule,
 )
 from common.utils import global_constants
 from common.utils.drf.exceptions import TrainingClassScheduleConflictError
@@ -788,10 +785,48 @@ class TrainingClassModelViewSet(ModelViewSet):
 
     @action(methods=["GET"], detail=False, permission_classes=[AllowAny])
     def detect(self, request, *args, **kwargs):
-        notify_teacher_confirm_schedule()
+        """通知讲师确认课程安排"""
+        errors: List[str] = []
+
+        # 这里考试系统的开考时间有八小时的时间差
+        now: datetime.datetime = timezone.now() + datetime.timedelta(hours=8)
+        for instructor_event in InstructorEvent.objects.filter(
+                # 两天内
+                start_date__range=[now, now + datetime.timedelta(days=2)],
+                # 邀请讲课
+                event_type=InstructorEvent.EventType.INVITE_TO_CLASS,
+                # 未处理
+                status=InstructorEvent.Status.PENDING,
+        ):
+            errors += sms_client.send_sms(
+                phone_numbers=[instructor_event.training_class.instructor.phone],
+                template_id="2330584",
+                template_params=[instructor_event.training_class.name],
+            )
+
+        if errors:
+            Response(result=False, err_msg=str(errors))
         return Response()
 
     @action(methods=["GET"], detail=False, permission_classes=[AllowAny])
     def detect2(self, request, *args, **kwargs):
-        notify_student_take_exam()
+        """提前两天通知考生参加考试"""
+        errors: List[str] = []
+
+        # 这里考试系统的开考时间有八小时的时间差
+        now: datetime.datetime = timezone.now() + datetime.timedelta(hours=8)
+        for exam in ExamArrange.objects.filter(start_time__range=[now, now + datetime.timedelta(days=2)]):
+            errors += sms_client.send_sms(
+                phone_numbers=[student.phone for student in ExamStudent.objects.filter(exam_id=exam.id)],
+                template_id="2330581",
+                template_params=[
+                    exam.training_class.name,
+                    exam.start_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    "xxx网址"
+                ]
+            )
+
+        if errors:
+            return Response(result=False, err_msg=str(errors))
+
         return Response()
