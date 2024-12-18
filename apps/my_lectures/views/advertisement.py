@@ -32,9 +32,9 @@ class AdvertisementViewSet(ModelViewSet):
         now: datetime.datetime = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
 
         # 所有讲师报名表处于[待聘用]状态且过了deadline的状态都更新为[已超时]
-        InstructorEnrolment.objects.filter(
-            status=InstructorEnrolment.Status.PENDING, advertisement__deadline_datetime__lte=now
-        ).update(status=InstructorEnrolment.Status.TIMEOUT)
+        InstructorEnrolment.objects. \
+            filter(status=InstructorEnrolment.Status.PENDING, advertisement__deadline_datetime__lte=now). \
+            update(status=InstructorEnrolment.Status.TIMEOUT)
         return super().get_queryset().filter(deadline_datetime__gt=now)
 
     def list(self, request, *args, **kwargs):
@@ -45,13 +45,13 @@ class AdvertisementViewSet(ModelViewSet):
         advertisements: QuerySet["Advertisement"] = self.filter_queryset(self.get_queryset())
 
         # 获取所有与当前讲师相关的申请
-        instructor_enrolments: QuerySet["InstructorEnrolment"] = InstructorEnrolment.objects.filter(
-            instructor=instructor)
-        application_dict: Dict[int, str] = {app.advertisement.id: app.status for app in instructor_enrolments}
+        instructor_enrolments: QuerySet["InstructorEnrolment"] = InstructorEnrolment.objects. \
+            filter(instructor=instructor)
+        enrolment_status_map: Dict[int, str] = {ie.advertisement.id: ie.status for ie in instructor_enrolments}
 
         advertisement_info: Dict[str, Any] = {
             "overview": {
-                InstructorEnrolment.Status.ACCEPTED: 0,  # 已被聘用
+                InstructorEnrolment.Status.ACCEPTED: 0,  # 已被聘用, 已撤销
                 InstructorEnrolment.Status.PENDING: 0,  # 等待确认
                 InstructorEnrolment.Status.REJECTED: 0,  # 未被聘用
             },
@@ -59,13 +59,17 @@ class AdvertisementViewSet(ModelViewSet):
         }
         for ad in advertisements:
             # 使用预先查询的申请状态
-            status = application_dict.get(ad.id, InstructorEnrolment.Status.NOT_ENROLLED)
+            status = enrolment_status_map.get(ad.id, InstructorEnrolment.Status.NOT_ENROLLED)
 
             training_class: TrainingClass = ad.training_class
 
             # 分类统计
             if status in advertisement_info["overview"].keys():
                 advertisement_info["overview"][status] += 1
+
+            # 已撤销也归类到[已被聘用]中
+            elif status == InstructorEnrolment.Status.REVOKE:
+                advertisement_info["overview"][InstructorEnrolment.Status.ACCEPTED] += 1
 
             # 添加广告信息和状态到返回数据中
             advertisement_info["datas"].append({

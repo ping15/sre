@@ -115,18 +115,16 @@ class TrainingClassUpdateSerializer(serializers.ModelSerializer):
                         training_class=training_class
                     )
 
-                    # ！以下这段代码不好理解，建议注释后试一下！
-                    # 假如开课和结课时间为A，B，修改后的开课和结课时间为C，D
-                    # 已知条件：因为大家课程的持续时间一样，所以A到B的长度等于C到D的长度
-                    # 判断C, D这个时间段讲师是否有空, 需要排除掉A到B的时间段
-                    # 需要取C到D这个时间段非A到B的交集时间部分
+                    # 老的开课时间范围不需要检验是否有空
+                    # 1. 当新的开课时间处于原来的课程期间时，开课时间为老的结课时间 + 1
+                    # 2. 当新的结课时间处于原来的课程期间时，结课时间为老的开课时间 - 1
                     if training_class.start_date <= start_date <= training_class.end_date:
-                        start_date = training_class.end_date + datetime.timedelta(days=1)
+                        check_start_date = training_class.end_date + datetime.timedelta(days=1)
                     elif training_class.start_date <= end_date <= training_class.end_date:
-                        end_date = training_class.start_date - datetime.timedelta(days=1)
+                        check_end_date = training_class.start_date - datetime.timedelta(days=1)
 
                     # 修改后的时间讲师有空，修改排期的开课和结课时间
-                    if EventHandler.is_instructor_idle(schedule_event.instructor, start_date, end_date):
+                    if EventHandler.is_instructor_idle(schedule_event.instructor, check_start_date, check_end_date):
                         # 通知讲师
                         errors: List[str] = sms_client.send_sms(
                             phone_numbers=[schedule_event.instructor.phone],
