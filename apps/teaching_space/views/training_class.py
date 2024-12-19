@@ -182,8 +182,14 @@ class TrainingClassModelViewSet(ModelViewSet):
             instructor_event.status == InstructorEvent.Status.PENDING,
             deadline_date <= datetime.datetime.now().date()
         ]):
-            instructor_event.status = InstructorEvent.Status.TIMEOUT
-            instructor_event.save()
+            with transaction.atomic():
+                # 单据状态修改为[已超时]
+                instructor_event.status = InstructorEvent.Status.TIMEOUT
+                instructor_event.save()
+
+                # 培训班发布状态为[未发布]
+                training_class.publish_type = TrainingClass.PublishType.NONE
+                training_class.save()
 
         return Response(self.get_serializer(instructor_event).data)
 

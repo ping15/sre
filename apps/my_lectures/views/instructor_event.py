@@ -39,13 +39,15 @@ class InstructorEventModelViewSet(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         # 已经过了[截至时间]且[未处理]的单据更新为已超时
-        self.get_queryset().filter(
-            start_date__lte=datetime.datetime.now().date(),
-            status=InstructorEvent.Status.PENDING,
-            event_type=InstructorEvent.EventType.INVITE_TO_CLASS
-        ).update(
-            status=InstructorEvent.Status.TIMEOUT
-        )
+        # 培训班发布状态修改为[未发布]
+        self.get_queryset(). \
+            filter(
+                start_date__lte=datetime.datetime.now().date(),
+                status=InstructorEvent.Status.PENDING,
+                event_type=InstructorEvent.EventType.INVITE_TO_CLASS). \
+            update(
+                status=InstructorEvent.Status.TIMEOUT,
+                training_class__publish_type=TrainingClass.PublishType.NONE)
 
         return super().list(request, *args, **kwargs)
 

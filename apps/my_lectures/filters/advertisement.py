@@ -1,5 +1,3 @@
-from typing import List
-
 import django_filters
 from django.db.models import QuerySet
 
