@@ -90,6 +90,9 @@ class SMSClient:
         if settings.NOTIFY_WHITELIST:
             phone_numbers = [phone for phone in phone_numbers if phone in settings.NOTIFY_WHITELIST]
 
+        if not phone_numbers:
+            return []
+
         if not self.client:
             return [f"无可用sms_client, 检查secret_id和secret_key是否有效, client初始化错误信息: {self.error_msg}"]
 
