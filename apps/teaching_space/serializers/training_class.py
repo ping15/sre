@@ -118,6 +118,7 @@ class TrainingClassUpdateSerializer(serializers.ModelSerializer):
                     # 老的开课时间范围不需要检验是否有空
                     # 1. 当新的开课时间处于原来的课程期间时，开课时间为老的结课时间 + 1
                     # 2. 当新的结课时间处于原来的课程期间时，结课时间为老的开课时间 - 1
+                    check_start_date, check_end_date = start_date, end_date
                     if training_class.start_date <= start_date <= training_class.end_date:
                         check_start_date = training_class.end_date + datetime.timedelta(days=1)
                     elif training_class.start_date <= end_date <= training_class.end_date:
