@@ -46,8 +46,7 @@ class InstructorEventModelViewSet(ModelViewSet):
                 status=InstructorEvent.Status.PENDING,
                 event_type=InstructorEvent.EventType.INVITE_TO_CLASS). \
             update(
-                status=InstructorEvent.Status.TIMEOUT,
-                training_class__publish_type=TrainingClass.PublishType.NONE)
+                status=InstructorEvent.Status.TIMEOUT)
 
         return super().list(request, *args, **kwargs)
 
@@ -88,12 +87,13 @@ class InstructorEventModelViewSet(ModelViewSet):
                     training_class=training_class, event_type=Event.EventType.CLASS_SCHEDULE.value)
 
                 # 将单据状态为[待处理]，且时间与该单据有冲突的自动修改为[已拒绝]
-                self.get_queryset().filter(
-                    status=InstructorEvent.Status.PENDING,
-                    start_date__range=(
-                        instructor_event.start_date,
-                        instructor_event.start_date + datetime.timedelta(days=global_constants.CLASS_DAYS - 1)
-                    )).update(status=InstructorEvent.Status.REJECTED)
+                self.get_queryset(). \
+                    filter(
+                        status=InstructorEvent.Status.PENDING,
+                        start_date__range=(
+                            instructor_event.start_date,
+                            instructor_event.start_date + datetime.timedelta(days=global_constants.CLASS_DAYS - 1))). \
+                    update(status=InstructorEvent.Status.REJECTED)
 
         return Response()
 
