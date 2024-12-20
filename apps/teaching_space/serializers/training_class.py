@@ -24,7 +24,7 @@ from apps.platform_management.serialiers.course_template import (
 from apps.platform_management.serialiers.instructor import InstructorListSerializer
 from apps.teaching_space.models import TrainingClass
 from common.utils import global_constants
-from common.utils.drf.exceptions import TrainingClassScheduleConflictError
+from common.utils.drf.response import Response
 from common.utils.drf.serializer_fields import ChoiceField, ModelInstanceField
 from common.utils.drf.serializer_validator import BasicSerializerValidator
 from common.utils.sms import sms_client
@@ -177,7 +177,7 @@ class TrainingClassUpdateSerializer(serializers.ModelSerializer):
                         training_class.save()
 
                     else:
-                        raise TrainingClassScheduleConflictError("修改后的开课时间和原有讲师排期存在冲突")
+                        return Response(code=10000, err_msg="修改后的开课时间和原有讲师排期存在冲突")
 
                 except Event.DoesNotExist:
                     # 培训班没有排期
@@ -232,7 +232,7 @@ class TrainingClassPublishAdvertisementSerializer(serializers.Serializer):
 
         # 如果报名截止时间小于等于当前时间，不可发布广告
         if attrs["deadline_datetime"] <= now:
-            return serializers.ValidationError("报名截止时间小于等于当前时间，不可发布广告")
+            raise serializers.ValidationError("报名截止时间小于等于当前时间，不可发布广告")
 
         return attrs
 
