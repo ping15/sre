@@ -1,7 +1,7 @@
-import datetime
 from typing import Dict, List, Set
 
 from django.db.models import QuerySet
+from django.utils import timezone
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 
@@ -74,7 +74,7 @@ class InstructorModelViewSet(ModelViewSet):
         taught_courses: List[Dict[str:str]] = []
 
         training_classes: QuerySet["TrainingClass"] = instructor.training_classes.filter(
-            start_date__lte=datetime.datetime.now()
+            start_date__lte=timezone.now()
         )
 
         self.filter_class = InstructorTaughtCoursesFilterClass

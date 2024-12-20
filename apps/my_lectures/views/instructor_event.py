@@ -2,6 +2,7 @@ import datetime
 
 from django.db import transaction
 from django.db.models import QuerySet
+from django.utils import timezone
 from rest_framework.decorators import action
 
 from apps.my_lectures.filters.instructor_event import InstructorEventFilterClass
@@ -42,7 +43,7 @@ class InstructorEventModelViewSet(ModelViewSet):
         # 培训班发布状态修改为[未发布]
         self.get_queryset(). \
             filter(
-                start_date__lte=datetime.datetime.now().date(),
+                start_date__lte=timezone.now().date(),
                 status=InstructorEvent.Status.PENDING,
                 event_type=InstructorEvent.EventType.INVITE_TO_CLASS). \
             update(

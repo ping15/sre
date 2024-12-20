@@ -3,6 +3,7 @@ from typing import Any, Dict
 
 from django.db import transaction
 from django.db.models import F, QuerySet
+from django.utils import timezone
 from rest_framework.decorators import action
 
 from apps.my_lectures.filters.advertisement import AdvertisementFilterClass
@@ -29,7 +30,7 @@ class AdvertisementViewSet(ModelViewSet):
     }
 
     def get_queryset(self):
-        now: datetime.datetime = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
+        now: datetime.datetime = timezone.now().replace(tzinfo=datetime.timezone.utc)
 
         # 所有讲师报名表处于[待聘用]状态且过了deadline的状态都更新为[已超时]
         InstructorEnrolment.objects. \
@@ -112,7 +113,7 @@ class AdvertisementViewSet(ModelViewSet):
             return Response(result=False, err_msg="该广告不存在")
 
         # 如果该广告已过期，不可报名
-        if advertisement.deadline_datetime <= datetime.datetime.now().replace(tzinfo=datetime.timezone.utc):
+        if advertisement.deadline_datetime <= timezone.now():
             return Response(result=False, err_msg="该广告已过期")
 
         # 是否该讲师有空给该培训班上课

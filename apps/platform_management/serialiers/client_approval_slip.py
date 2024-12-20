@@ -1,5 +1,4 @@
-import datetime
-
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
@@ -46,7 +45,7 @@ class ClientApprovalSlipCreateSerializer(serializers.ModelSerializer):
         validated_data["affiliated_manage_company_name"] = submission_info["affiliated_manage_company_name"]
         validated_data["affiliated_client_company_name"] = submission_info["name"]
         validated_data["submitter"] = user.username
-        validated_data["submission_datetime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        validated_data["submission_datetime"] = timezone.now().strftime("%Y-%m-%d %H:%M:%S")
         validated_data["name"] = (f"{submission_info['affiliated_manage_company_name']}申请"
                                   f"给{submission_info['name']}培训服务")
         return super().create(validated_data)

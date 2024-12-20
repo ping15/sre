@@ -733,7 +733,7 @@ class TrainingClassModelViewSet(ModelViewSet):
     def publish_grades(self, request, *args, **kwargs):
         """开放考生查询"""
         training_class: TrainingClass = self.get_object()
-        now = datetime.datetime.now()
+        now = timezone.now()
 
         if training_class.is_published:
             return Response(result=False, err_msg="该培训班成绩已发布")

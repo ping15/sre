@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 @colorize.colorize_func
 def start_training_class(func):
     """开课检测"""
-    now_date: datetime.date = datetime.datetime.now().date()
+    now_date: datetime.date = timezone.now().date()
 
     # 寻找 [状态在<发布广告>或<指定讲师>] + [有课程排期] + [筹备中] + [时间到达开课时间] 的培训班
     training_classes_to_update: QuerySet["TrainingClass"] = TrainingClass.objects.filter(
@@ -54,7 +54,7 @@ def finish_training_class(func):
 @colorize.colorize_func
 def detect_exam_end_time(func):
     """检查考试结束时间"""
-    now = datetime.datetime.now()
+    now = timezone.now()
 
     update_exam_students: List[ExamStudent] = []
     for exam_student in ExamStudent.objects.filter(is_commit=False):
