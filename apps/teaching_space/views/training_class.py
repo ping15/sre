@@ -113,7 +113,7 @@ class TrainingClassModelViewSet(ModelViewSet):
             return super().update(request, *args, **kwargs)
 
         except TrainingClassScheduleConflictError as e:
-            return Response(result=False, err_msg=e.detail, code=e.status_code)
+            return Response(result=True, err_msg=e.detail, code=e.status_code)
     # endregion
 
     # region 学员
