@@ -3,6 +3,7 @@ from typing import List
 
 import pytz
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import serializers
 
 from apps.my_lectures.handles.event import EventHandler
@@ -228,7 +229,7 @@ class TrainingClassPublishAdvertisementSerializer(serializers.Serializer):
     deadline_datetime = serializers.DateTimeField(label="开课截止时间")
 
     def validate(self, attrs):
-        now = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
+        now = timezone.now()
 
         # 如果报名截止时间小于等于当前时间，不可发布广告
         if attrs["deadline_datetime"] <= now:

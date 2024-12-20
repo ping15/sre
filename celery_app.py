@@ -29,11 +29,19 @@ app.conf.beat_schedule = {
         'args': ()
     },
 
-    # 'finish-training-class': {
-    #     'task': 'apps.teaching_space.tasks.finish_training_class',
-    #     'schedule': crontab(minute="00", hour="00"),
-    #     'args': ()
-    # },
+    # 通知学员参加考试
+    'notify_student_take_exam': {
+        'task': 'apps.teaching_space.tasks.notify_student_take_exam',
+        'schedule': crontab(minute="00", hour="18"),
+        'args': ()
+    },
+
+    # 通知讲师确认培训班排期
+    'notify_teacher_confirm_schedule': {
+        'task': 'apps.teaching_space.tasks.notify_teacher_confirm_schedule',
+        'schedule': crontab(minute="00", hour="18"),
+        'args': ()
+    },
 
     # 每1分钟检查一次考试
     'detect_exam_end_time': {

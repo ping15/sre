@@ -180,7 +180,7 @@ class TrainingClassModelViewSet(ModelViewSet):
             instructor_event.event_type == InstructorEvent.EventType.INVITE_TO_CLASS,
             instructor_event.status != InstructorEvent.Status.TIMEOUT,
             instructor_event.status == InstructorEvent.Status.PENDING,
-            deadline_date <= datetime.datetime.now().date()
+            deadline_date <= timezone.now().date()
         ]):
             with transaction.atomic():
                 # 单据状态修改为[已超时]
@@ -204,7 +204,7 @@ class TrainingClassModelViewSet(ModelViewSet):
             return Response(result=False, err_msg="该培训班不处于未发布状态")
 
         # 如果培训班已开课，无法添加该讲师
-        if training_class.start_date <= datetime.datetime.now().date():
+        if training_class.start_date <= timezone.now().date():
             return Response(result=False, err_msg="该培训班开课时间小于等于当前时间，不可添加")
 
         # 如果已经有了讲师，不可添加
@@ -291,7 +291,7 @@ class TrainingClassModelViewSet(ModelViewSet):
         instructor_event: InstructorEvent = training_class.instructor_event.last()
 
         # 如果培训班已开课，则无法移除该讲师
-        if training_class.start_date <= datetime.datetime.now().date():
+        if training_class.start_date <= timezone.now().date():
             return Response(result=False, err_msg="该培训班已开课，不可移除")
 
         with transaction.atomic():
@@ -360,7 +360,7 @@ class TrainingClassModelViewSet(ModelViewSet):
         """发布广告"""
         validated_data = self.validated_data
         training_class: TrainingClass = self.get_object()
-        now = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
+        now = timezone.now()
 
         # 如果培训班不处于未发布状态，不可发布
         if training_class.publish_type != TrainingClass.PublishType.NONE:
@@ -408,7 +408,7 @@ class TrainingClassModelViewSet(ModelViewSet):
         advertisement: Advertisement = training_class.advertisement
         instructor_enrolments: QuerySet["InstructorEnrolment"] = advertisement.instructor_enrolments.all().filter(
             status__in=[InstructorEnrolment.Status.PENDING, InstructorEnrolment.Status.ACCEPTED])
-        now: datetime = datetime.datetime.now().replace(tzinfo=datetime.timezone.utc)
+        now: datetime = timezone.now()
         is_expired: bool = False
 
         # 如果未选择讲师且如果报名截止时间大于等于当前时间
@@ -637,7 +637,7 @@ class TrainingClassModelViewSet(ModelViewSet):
             return Response(result=False, err_msg="该培训班未处于[开课中]")
 
         # 如果该培训班未到达结课时间，直接返回
-        if datetime.datetime.now().date() < training_class.end_date:
+        if timezone.now().date() < training_class.end_date:
             return Response(result=False, err_msg="该培训班未到达结课时间")
 
         datas, err_msg = excel_to_list(self.validated_data["file"], TRAINING_CLASS_SCORE_EXCEL_MAPPING)
