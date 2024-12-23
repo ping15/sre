@@ -503,7 +503,7 @@ class TrainingClassModelViewSet(ModelViewSet):
             instructor_enrolments = InstructorEnrolment.objects.filter(advertisement__training_class=training_class)
             errors: List[str] = sms_client.send_sms(
                 phone_numbers=[enrolment.instructor.phone for enrolment in instructor_enrolments],
-                template_id="2330582",
+                template_id="2334658",
                 template_params=[training_class.name],
             )
             if errors:
@@ -571,7 +571,7 @@ class TrainingClassModelViewSet(ModelViewSet):
                     # 通知讲师
                     errors: List[str] = sms_client.send_sms(
                         phone_numbers=[training_class.instructor.phone],
-                        template_id="2330588",
+                        template_id="2334657",
                         template_params=[training_class.name],
                     )
                     if errors:
@@ -588,7 +588,7 @@ class TrainingClassModelViewSet(ModelViewSet):
                 instructor_enrolments = InstructorEnrolment.objects.filter(advertisement__training_class=training_class)
                 errors: List[str] = sms_client.send_sms(
                     phone_numbers=[enrolment.instructor.phone for enrolment in instructor_enrolments],
-                    template_id="2330588",
+                    template_id="2334657",
                     template_params=[training_class.name],
                 )
                 if errors:
