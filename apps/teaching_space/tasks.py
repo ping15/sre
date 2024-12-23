@@ -64,7 +64,7 @@ def detect_exam_end_time(func):
         # 1. 自动提交
         # 2. 如果考试有开考时间，优先使用开考时间，否则使用考试结束时间
         # 3. 考生结束考试时间为考试结束时间
-        if exam and exam.end_time.replace(tzinfo=None) <= now:
+        if exam and exam.end_time <= now:
             exam_student.is_commit = True
             exam_student.start_time = exam_student.start_time or exam.end_time
             exam_student.completion_time = exam.end_time
