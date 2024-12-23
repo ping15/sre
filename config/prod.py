@@ -77,3 +77,7 @@ CACHES = {
         'LOCATION': 'account_cache'
     },
 }
+
+MIDDLEWARE += (
+    "common.utils.middleware.Capture500Middleware",
+)

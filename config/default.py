@@ -74,7 +74,7 @@ MIDDLEWARE = (
     # "blueapps.core.exceptions.middleware.AppExceptionMiddleware",
     # django国际化中间件
     "django.middleware.locale.LocaleMiddleware",
-    "common.utils.middleware.Capture500Middleware",
+    # "common.utils.middleware.Capture500Middleware",
 )
 
 TEMPLATES = [

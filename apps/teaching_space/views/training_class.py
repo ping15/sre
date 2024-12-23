@@ -172,7 +172,9 @@ class TrainingClassModelViewSet(ModelViewSet):
         if not hasattr(training_class, "instructor_event") or training_class.instructor_event is None:
             return Response(result=False, err_msg="该讲师无代办事项")
 
-        instructor_event: InstructorEvent = training_class.instructor_event.last()
+        instructor_event: InstructorEvent = training_class.instructor_event. \
+            filter(event_type=InstructorEvent.EventType.INVITE_TO_CLASS). \
+            last()
 
         # 如果该单据为[邀请上课]，且已经过了[截至时间]且处于[待处理]则超时了
         deadline_date: datetime.date = instructor_event.start_date or training_class.start_date
@@ -637,7 +639,7 @@ class TrainingClassModelViewSet(ModelViewSet):
             return Response(result=False, err_msg="该培训班未处于[开课中]")
 
         # 如果该培训班未到达结课时间，直接返回
-        if timezone.now().date() < training_class.end_date:
+        if timezone.now().date() <= training_class.end_date:
             return Response(result=False, err_msg="该培训班未到达结课时间")
 
         datas, err_msg = excel_to_list(self.validated_data["file"], TRAINING_CLASS_SCORE_EXCEL_MAPPING)

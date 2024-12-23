@@ -20,7 +20,7 @@ class PendingExamsApiView(APIView):
 
         # 【未提交】且【未到考试结束时间】的算一场待考试
         for exam in ExamArrange.objects.filter(id__in=exam_students.values_list("exam_id", flat=True)):
-            if exam.start_time.replace(tzinfo=None) <= now < exam.end_time.replace(tzinfo=None):
+            if exam.start_time <= now < exam.end_time:
                 pending_exam_count += 1
 
         return Response({"pending_exam_count": pending_exam_count})
