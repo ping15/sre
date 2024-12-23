@@ -31,6 +31,16 @@ class InstructorCreateSerializer(serializers.ModelSerializer, PhoneCreateSeriali
     phone = UniqueCharField(label="讲师手机号码", max_length=16)
     id_photo = ResourceInfoSerializer(label="资源信息", default={})
 
+    def create(self, validated_data):
+        course_name_to_id = {course["name"]: course["id"] for course in CourseTemplate.objects.values("name", "id")}
+        validated_data["teachable_courses"] = [
+            course_name_to_id[course_name]
+            for course_name in validated_data.get("teachable_courses", [])
+            if course_name in course_name_to_id
+        ]
+
+        return super().create(validated_data)
+
     class Meta:
         model = Instructor
         fields = "__all__"
