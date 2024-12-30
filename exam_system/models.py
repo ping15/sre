@@ -1,7 +1,6 @@
 import json
-from typing import Optional
 
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Sum
 
 from apps.teaching_space.models import TrainingClass
@@ -95,11 +94,12 @@ class ExamArrange(BaseModel):
     subject = models.ForeignKey('Subject', models.DO_NOTHING)
 
     @property
-    def training_class(self) -> Optional[TrainingClass]:
-        try:
-            return TrainingClass.objects.get(id=self.training_class_id)
-        except TrainingClass.DoesNotExist:
-            return None
+    def training_class(self) -> TrainingClass:
+        return TrainingClass.objects.get(id=self.training_class_id)
+
+    @property
+    def paper(self) -> "PaperArrange":
+        return PaperArrange.objects.get(id=self.paper_id)
 
     class Meta:
         managed = False
@@ -173,40 +173,55 @@ class ExamStudent(BaseModel):
 
     @property
     def is_published(self) -> bool:
-        try:
-            return self.exam_arrange.training_class.is_published
-        except Exception: # noqa
-            return False
+        return self.exam_arrange.training_class.is_published
 
     @property
-    def exam_arrange(self) -> Optional[ExamArrange]:
-        try:
-            return ExamArrange.objects.get(id=self.exam_id)
-        except Exception: # noqa
-            return None
+    def exam_arrange(self) -> ExamArrange:
+        return ExamArrange.objects.get(id=self.exam_id)
 
     @property
     def exam_title(self):
         return self.exam_arrange.title if self.exam_arrange else ""
 
     @property
-    def training_class(self) -> Optional[TrainingClass]:
-        try:
-            return TrainingClass.objects.get(id=self.exam_arrange.training_class_id)
-        except Exception: # noqa
-            return None
+    def training_class(self) -> TrainingClass:
+        return TrainingClass.objects.get(id=self.exam_arrange.training_class_id)
 
     @property
     def training_class_name(self) -> str:
         return self.training_class.name if self.training_class else ""
 
     @property
-    def subject(self) -> Optional["Subject"]:
-        return self.exam_arrange.subject if self.exam_arrange else None
+    def subject(self) -> "Subject":
+        return self.exam_arrange.subject
 
     @property
     def subject_name(self) -> str:
         return self.subject.display_name if self.subject else ""
+
+    @property
+    def has_grades(self) -> bool:
+        return self.answer_ids != '{}'
+
+    def auto_generate_grades(self):
+        """
+        自动生成答案记录实例
+        """
+
+        ids_list = self.exam_arrange.paper.instance_exercise.split(';')
+        if len(ids_list) == 0:
+            return
+
+        answer_ids = {}
+        with transaction.atomic():
+            for exercise_id in ids_list:
+                # 生成一个答案记录实例
+                grade = ExamGrade.objects.create(answer='', exam_id=self.exam_id, is_check=True)
+                answer_ids.update({exercise_id: grade.id})
+
+            # 更新对应关系
+            self.answer_ids = json.dumps(answer_ids)
+            self.save()
 
     class Meta:
         managed = False

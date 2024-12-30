@@ -61,17 +61,24 @@ def detect_exam_end_time(func):
         exam = exam_student.exam_arrange
 
         # 如果未提交的考卷且到考试结束时间的
-        # 1. 自动提交
-        # 2. 如果考试有开考时间，优先使用开考时间，否则使用考试结束时间
-        # 3. 考生结束考试时间为考试结束时间
         if exam and exam.end_time <= now:
+            # 自动提交
             exam_student.is_commit = True
+
+            # 如果考试有开考时间，优先使用开考时间，否则使用考试结束时间
             exam_student.start_time = exam_student.start_time or exam.end_time
+
+            # 考生结束考试时间为考试结束时间
             exam_student.completion_time = exam.end_time
+
+            # 自动创建答案记录实例
+            if not exam_student.has_grades:
+                exam_student.auto_generate_grades()
+
             update_exam_students.append(exam_student)
 
-    ExamStudent.objects.bulk_update(
-        update_exam_students, fields=["is_commit", "start_time", "completion_time"], batch_size=500)
+    ExamStudent.objects. \
+        bulk_update(update_exam_students, fields=["is_commit", "start_time", "completion_time"], batch_size=500)
 
     logger.info(f"共有{len(update_exam_students)}个学生自动提交")
 
