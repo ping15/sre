@@ -16,7 +16,7 @@ class PendingExamsApiView(APIView):
         user: ClientStudent = self.request.user
         exam_students = ExamStudent.objects.filter(student_name=user.exam_username, is_commit=False)
         pending_exam_count: int = 0
-        now: datetime.datetime = timezone.now()
+        now: datetime.datetime = timezone.now() + datetime.timedelta(hours=8)
 
         # 【未提交】且【未到考试结束时间】的算一场待考试
         for exam in ExamArrange.objects.filter(id__in=exam_students.values_list("exam_id", flat=True)):
