@@ -216,7 +216,7 @@ class ExamStudent(BaseModel):
         with transaction.atomic():
             for exercise_id in ids_list:
                 # 生成一个答案记录实例
-                grade = ExamGrade.objects.create(answer='', exam_id=self.exam_id, is_check=True)
+                grade = ExamGrade.objects.create(answer='', exam_id=self.exam_id, is_check=True, grade=0)
                 answer_ids.update({exercise_id: grade.id})
 
             # 更新对应关系
