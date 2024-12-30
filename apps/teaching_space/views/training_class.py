@@ -749,7 +749,7 @@ class TrainingClassModelViewSet(ModelViewSet):
         # 对于每一场考试, 下面任何一种情况出现, 则不可发布成绩
         for exam in ExamArrange.objects.filter(training_class_id=training_class.id):
             # 如果未到达考试结束时间, 不可发布成绩
-            if exam.end_time.replace(tzinfo=None) > now.replace(tzinfo=None):
+            if exam.end_time > now + datetime.timedelta(hours=8):
                 return Response(result=False, err_msg=f"考试[{exam.title}]未到达考试结束时间")
 
             # 存在已答题未评分的题目, 不可发布成绩
