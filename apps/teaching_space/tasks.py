@@ -54,7 +54,8 @@ def finish_training_class(func):
 @colorize.colorize_func
 def detect_exam_end_time(func):
     """检查考试结束时间"""
-    now = timezone.now()
+    # 这里考试系统的开考时间有八小时的时间差
+    now = timezone.now() + datetime.timedelta(hours=8)
 
     update_exam_students: List[ExamStudent] = []
     for exam_student in ExamStudent.objects.filter(is_commit=False):
