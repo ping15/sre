@@ -10,7 +10,7 @@ from common.utils.drf.response import Response
 
 class AllClassesModelViewSet(ModelViewSet):
     permission_classes = [SuperAdministratorPermission]
-    queryset = TrainingClass.objects.all()
+    queryset = TrainingClass.objects.prefetch_related("target_client_company", "course")
     filter_class = AllClassesFilterClass
     http_method_names = ["get"]
     ACTION_MAP = {
