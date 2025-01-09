@@ -23,6 +23,7 @@ INSTALLED_APPS = (
     # "bkoauth",
     # 框架自定义命令
     # "blueapps.contrib.bk_commands",
+    "jazzmin",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -201,7 +202,7 @@ SECRET_KEY = "django-insecure-35imlrk$%wnuqejyqayeh1#=))b+9ovtqoqu*zhtr0@4=)4&t7
 ROOT_URLCONF = "urls"
 
 # AUTH_USER_MODEL = "platform_management.Manager"
-# AUTH_USER_MODEL = 'platform_management.Administrator'
+AUTH_USER_MODEL = 'platform_management.Administrator'
 
 SITE_ID = 1
 
@@ -260,6 +261,31 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 10,
     "EXCEPTION_HANDLER": "common.utils.drf.exceptions.exception_handler",
     "DEFAULT_FORMAT_SUFFIXES": '',  # 禁用格式后缀
+}
+
+# JAZZMIN配置
+JAZZMIN_SETTINGS = {
+    "site_title": "SRE培训学习中心",
+    "site_header": "SRE培训学习中心",
+    "site_brand": "My Brand",
+    "welcome_sign": "Welcome to My Admin",
+    "copyright": "Your Company",
+    "search_model": "auth.User",
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "show_navigation": True,
+    "hide_apps": [],
+    "hide_models": [],
+    "order_with_respect_to": ["auth", "myapp"],
+    "custom_css": "admin/css/custom_admin.css",
+    # "custom_js": "js/custom.js",
+    "language_chooser": True,
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.User": "fas fa-user",
+        "myapp.MyModel": "fas fa-cogs",
+    },
+    # 更多配置...
 }
 
 """

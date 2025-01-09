@@ -1,0 +1,30 @@
+body {
+   font-family: 'Your Font Family', sans-serif; /* 指定字体 */
+   font-size: 12px; /* 调整字体大小 */
+}
+
+.module h2, .module h3 {
+   font-size: 14px; /* 调整模块标题的字体大小 */
+}
+
+/* 调整 Select2 选择框的宽度 */
+.select2-selection {
+    width: 150px !important; /* 根据需要设置宽度 */
+}
+
+/* 为选择框内的文本设置样式 */
+.select2-selection__rendered {
+    white-space: nowrap; /* 防止换行 */
+    overflow: hidden; /* 隐藏超出部分 */
+    text-overflow: ellipsis; /* 使用省略号表示超出部分 */
+}
+
+/* 调整选择框的下拉箭头样式 */
+.select2-selection__arrow {
+    height: 100%; /* 使箭头高度与选择框一致 */
+}
+
+/* 调整下拉选项的宽度 */
+.select2-results {
+    width: 150px !important; /* 根据需要设置宽度 */
+}

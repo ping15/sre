@@ -45,6 +45,11 @@ class AdministratorCreateSerializer(serializers.ModelSerializer, PhoneCreateSeri
         elif affiliated_manage_company.name != default_manage_company and role != Administrator.Role.PARTNER_MANAGER:
             raise serializers.ValidationError(f"公司选择非[{default_manage_company}]时角色只能选择[合作伙伴管理员]")
 
+        # 如果是超级管理员，允许进入admin后台
+        if role == Administrator.Role.SUPER_MANAGER:
+            attrs["is_superuser"] = True
+            attrs["is_staff"] = True
+
         return super().validate(attrs)
 
     class Meta:

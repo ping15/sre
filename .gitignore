@@ -22,6 +22,6 @@ common/data
 
 home_application/templates/home_application/index.html
 
-static
+# static
 
 error_log.json

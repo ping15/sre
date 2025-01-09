@@ -459,8 +459,8 @@ class Event(models.Model):
         MONTHLY = "monthly", "每月"
 
     event_type = models.CharField("事件类型", max_length=64, choices=EventType.choices)
-    freq_type = models.CharField(choices=FreqType.choices, max_length=16, null=True, blank=True)
-    freq_interval = models.JSONField(default=list)
+    freq_type = models.CharField("周期类型", choices=FreqType.choices, max_length=16, null=True, blank=True)
+    freq_interval = models.JSONField("周期频率", default=list)
     start_date = models.DateField("开始时间")
     end_date = models.DateField("结束时间", null=True, blank=True)
     instructor = models.ForeignKey(
@@ -479,6 +479,9 @@ class Event(models.Model):
         null=True,
         blank=True,
     )
+
+    def __str__(self):
+        return ""
 
     class Meta:
         verbose_name = "日程事件"

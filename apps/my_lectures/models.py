@@ -110,7 +110,7 @@ class InstructorEnrolment(models.Model):
         verbose_name="广告",
         related_name="instructor_enrolments"
     )
-    status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField("状态", max_length=16, choices=Status.choices, default=Status.PENDING)
 
     def __str__(self):
         return f"{self.instructor.username} -> {self.advertisement.training_class.name} -> {self.get_status_display()}"
