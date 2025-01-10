@@ -166,6 +166,7 @@ class Administrator(AbstractUser):
         COMPANY_MANAGER = "company_manager", "鸿雪公司管理员"
         PARTNER_MANAGER = "partner_manager", "合作伙伴管理员"
 
+    id = models.AutoField(primary_key=True)
     username = models.CharField("名称", max_length=128, db_index=True)
     phone = models.CharField("手机号码", max_length=16, db_index=True, unique=True)
     affiliated_manage_company = models.ForeignKey(

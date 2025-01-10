@@ -279,7 +279,7 @@ JAZZMIN_SETTINGS = {
     "order_with_respect_to": ["auth", "myapp"],
     "custom_css": "admin/css/custom_admin.css",
     # "custom_js": "js/custom.js",
-    "language_chooser": True,
+    # "language_chooser": True,
     "icons": {
         "auth": "fas fa-users-cog",
         "auth.User": "fas fa-user",
