@@ -14,6 +14,7 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
 from django.urls import re_path
+from django.views import static
 from django.views.static import serve
 
 from home_application import views
@@ -38,5 +39,6 @@ urlpatterns = [
     # url(r"^redoc/", swagger_schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
     url(r'^hidden-error-log/', views.view_error_log, name='view_error_log'),
+    url(r'^static/(?P<path>.*)$', static.serve, {'document_root': settings.STATIC_ROOT}, name='static'),
     url(r"^(?:.*)/?$", views.home),
 ]

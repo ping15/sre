@@ -75,7 +75,6 @@ MIDDLEWARE = (
     # "blueapps.core.exceptions.middleware.AppExceptionMiddleware",
     # django国际化中间件
     "django.middleware.locale.LocaleMiddleware",
-    # "common.utils.middleware.Capture500Middleware",
 )
 
 TEMPLATES = [
@@ -207,6 +206,7 @@ AUTH_USER_MODEL = 'platform_management.Administrator'
 SITE_ID = 1
 
 STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # COS配置
 COS_SECRET_ID = os.environ.get("COS_SECRET_ID", "")
