@@ -206,6 +206,8 @@ AUTH_USER_MODEL = 'platform_management.Administrator'
 
 SITE_ID = 1
 
+STATIC_URL = "/static/"
+
 # COS配置
 COS_SECRET_ID = os.environ.get("COS_SECRET_ID", "")
 COS_SECRET_KEY = os.environ.get("COS_SECRET_KEY", "")
