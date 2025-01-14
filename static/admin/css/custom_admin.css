@@ -1,30 +1,84 @@
+/* 基本样式 */
 body {
-   font-family: 'Your Font Family', sans-serif; /* 指定字体 */
-   font-size: 12px; /* 调整字体大小 */
+    font-family: 'Your Font Family', sans-serif; /* 指定字体 */
+    font-size: 12px; /* 调整字体大小 */
 }
 
-.module h2, .module h3 {
-   font-size: 14px; /* 调整模块标题的字体大小 */
-}
-
-/* 调整 Select2 选择框的宽度 */
+/* Select2 选择框样式 */
 .select2-selection {
-    width: 150px !important; /* 根据需要设置宽度 */
+    display: flex; /* 使用 flex 布局 */
+    align-items: center; /* 垂直居中对齐 */
+    width: auto !important; /* 让宽度自适应内容 */
+    min-width: 150px; /* 设置最小宽度 */
+    padding: 5px; /* 添加内边距 */
+    height: 36px; /* 设置固定高度 */
+    box-sizing: border-box; /* 包括内边距和边框在内的宽度计算 */
 }
 
-/* 为选择框内的文本设置样式 */
+/* 单选选择框样式 */
+.select2-selection--single {
+    height: 36px; /* 确保单选选择框高度一致 */
+}
+
+/* 选择框内文本样式 */
 .select2-selection__rendered {
+    flex: 1; /* 使文本占据剩余空间 */
     white-space: nowrap; /* 防止换行 */
     overflow: hidden; /* 隐藏超出部分 */
     text-overflow: ellipsis; /* 使用省略号表示超出部分 */
+    padding: 0; /* 移除内边距 */
+    height: 100%; /* 使高度与选择框一致 */
+    display: flex; /* 使用 flex 布局 */
+    align-items: center; /* 垂直居中对齐 */
 }
 
-/* 调整选择框的下拉箭头样式 */
+/* 选择框的下拉箭头样式 */
 .select2-selection__arrow {
+    display: flex; /* 确保箭头和选择框在同一行 */
+    align-items: center; /* 垂直居中对齐 */
     height: 100%; /* 使箭头高度与选择框一致 */
+    margin-left: 5px; /* 根据需要调整箭头和文本之间的间距 */
 }
 
-/* 调整下拉选项的宽度 */
+/* 下拉选项样式 */
 .select2-results {
-    width: 150px !important; /* 根据需要设置宽度 */
+    max-height: 200px; /* 设置下拉框的最大高度 */
+    overflow-y: auto; /* 允许垂直滚动 */
+    box-sizing: border-box; /* 确保内边距和边框在高度中计算 */
+}
+
+/* 滚动条样式（可选） */
+.select2-results {
+    scrollbar-width: thin; /* Firefox */
+}
+
+.select2-results::-webkit-scrollbar {
+    width: 6px; /* 设置滚动条宽度 */
+}
+
+.select2-results::-webkit-scrollbar-thumb {
+    background-color: #888; /* 滚动条颜色 */
+    border-radius: 3px; /* 圆角滚动条 */
+}
+
+.select2-results::-webkit-scrollbar-thumb:hover {
+    background-color: #555; /* 悬停时的滚动条颜色 */
+}
+
+/* 下拉选项的样式 */
+.select2-results__option {
+    padding: 8px 12px; /* 设置下拉选项的内边距 */
+    line-height: 1.5; /* 确保文本行高一致 */
+    cursor: pointer; /* 鼠标悬停时显示指针 */
+}
+
+/* 鼠标悬停下拉选项的样式 */
+.select2-results__option--highlighted {
+    background-color: #e0e0e0; /* 高亮时背景颜色 */
+}
+
+/* 禁用状态的样式 */
+.select2-results__option--disabled {
+    color: #aaa; /* 禁用选项的颜色 */
+    cursor: not-allowed; /* 禁用状态鼠标样式 */
 }

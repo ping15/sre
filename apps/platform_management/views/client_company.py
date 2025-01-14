@@ -1,4 +1,3 @@
-from django.db import transaction
 from django.db.models import QuerySet
 from rest_framework.decorators import action
 
@@ -47,16 +46,6 @@ class ClientCompanyModelViewSet(ModelViewSet):
             queryset = queryset.filter(affiliated_manage_company_name=user.affiliated_manage_company_name)
 
         return queryset
-
-    def update(self, request, *args, **kwargs):
-        client_company: ClientCompany = self.get_object()
-
-        with transaction.atomic():
-            if "name" in self.request.data:
-                ClientCompany.sync_name(client_company.name, self.request.data["name"])
-            response = super().update(request, *args, **kwargs)
-
-        return response
 
     @action(methods=["GET"], detail=False)
     def filter_condition(self, request, *args, **kwargs):

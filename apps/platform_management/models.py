@@ -1,7 +1,7 @@
 from typing import List
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.db import models
+from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils.functional import classproperty
 
@@ -138,17 +138,18 @@ class ManageCompany(models.Model):
         """管理公司所有名称"""
         return list(self.objects.values_list("name", flat=True))
 
-    @classmethod
-    def sync_name(cls, old_name: str, new_name: str):
-        """修改管理公司名称时同步下面客户公司的所属管理公司名称"""
-        ClientCompany.objects.filter(affiliated_manage_company_name=old_name).update(
-            affiliated_manage_company_name=new_name
-        )
-
     def delete(self, using=None, keep_parents=False):
         """删除管理公司时删除下面所有客户公司"""
         self.client_companies.delete()
         super().delete(using, keep_parents)
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        with transaction.atomic():
+            ClientCompany.objects. \
+                filter(affiliated_manage_company_name=ManageCompany.objects.get(id=self.id).name). \
+                update(affiliated_manage_company_name=self.name)
+
+            super().save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
         return self.name
@@ -300,18 +301,20 @@ class ClientCompany(models.Model):
     def names(self) -> List[str]:
         return list(self.objects.values_list("name", flat=True))
 
-    @classmethod
-    def sync_name(cls, old_name: str, new_name: str):
-        ClientStudent.objects.filter(affiliated_client_company_name=old_name).update(
-            affiliated_client_company_name=new_name
-        )
-
     def delete(self, using=None, keep_parents=False):
         from apps.teaching_space.models import TrainingClass
 
         TrainingClass.objects.filter(target_client_company=self).delete()
         self.students.delete()
         super().delete(using, keep_parents)
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        with transaction.atomic():
+            ClientStudent.objects. \
+                filter(affiliated_client_company_name=ClientCompany.objects.get(id=self.id).name). \
+                update(affiliated_client_company_name=self.name)
+
+            super().save(force_insert, force_update, using, update_fields)
 
     def __str__(self):
         return self.name
@@ -416,12 +419,6 @@ class ClientApprovalSlip(models.Model):
     @property
     def affiliated_client_company(self) -> ClientCompany:
         return ClientCompany.objects.get(name=self.affiliated_client_company_name)
-
-    @classproperty
-    def affiliated_client_company_names(self) -> List:
-        return list(
-            self.objects.values_list("affiliated_client_company_name", flat=True)
-        )
 
     def __str__(self):
         return self.name

@@ -1,4 +1,3 @@
-from django.db import transaction
 from django.db.models import QuerySet
 from rest_framework.decorators import action
 
@@ -48,15 +47,6 @@ class ManagementCompanyModelViewSet(ModelViewSet):
             return queryset.filter(name=user.affiliated_manage_company_name)
 
         return queryset
-
-    def update(self, request, *args, **kwargs):
-        manage_company: ManageCompany = self.get_object()
-
-        with transaction.atomic():
-            response = super().update(request, *args, **kwargs)
-            if "name" in self.request.data:
-                ManageCompany.sync_name(manage_company.name, self.request.data["name"])
-        return response
 
     def destroy(self, request, *args, **kwargs):
         manage_company: ManageCompany = self.get_object()

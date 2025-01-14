@@ -9,6 +9,7 @@ from common.utils import global_constants
 
 class InstructorEvent(models.Model):
     """讲师事项"""
+
     class Status(models.TextChoices):
         # 这里加减状态下面的方法也要调整
         PENDING = "pending", "待处理"
@@ -81,6 +82,9 @@ class Advertisement(models.Model):
     deadline_datetime = models.DateTimeField("报名截至时间")
     location = models.CharField("开课地点", max_length=255)
     is_revoked = models.BooleanField("是否已撤销", default=False)
+
+    def __str__(self):
+        return self.training_class.name
 
     class Meta:
         verbose_name = "广告"
