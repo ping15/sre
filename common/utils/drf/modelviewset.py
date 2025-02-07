@@ -79,7 +79,8 @@ class ModelViewSet(DRFModelViewSet):
 
         initial_data = request.data
         if not isinstance(initial_data, list):
-            return super().create(request, *args, **kwargs)
+            response = super().create(request, *args, **kwargs)
+            return Response(status=status.HTTP_201_CREATED, instance=[model.objects.get(id=response.data["id"])])
 
         objs_to_create, objs_to_update = [], []
         try:
